@@ -69,13 +69,13 @@ export default function DashboardPage() {
       // Load profile
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('enrolled_courses, exam_date, free_course')
+        .select('enrolled_courses, exam_date')
         .eq('id', user.id)
         .single();
 
       const courses: string[] = profile?.enrolled_courses ?? [];
       setEnrolledCourses(courses);
-      setFreeCourse(profile?.free_course ?? null);
+      setFreeCourse(null); // free_course column pending — add via migration 003
 
       // Derive TEE label from exam_date
       const examDate: string = profile?.exam_date ?? '';
