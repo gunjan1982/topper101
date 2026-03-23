@@ -15,20 +15,20 @@ const YEAR1_COURSES = [
 ];
 
 const YEAR2_STREAMS = {
-  counselling: [
-    { code: 'MPCE-011', name: 'Psychopathology' },
-    { code: 'MPCE-012', name: 'Theories and Practice of Counselling' },
-    { code: 'MPCE-013', name: 'Psychotherapeutic Methods' },
+  'Group A — Clinical Psychology': [
+    { code: 'MPCE-11', name: 'Psychopathology' },
+    { code: 'MPCE-12', name: 'Psychodiagnostics' },
+    { code: 'MPCE-13', name: 'Psychotherapeutic Methods' },
   ],
-  clinical: [
-    { code: 'MPCE-021', name: 'Abnormal Psychology' },
-    { code: 'MPCE-022', name: 'Assessment in Clinical Psychology' },
-    { code: 'MPCE-023', name: 'Interventions in Clinical Psychology' },
+  'Group B — Counselling Psychology': [
+    { code: 'MPCE-21', name: 'Counselling Psychology' },
+    { code: 'MPCE-22', name: 'Assessment in Counselling and Guidance' },
+    { code: 'MPCE-23', name: 'Interventions in Counselling' },
   ],
-  organisational: [
-    { code: 'MPCE-031', name: 'Organisational Behaviour' },
-    { code: 'MPCE-032', name: 'Human Resource Development' },
-    { code: 'MPCE-033', name: 'Counselling and Guidance' },
+  'Group C — I/O Psychology': [
+    { code: 'MPCE-31', name: 'Organisational Behaviour' },
+    { code: 'MPCE-32', name: 'Human Resource Development' },
+    { code: 'MPCE-33', name: 'Organisational Development' },
   ],
 };
 
@@ -174,10 +174,11 @@ export default function OnboardingPage() {
               </button>
             ))}
 
-            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#01696F', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '1rem 0 0.5rem' }}>Year 2 — pick your stream</p>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#01696F', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '1rem 0 0.25rem' }}>Year 2 — Specialisation (pick one group)</p>
+            <p style={{ fontSize: '0.75rem', color: '#7A7974', marginBottom: '0.75rem' }}>Select the 3 courses from your specialisation group.</p>
             {Object.entries(YEAR2_STREAMS).map(([stream, courses]) => (
               <div key={stream}>
-                <p style={{ fontSize: '0.75rem', color: '#7A7974', textTransform: 'capitalize', marginBottom: '0.3rem', marginTop: '0.5rem' }}>{stream}</p>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#28251D', marginBottom: '0.3rem', marginTop: '0.75rem' }}>{stream}</p>
                 {courses.map(c => (
                   <button key={c.code} onClick={() => toggleCourse(c.code)}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.6rem 0.75rem', marginBottom: '0.4rem', border: `1.5px solid ${selectedCourses.includes(c.code) ? '#01696F' : '#D4D1CA'}`, borderRadius: '0.5rem', background: selectedCourses.includes(c.code) ? '#01696F10' : 'white', cursor: 'pointer', textAlign: 'left' }}>
