@@ -49,6 +49,32 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  async function signInAsTestUser() {
+    setLoading(true);
+    setError('');
+    const { error } = await supabase.auth.signInWithPassword({
+      email: 'test@topper101.com',
+      password: 'test1234',
+    });
+    if (error) { setError(error.message); setLoading(false); return; }
+    // Check if profile exists
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase.from('user_profiles').select('id').eq('id', user.id).single();
+      if (!profile) {
+        await supabase.from('user_profiles').upsert({
+          id: user.id,
+          email: 'test@topper101.com',
+          enrolled_courses: ['MPC-001', 'MPC-002', 'MPC-003', 'MPC-004', 'MPCE-11', 'MPCE-21', 'MPCE-23'],
+          exam_date: '2026-06-01',
+          subscription_tier: 'free',
+        });
+      }
+    }
+    router.push('/dashboard');
+    setLoading(false);
+  }
+
   async function signInWithGoogle() {
     setLoading(true);
     setError('');
@@ -164,6 +190,15 @@ export default function OnboardingPage() {
               style={{ marginTop: '0.75rem', width: '100%', padding: '0.85rem', background: '#01696F', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', opacity: loading || !email ? 0.6 : 1 }}
             >
               {loading ? 'Sending…' : 'Send code →'}
+            </button>
+
+            {/* Dev shortcut — remove before public launch */}
+            <button
+              onClick={signInAsTestUser}
+              disabled={loading}
+              style={{ marginTop: '1.5rem', width: '100%', padding: '0.6rem', background: 'none', border: '1px dashed #D4D1CA', borderRadius: '0.5rem', fontSize: '0.78rem', color: '#7A7974', cursor: 'pointer' }}
+            >
+              🛠 Dev: sign in as test user
             </button>
           </div>
         )}
