@@ -49,7 +49,15 @@ export default function OnboardingPage() {
   async function sendOtp() {
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    // Pass emailRedirectTo pointing to production — this also signals Supabase
+    // to send a 6-digit OTP code (not a magic link) when OTP is enabled in dashboard.
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
     if (error) { setError(error.message); } else { setStep('otp'); }
     setLoading(false);
   }
