@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
@@ -50,7 +50,7 @@ function ProbabilityBadge({ value }: { value: number | null }) {
   );
 }
 
-export default function QuestionsPage() {
+function QuestionsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -240,4 +240,8 @@ export default function QuestionsPage() {
       </div>
     </div>
   );
+}
+
+export default function QuestionsPage() {
+  return <Suspense><QuestionsPageInner /></Suspense>;
 }
