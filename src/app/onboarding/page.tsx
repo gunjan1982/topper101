@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     setError('');
     const { error } = await supabase.auth.signInWithPassword({
       email: 'test@topper101.com',
-      password: 'test1234',
+      password: 'test123',
     });
     if (error) { setError(error.message); setLoading(false); return; }
     // Check if profile exists
