@@ -37,10 +37,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-sm font-medium text-[#171a1f] hover:text-[#01696F]">Sign in</button>
-            <button className="rounded-full bg-[#01696F] px-5 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#01696F]/90">
-              Start Free
-            </button>
+            <a href="/onboarding" className="text-sm font-medium text-[#171a1f] hover:text-[#01696F]">Sign in</a>
+            <a href="/onboarding" className="rounded-full bg-[#01696F] px-5 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#01696F]/90">Start Free</a>
           </div>
         </div>
       </nav>
@@ -61,7 +59,7 @@ export default function HomePage() {
                 Topper101 analyzes past papers to give you the highest-probability questions, instant AI answers, and a personalized study plan tailored to your exam date.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
-                <button className="flex items-center justify-center gap-2 rounded-full bg-[#01696F] px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-[#01696F]/90">
+                <a href="/onboarding" className="flex items-center justify-center gap-2 rounded-full bg-[#01696F] px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-[#01696F]/90">
                   Try it free — no card needed
                   <svg data-svg-id="SVG_4" className="h-5 w-5 text-white" viewBox="0 0 20 20">
           <g transform="matrix(1 0 0 1 0 0)">
@@ -72,7 +70,7 @@ export default function HomePage() {
             </g>
           </g>
         </svg>
-                </button>
+                </a>
                 <button className="rounded-full border border-[#dee1e6] bg-white px-8 py-4 text-base font-semibold text-[#171a1f] transition-all hover:bg-gray-50">
                   View Pricing
                 </button>
