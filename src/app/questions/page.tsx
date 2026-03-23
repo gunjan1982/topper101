@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface Question {
@@ -36,12 +36,15 @@ const SHORT_NAMES: Record<string, string> = {
 
 export default function QuestionsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
-  const [activeCourse, setActiveCourse] = useState<string | null>(null); // null = all (MAPC level)
+  const [activeCourse, setActiveCourse] = useState<string | null>(
+    searchParams.get('course') ?? null
+  );
 
   const freqColor: Record<string, string> = {
     high: '#A13544',
@@ -111,7 +114,7 @@ export default function QuestionsPage() {
             {activeCourse ? (
               <>
                 <button
-                  onClick={() => setActiveCourse(null)}
+                  onClick={() => router.push('/dashboard')}
                   style={{ background: 'none', border: 'none', color: '#01696F', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', padding: 0 }}
                 >
                   MAPC
@@ -134,15 +137,15 @@ export default function QuestionsPage() {
         {!loading && coursesInQuestions.length > 0 && (
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
             <button
-              onClick={() => setActiveCourse(null)}
+              onClick={() => router.push('/dashboard')}
               style={{
                 padding: '0.35rem 0.85rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: '1.5px solid',
-                borderColor: !activeCourse ? '#01696F' : '#D4D1CA',
-                background: !activeCourse ? '#01696F' : 'white',
-                color: !activeCourse ? 'white' : '#7A7974',
+                borderColor: '#D4D1CA',
+                background: 'white',
+                color: '#7A7974',
               }}
             >
-              All
+              ← All courses
             </button>
             {coursesInQuestions.map(c => (
               <button

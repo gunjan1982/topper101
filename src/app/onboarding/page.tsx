@@ -42,7 +42,7 @@ export default function OnboardingPage() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
-  const [examDate, setExamDate] = useState('2026-06-01');
+  const [teeSession, setTeeSession] = useState('TEE-Jun-2026');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -86,12 +86,12 @@ export default function OnboardingPage() {
       id: user.id,
       email: user.email!,
       enrolled_courses: selectedCourses,
-      exam_date: examDate,
+      exam_date: teeSession === 'TEE-Jun-2026' ? '2026-06-01' : teeSession === 'TEE-Dec-2026' ? '2026-12-01' : '2027-06-01',
       subscription_tier: 'free',
     });
 
     if (error) { setError(error.message); setLoading(false); return; }
-    router.push('/questions');
+    router.push('/dashboard');
   }
 
   return (
@@ -202,22 +202,29 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step: Exam date */}
+        {/* Step: TEE session */}
         {step === 'examdate' && (
           <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#28251D', marginBottom: '0.25rem' }}>When is your exam?</h1>
-            <p style={{ color: '#7A7974', marginBottom: '1.5rem', fontSize: '0.9rem' }}>We'll use this to personalise your study plan and countdown.</p>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#28251D', marginBottom: '0.4rem' }}>Exam date</label>
-            <input
-              type="date"
-              value={examDate}
-              min="2026-01-01"
-              onChange={e => setExamDate(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #D4D1CA', borderRadius: '0.5rem', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
-            />
-            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#01696F10', borderRadius: '0.5rem', fontSize: '0.85rem', color: '#01696F' }}>
-              IGNOU June TEE typically starts around June 1, 2026
-            </div>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#28251D', marginBottom: '0.25rem' }}>Which TEE are you preparing for?</h1>
+            <p style={{ color: '#7A7974', marginBottom: '1.5rem', fontSize: '0.9rem' }}>IGNOU holds Term End Exams twice a year — June and December.</p>
+
+            {[
+              { value: 'TEE-Jun-2026', label: 'TEE June 2026', sub: 'Exams typically start June 1, 2026', date: '2026-06-01' },
+              { value: 'TEE-Dec-2026', label: 'TEE December 2026', sub: 'Exams typically start December 1, 2026', date: '2026-12-01' },
+              { value: 'TEE-Jun-2027', label: 'TEE June 2027', sub: 'Exams typically start June 1, 2027', date: '2027-06-01' },
+            ].map(opt => (
+              <button key={opt.value} onClick={() => setTeeSession(opt.value)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.85rem 1rem', marginBottom: '0.6rem', border: `1.5px solid ${teeSession === opt.value ? '#01696F' : '#D4D1CA'}`, borderRadius: '0.5rem', background: teeSession === opt.value ? '#01696F08' : 'white', cursor: 'pointer', textAlign: 'left' }}>
+                <span style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${teeSession === opt.value ? '#01696F' : '#D4D1CA'}`, background: teeSession === opt.value ? '#01696F' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {teeSession === opt.value && <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'white', display: 'block' }} />}
+                </span>
+                <span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#28251D', display: 'block' }}>{opt.label}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#7A7974' }}>{opt.sub}</span>
+                </span>
+              </button>
+            ))}
+
             {error && <p style={{ color: '#A13544', fontSize: '0.85rem', marginTop: '0.5rem' }}>{error}</p>}
             <button
               onClick={saveProfile}
