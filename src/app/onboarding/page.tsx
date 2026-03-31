@@ -62,12 +62,14 @@ function OnboardingPageInner() {
     if (user) {
       const { data: profile } = await supabase.from('user_profiles').select('id').eq('id', user.id).single();
       if (!profile) {
+        const defaultCourses = ['MPC-001', 'MPC-002', 'MPC-003', 'MPC-004', 'MPCE-11', 'MPCE-21', 'MPCE-23'];
         await supabase.from('user_profiles').upsert({
           id: user.id,
           email: 'test@topper101.com',
-          enrolled_courses: ['MPC-001', 'MPC-002', 'MPC-003', 'MPC-004', 'MPCE-11', 'MPCE-21', 'MPCE-23'],
+          enrolled_courses: defaultCourses,
           exam_date: '2026-06-01',
           subscription_tier: 'free',
+          free_course: defaultCourses[0],
         });
       }
     }
@@ -91,8 +93,6 @@ function OnboardingPageInner() {
   async function sendOtp() {
     setLoading(true);
     setError('');
-    // Pass emailRedirectTo pointing to production — this also signals Supabase
-    // to send a 6-digit OTP code (not a magic link) when OTP is enabled in dashboard.
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -130,6 +130,8 @@ function OnboardingPageInner() {
       enrolled_courses: selectedCourses,
       exam_date: teeSession === 'TEE-Jun-2026' ? '2026-06-01' : teeSession === 'TEE-Dec-2026' ? '2026-12-01' : '2027-06-01',
       subscription_tier: 'free',
+      // First enrolled course is the free subject
+      free_course: selectedCourses[0] ?? null,
     });
 
     if (error) { setError(error.message); setLoading(false); return; }
@@ -235,7 +237,10 @@ function OnboardingPageInner() {
         {step === 'courses' && (
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#28251D', marginBottom: '0.25rem' }}>Which courses are you studying?</h1>
-            <p style={{ color: '#7A7974', marginBottom: '1.25rem', fontSize: '0.9rem' }}>Select all that apply — we'll filter questions accordingly.</p>
+            <p style={{ color: '#7A7974', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Select all that apply — we'll filter questions accordingly.</p>
+            <div style={{ background: '#01696F10', border: '1px solid #01696F30', borderRadius: '0.5rem', padding: '0.6rem 0.75rem', marginBottom: '1rem', fontSize: '0.82rem', color: '#01696F', fontWeight: 600 }}>
+              ✓ Your first selected course is free — full question bank access, no credit card needed.
+            </div>
 
             <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#01696F', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Year 1 (Core)</p>
             {YEAR1_COURSES.map(c => (
@@ -244,7 +249,12 @@ function OnboardingPageInner() {
                 <span style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${selectedCourses.includes(c.code) ? '#01696F' : '#D4D1CA'}`, background: selectedCourses.includes(c.code) ? '#01696F' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {selectedCourses.includes(c.code) && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
                 </span>
-                <span style={{ fontSize: '0.85rem', color: '#28251D' }}><strong>{c.code}</strong> — {c.name}</span>
+                <span style={{ fontSize: '0.85rem', color: '#28251D' }}>
+                  <strong>{c.code}</strong> — {c.name}
+                  {selectedCourses[0] === c.code && (
+                    <span style={{ marginLeft: '0.5rem', fontSize: '0.72rem', fontWeight: 700, color: '#01696F', background: '#01696F15', padding: '0.1rem 0.4rem', borderRadius: '999px' }}>FREE</span>
+                  )}
+                </span>
               </button>
             ))}
 
@@ -259,7 +269,12 @@ function OnboardingPageInner() {
                     <span style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${selectedCourses.includes(c.code) ? '#01696F' : '#D4D1CA'}`, background: selectedCourses.includes(c.code) ? '#01696F' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {selectedCourses.includes(c.code) && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
                     </span>
-                    <span style={{ fontSize: '0.85rem', color: '#28251D' }}><strong>{c.code}</strong> — {c.name}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#28251D' }}>
+                      <strong>{c.code}</strong> — {c.name}
+                      {selectedCourses[0] === c.code && (
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.72rem', fontWeight: 700, color: '#01696F', background: '#01696F15', padding: '0.1rem 0.4rem', borderRadius: '999px' }}>FREE</span>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>

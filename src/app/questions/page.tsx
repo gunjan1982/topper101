@@ -62,6 +62,8 @@ function QuestionsPageInner() {
   const [activeCourse, setActiveCourse] = useState<string>(
     searchParams.get('course') ?? ''
   );
+  const [freeCourse, setFreeCourse] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
 
   useEffect(() => {
     async function load() {
@@ -71,12 +73,18 @@ function QuestionsPageInner() {
 
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('enrolled_courses')
+        .select('enrolled_courses, free_course, subscription_tier')
         .eq('id', user.id)
         .single();
 
       const courses: string[] = profile?.enrolled_courses ?? [];
       setEnrolledCourses(courses);
+
+      const tier = profile?.subscription_tier ?? 'free';
+      setSubscriptionTier(tier);
+
+      const fc = tier === 'free' ? (profile?.free_course ?? null) : null;
+      setFreeCourse(fc);
 
       // Default to first enrolled course if none in URL
       if (!searchParams.get('course') && courses.length > 0) {
@@ -101,8 +109,12 @@ function QuestionsPageInner() {
     .filter(q => q.courses?.code === activeCourse)
     .sort((a, b) => (b.probability ?? 0) - (a.probability ?? 0));
 
-  const topQuestions = courseQuestions.slice(0, 5);
-  const lockedQuestions = courseQuestions.slice(5);
+  const isPaid = subscriptionTier !== 'free';
+  const isCourseUnlocked = isPaid || freeCourse === activeCourse;
+
+  // If unlocked: show all questions. If locked: show top 5 + blur gate.
+  const visibleQuestions = isCourseUnlocked ? courseQuestions : courseQuestions.slice(0, 5);
+  const lockedQuestions = isCourseUnlocked ? [] : courseQuestions.slice(5);
 
   const activeName = SHORT_NAMES[activeCourse] ?? activeCourse;
 
@@ -129,7 +141,17 @@ function QuestionsPageInner() {
             </>
           )}
         </div>
-        <span style={{ fontSize: '0.8rem', color: '#7A7974', flexShrink: 0, marginLeft: '0.5rem' }}>{userEmail}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, marginLeft: '0.5rem' }}>
+          {!isPaid && (
+            <button
+              onClick={() => router.push('/upgrade')}
+              style={{ padding: '0.35rem 0.85rem', background: '#01696F', color: 'white', border: 'none', borderRadius: '0.4rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Upgrade
+            </button>
+          )}
+          <span style={{ fontSize: '0.8rem', color: '#7A7974' }}>{userEmail}</span>
+        </div>
       </nav>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem 1rem' }}>
@@ -148,10 +170,26 @@ function QuestionsPageInner() {
             {enrolledCourses.map(code => (
               <option key={code} value={code}>
                 {code} — {SHORT_NAMES[code] ?? code}
+                {!isPaid && freeCourse !== code ? ' 🔒' : ''}
               </option>
             ))}
           </select>
         </div>
+
+        {/* Locked subject notice */}
+        {activeCourse && !isCourseUnlocked && !loading && (
+          <div style={{ background: '#96421910', border: '1.5px solid #96421930', borderRadius: '0.5rem', padding: '0.65rem 0.9rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <p style={{ fontSize: '0.82rem', color: '#964219', fontWeight: 600, margin: 0 }}>
+              🔒 Preview only — showing top 5 questions
+            </p>
+            <button
+              onClick={() => router.push('/upgrade')}
+              style={{ padding: '0.35rem 0.85rem', background: '#964219', color: 'white', border: 'none', borderRadius: '0.4rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              Unlock this subject →
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ marginBottom: '1.25rem' }}>
@@ -160,7 +198,7 @@ function QuestionsPageInner() {
           </h1>
           <p style={{ color: '#7A7974', fontSize: '0.875rem' }}>
             {activeCourse
-              ? `${courseQuestions.length} questions · sorted by exam probability`
+              ? `${isCourseUnlocked ? courseQuestions.length : Math.min(courseQuestions.length, 5)} question${isCourseUnlocked ? 's' : 's (preview)'} · sorted by exam probability`
               : 'Select a subject above'}
           </p>
         </div>
@@ -169,8 +207,8 @@ function QuestionsPageInner() {
           <div style={{ textAlign: 'center', padding: '3rem', color: '#7A7974' }}>Loading…</div>
         )}
 
-        {/* Top 5 visible questions */}
-        {topQuestions.map((q, i) => (
+        {/* Visible questions (top 5 for locked, all for unlocked) */}
+        {visibleQuestions.map((q, i) => (
           <div key={q.id} style={{ background: 'white', borderRadius: '0.75rem', padding: '1.25rem 1.5rem', marginBottom: '0.75rem', border: '1px solid #D4D1CA', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -198,7 +236,7 @@ function QuestionsPageInner() {
           </div>
         ))}
 
-        {/* Locked questions — blurred */}
+        {/* Locked questions blur gate */}
         {lockedQuestions.length > 0 && (
           <div style={{ position: 'relative' }}>
             {/* Show 2 blurred cards */}
@@ -214,7 +252,7 @@ function QuestionsPageInner() {
             ))}
 
             {/* Upgrade overlay */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, top: '30%', background: 'linear-gradient(to bottom, transparent, #F7F6F2 40%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '1.5rem', textAlign: 'center' }}>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, top: '20%', background: 'linear-gradient(to bottom, transparent, #F7F6F2 40%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '1.5rem', textAlign: 'center' }}>
               <p style={{ fontWeight: 700, color: '#28251D', fontSize: '1rem', marginBottom: '0.25rem' }}>
                 +{lockedQuestions.length} more questions in this subject
               </p>

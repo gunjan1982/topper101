@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [freeCourse, setFreeCourse] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
 
   useEffect(() => {
     async function load() {
@@ -66,16 +67,22 @@ export default function DashboardPage() {
       if (!user) { router.push('/onboarding'); return; }
       setUserEmail(user.email ?? '');
 
-      // Load profile
+      // Load profile — include free_course and subscription_tier
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('enrolled_courses, exam_date')
+        .select('enrolled_courses, exam_date, free_course, subscription_tier')
         .eq('id', user.id)
         .single();
 
       const courses: string[] = profile?.enrolled_courses ?? [];
       setEnrolledCourses(courses);
-      setFreeCourse(null); // free_course column pending — add via migration 003
+
+      const tier = profile?.subscription_tier ?? 'free';
+      setSubscriptionTier(tier);
+
+      // Only apply free_course gate for free tier users
+      const fc = tier === 'free' ? (profile?.free_course ?? null) : null;
+      setFreeCourse(fc);
 
       // Derive TEE label from exam_date
       const examDate: string = profile?.exam_date ?? '';
@@ -119,6 +126,9 @@ export default function DashboardPage() {
   };
 
   const days = daysLeft();
+  const isPaid = subscriptionTier !== 'free';
+  // Count locked courses (for CTA copy)
+  const lockedCount = freeCourse ? courseStats.filter(cs => cs.code !== freeCourse).length : 0;
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F6F2' }}>
@@ -130,7 +140,17 @@ export default function DashboardPage() {
           <span style={{ color: '#D4D1CA', margin: '0 0.25rem' }}>|</span>
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#28251D' }}>MAPC</span>
         </div>
-        <span style={{ fontSize: '0.82rem', color: '#7A7974' }}>{userEmail}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {!isPaid && (
+            <button
+              onClick={() => router.push('/upgrade')}
+              style={{ padding: '0.35rem 0.85rem', background: '#01696F', color: 'white', border: 'none', borderRadius: '0.4rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Upgrade
+            </button>
+          )}
+          <span style={{ fontSize: '0.82rem', color: '#7A7974' }}>{userEmail}</span>
+        </div>
       </nav>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem 1rem' }}>
@@ -146,6 +166,27 @@ export default function DashboardPage() {
               <p style={{ color: 'white', fontWeight: 800, fontSize: '2rem', lineHeight: 1 }}>{days}</p>
               <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem' }}>days left</p>
             </div>
+          </div>
+        )}
+
+        {/* Freemium notice banner — only for free users with a free_course set */}
+        {!isPaid && freeCourse && (
+          <div style={{ background: '#F7F6F2', border: '1.5px solid #D4D1CA', borderRadius: '0.75rem', padding: '0.9rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#28251D', marginBottom: '0.15rem' }}>
+                Free plan — 1 subject unlocked
+              </p>
+              <p style={{ fontSize: '0.78rem', color: '#7A7974' }}>
+                <strong style={{ color: '#01696F' }}>{freeCourse} · {SHORT_NAMES[freeCourse] ?? freeCourse}</strong> is fully open.
+                {lockedCount > 0 && ` Upgrade to unlock all ${lockedCount + 1} subjects.`}
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/upgrade')}
+              style={{ padding: '0.5rem 1.1rem', background: '#01696F', color: 'white', border: 'none', borderRadius: '0.4rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              See plans →
+            </button>
           </div>
         )}
 
@@ -166,8 +207,8 @@ export default function DashboardPage() {
         )}
 
         {courseStats.map(cs => {
-          const isFree = freeCourse === cs.code;
-          const isLocked = freeCourse && !isFree;
+          const isFree = isPaid || freeCourse === cs.code;
+          const isLocked = !isFree;
           const highPct = cs.total > 0 ? Math.round((cs.high / cs.total) * 100) : 0;
           const medPct = cs.total > 0 ? Math.round((cs.medium / cs.total) * 100) : 0;
 
@@ -175,17 +216,22 @@ export default function DashboardPage() {
             <div
               key={cs.code}
               onClick={() => router.push(`/questions?course=${cs.code}`)}
-              style={{ background: 'white', borderRadius: '0.75rem', padding: '1.25rem 1.5rem', marginBottom: '0.75rem', border: `1.5px solid ${isFree ? '#01696F' : '#D4D1CA'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', cursor: 'pointer', position: 'relative' }}
+              style={{ background: 'white', borderRadius: '0.75rem', padding: '1.25rem 1.5rem', marginBottom: '0.75rem', border: `1.5px solid ${isFree && freeCourse === cs.code ? '#01696F' : '#D4D1CA'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', cursor: 'pointer', position: 'relative', opacity: isLocked ? 0.75 : 1 }}
             >
-              {/* Lock badge */}
+              {/* Status badge */}
               {isLocked && (
                 <span style={{ position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.72rem', fontWeight: 700, color: '#964219', background: '#96421915', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
                   🔒 Upgrade
                 </span>
               )}
-              {isFree && (
+              {!isLocked && freeCourse === cs.code && (
                 <span style={{ position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.72rem', fontWeight: 700, color: '#01696F', background: '#01696F15', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
                   ✓ Free
+                </span>
+              )}
+              {isPaid && (
+                <span style={{ position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.72rem', fontWeight: 700, color: '#01696F', background: '#01696F15', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
+                  ✓ Unlocked
                 </span>
               )}
 
@@ -215,10 +261,10 @@ export default function DashboardPage() {
           );
         })}
 
-        {/* Upgrade CTA if any locked */}
-        {freeCourse && courseStats.length > 1 && (
+        {/* Upgrade CTA strip at bottom */}
+        {!isPaid && lockedCount > 0 && (
           <div style={{ marginTop: '1rem', background: 'white', borderRadius: '0.75rem', padding: '1.25rem 1.5rem', border: '1.5px solid #D4D1CA', textAlign: 'center' }}>
-            <p style={{ fontWeight: 700, color: '#28251D', marginBottom: '0.25rem' }}>Unlock all {courseStats.length} courses</p>
+            <p style={{ fontWeight: 700, color: '#28251D', marginBottom: '0.25rem' }}>Unlock all {courseStats.length} subjects</p>
             <p style={{ color: '#7A7974', fontSize: '0.875rem', marginBottom: '1rem' }}>Get full access to every question bank + AI model answers</p>
             <button
               onClick={() => router.push('/upgrade')}
