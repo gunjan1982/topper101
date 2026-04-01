@@ -1,7 +1,15 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const PLANS = [
   {
@@ -36,6 +44,107 @@ const PLANS = [
 
 export default function UpgradePage() {
   const router = useRouter();
+  const supabase = createClient();
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Get user info
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { router.push('/onboarding'); return; }
+      setUserEmail(user.email ?? '');
+      setUserName(user.user_metadata?.full_name ?? user.user_metadata?.name ?? '');
+    });
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  async function handlePurchase(planId: string) {
+    setError('');
+    setLoading(planId);
+
+    try {
+      // Step 1: Create Razorpay order
+      const res = await fetch('/api/razorpay/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId }),
+      });
+
+      const orderData = await res.json();
+      if (!res.ok) throw new Error(orderData.error ?? 'Failed to create order');
+
+      // Step 2: Open Razorpay checkout
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Topper101',
+        description: orderData.plan_name,
+        order_id: orderData.order_id,
+        prefill: {
+          email: userEmail,
+          name: userName,
+        },
+        theme: {
+          color: '#01696F',
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(null);
+          },
+        },
+        handler: async (response: any) => {
+          // Step 3: Verify payment server-side
+          try {
+            const verifyRes = await fetch('/api/razorpay/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: planId,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok) throw new Error(verifyData.error ?? 'Verification failed');
+
+            setSuccess(`Payment successful! Your ${planId === 'exam_pass' ? 'Exam Pass' : 'Full Archive'} is now active.`);
+            setLoading(null);
+
+            // Redirect to dashboard after 2s
+            setTimeout(() => router.push('/dashboard'), 2000);
+          } catch (verifyErr: any) {
+            setError(verifyErr.message ?? 'Payment verification failed. Contact support.');
+            setLoading(null);
+          }
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', (response: any) => {
+        setError(`Payment failed: ${response.error.description}`);
+        setLoading(null);
+      });
+      rzp.open();
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong. Please try again.');
+      setLoading(null);
+    }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F6F2' }}>
@@ -54,9 +163,25 @@ export default function UpgradePage() {
           <span style={{ color: '#D4D1CA', fontSize: '0.9rem' }}>›</span>
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#28251D' }}>Upgrade</span>
         </div>
+        {userEmail && <span style={{ fontSize: '0.82rem', color: '#7A7974' }}>{userEmail}</span>}
       </nav>
 
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '2.5rem 1rem' }}>
+
+        {/* Success state */}
+        {success && (
+          <div style={{ background: '#01696F15', border: '1.5px solid #01696F40', borderRadius: '0.75rem', padding: '1.25rem 1.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+            <p style={{ fontWeight: 700, color: '#01696F', fontSize: '1rem', marginBottom: '0.25rem' }}>🎉 {success}</p>
+            <p style={{ color: '#7A7974', fontSize: '0.85rem' }}>Redirecting to your dashboard…</p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div style={{ background: '#A1354415', border: '1.5px solid #A1354440', borderRadius: '0.75rem', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: '#A13544', fontSize: '0.875rem', fontWeight: 600 }}>{error}</p>
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -94,12 +219,26 @@ export default function UpgradePage() {
               </ul>
 
               <button
-                style={{ width: '100%', padding: '0.85rem', background: plan.color, color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 700, cursor: 'not-allowed', opacity: 0.7 }}
-                disabled
+                onClick={() => handlePurchase(plan.id)}
+                disabled={loading !== null || !!success}
+                style={{
+                  width: '100%', padding: '0.85rem', background: plan.color, color: 'white',
+                  border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 700,
+                  cursor: loading !== null || success ? 'not-allowed' : 'pointer',
+                  opacity: loading !== null || success ? 0.7 : 1,
+                  transition: 'opacity 0.15s',
+                }}
               >
-                Coming soon
+                {loading === plan.id ? 'Opening payment…' : `Get ${plan.name} →`}
               </button>
             </div>
+          ))}
+        </div>
+
+        {/* Trust signals */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          {['🔒 Secure checkout', '✓ UPI · Cards · Net banking', '↩ Refund within 7 days'].map(t => (
+            <span key={t} style={{ fontSize: '0.78rem', color: '#7A7974' }}>{t}</span>
           ))}
         </div>
 
@@ -117,7 +256,7 @@ export default function UpgradePage() {
         </div>
 
         <p style={{ textAlign: 'center', color: '#7A7974', fontSize: '0.78rem', marginTop: '1.5rem' }}>
-          Payments via Razorpay · Secure checkout · UPI, cards, net banking accepted
+          Payments processed by Razorpay · Your data is safe
         </p>
       </div>
     </div>
