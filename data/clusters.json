@@ -1,0 +1,3376 @@
+[
+  {
+    "cluster_name": "Cognitive Psychology Foundations",
+    "description": "Covers the definition, history, domains, research methods, and key issues in cognitive psychology.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2020-jun-a-2",
+      "mpc001-2021-jun-b-6",
+      "mpc001-2022-jun-b-5",
+      "mpc001-2022-dec-a-1",
+      "mpc001-2023-dec-a-1",
+      "mpc001-2023-dec-c-10",
+      "mpc001-2024-jun-a-2",
+      "mpc001-2024-jun-b-5",
+      "mpc001-2024-dec-a-3",
+      "mpc001-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Information Processing Models",
+    "description": "Focuses on the information processing approach, principles, Bloom's taxonomy, and Sternberg's information processing theory.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-b-6",
+      "mpc001-2019-jun-b-7",
+      "mpc001-2019-dec-a-1",
+      "mpc001-2020-jun-b-5",
+      "mpc001-2021-jun-b-5",
+      "mpc001-2022-jun-c-10",
+      "mpc001-2022-dec-b-6",
+      "mpc001-2023-dec-c-11",
+      "mpc001-2024-jun-a-1",
+      "mpc001-2025-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Memory Models and Systems",
+    "description": "Includes models of memory (Atkinson-Shiffrin, Waugh-Norman, Craik-Lockhart), sensory, short-term, long-term memory, and memory consolidation.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-c-11",
+      "mpc001-2019-dec-c-10",
+      "mpc001-2019-dec-c-11",
+      "mpc001-2020-jun-a-1",
+      "mpc001-2021-jun-a-1",
+      "mpc001-2021-jun-c-10",
+      "mpc001-2022-jun-b-6",
+      "mpc001-2022-dec-b-5",
+      "mpc001-2022-dec-c-11",
+      "mpc001-2023-dec-b-5",
+      "mpc001-2024-jun-c-11",
+      "mpc001-2024-dec-a-1",
+      "mpc001-2024-dec-a-2",
+      "mpc001-2024-dec-c-10",
+      "mpc001-2025-jun-b-5",
+      "mpc001-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Problem Solving Fundamentals",
+    "description": "Covers definition, nature, stages, strategies, types of problems, and factors affecting problem solving.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-a-1",
+      "mpc001-2019-jun-a-4",
+      "mpc001-2019-jun-b-9",
+      "mpc001-2020-jun-a-3",
+      "mpc001-2021-jun-a-2",
+      "mpc001-2022-jun-a-1",
+      "mpc001-2022-dec-a-2",
+      "mpc001-2022-dec-b-9",
+      "mpc001-2024-jun-b-8",
+      "mpc001-2024-jun-b-9",
+      "mpc001-2024-dec-b-9",
+      "mpc001-2024-dec-c-11",
+      "mpc001-2025-jun-a-3",
+      "mpc001-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Blocks to Problem Solving",
+    "description": "Focuses on intellectual, emotional, cultural, and environmental blocks to problem solving.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-dec-a-3",
+      "mpc001-2020-jun-b-9",
+      "mpc001-2021-jun-b-9",
+      "mpc001-2022-jun-a-4",
+      "mpc001-2024-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Creativity Theories and Stages",
+    "description": "Covers meaning, aspects, stages, measurement, and theories of creativity (investment, confluence, Guilford).",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-a-2",
+      "mpc001-2019-jun-b-8",
+      "mpc001-2020-jun-a-4",
+      "mpc001-2020-jun-b-6",
+      "mpc001-2021-jun-a-3",
+      "mpc001-2021-jun-c-3",
+      "mpc001-2022-jun-c-11",
+      "mpc001-2022-dec-a-3",
+      "mpc001-2023-dec-b-9",
+      "mpc001-2024-dec-a-4",
+      "mpc001-2025-jun-b-6",
+      "mpc001-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Intelligence Theories",
+    "description": "Includes Spearman, Sternberg, Guilford, PASS, Gardner, Binet, and IQ concepts.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-a-3",
+      "mpc001-2019-dec-c-12",
+      "mpc001-2020-jun-b-7",
+      "mpc001-2021-jun-a-4",
+      "mpc001-2021-jun-b-7",
+      "mpc001-2021-jun-b-8",
+      "mpc001-2021-jun-c-11",
+      "mpc001-2022-jun-a-2",
+      "mpc001-2022-jun-a-3",
+      "mpc001-2022-jun-c-12",
+      "mpc001-2022-dec-c-12",
+      "mpc001-2023-dec-a-2",
+      "mpc001-2023-dec-a-3",
+      "mpc001-2023-dec-b-6",
+      "mpc001-2024-jun-a-3",
+      "mpc001-2024-jun-b-6",
+      "mpc001-2024-dec-b-5",
+      "mpc001-2024-dec-c-12",
+      "mpc001-2025-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Language Acquisition and Processing",
+    "description": "Covers language acquisition theories (innate, behaviorist, Piaget), stages, building blocks, and language processing models.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-dec-b-7",
+      "mpc001-2020-jun-c-12",
+      "mpc001-2021-jun-c-2",
+      "mpc001-2022-jun-b-9",
+      "mpc001-2022-dec-a-4",
+      "mpc001-2023-dec-b-7",
+      "mpc001-2023-dec-b-8",
+      "mpc001-2024-jun-a-4",
+      "mpc001-2024-jun-b-7",
+      "mpc001-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Language Disorders and Speech",
+    "description": "Focuses on aphasia, dysarthria, speech disorders, and related language impairments.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2020-jun-b-8",
+      "mpc001-2020-jun-c-10",
+      "mpc001-2022-jun-b-8",
+      "mpc001-2022-dec-b-7",
+      "mpc001-2023-dec-c-12",
+      "mpc001-2024-dec-b-6",
+      "mpc001-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Multilingualism and Bilingualism",
+    "description": "Covers additive vs. subtractive bilingualism, benefits of multilingualism, and relationship with thinking.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-c-10",
+      "mpc001-2022-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Artificial Intelligence in Problem Solving",
+    "description": "Focuses on the role and significance of AI in problem solving.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-dec-a-4",
+      "mpc001-2019-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Biological Bases of Memory and Learning",
+    "description": "Covers hippocampus, Hebbian learning, memory consolidation, cellular bases, and Alzheimer's disease.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-c-12",
+      "mpc001-2020-jun-c-11",
+      "mpc001-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Comprehension and Language Expression",
+    "description": "Includes Kintsch's model, Clark and Clark's elements, and single-system vs. dual-system hypotheses.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-jun-b-5",
+      "mpc001-2023-dec-b-7",
+      "mpc001-2023-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Newell's and Gestalt Approaches",
+    "description": "Covers Newell's approach and Gestalt approach to problem solving.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2019-dec-a-4",
+      "mpc001-2024-jun-b-9",
+      "mpc001-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-001",
+    "question_ids": [
+      "mpc001-2023-dec-a-4",
+      "mpc001-2021-jun-c-12",
+      "mpc001-2022-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Foundations of Life Span Development",
+    "description": "Covers definitions, characteristics, stages, issues, and research methods in life span development.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-a-1",
+      "mpc002-2019-jun-c-10",
+      "mpc002-2019-dec-b-5",
+      "mpc002-2020-jun-a-5",
+      "mpc002-2020-jun-c-10",
+      "mpc002-2022-jun-a-1",
+      "mpc002-2022-dec-a-1",
+      "mpc002-2023-dec-a-1",
+      "mpc002-2024-jun-a-1",
+      "mpc002-2024-jun-b-6",
+      "mpc002-2024-jun-c-11",
+      "mpc002-2024-dec-a-1",
+      "mpc002-2025-jun-a-1",
+      "mpc002-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Prenatal and Infancy Development",
+    "description": "Focuses on prenatal stages, infancy characteristics, adjustments, hazards, and psychosocial development.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-b-5",
+      "mpc002-2019-dec-a-1",
+      "mpc002-2019-dec-a-4",
+      "mpc002-2020-jun-a-6",
+      "mpc002-2021-jun-a-1",
+      "mpc002-2021-jun-c-10",
+      "mpc002-2022-dec-a-2",
+      "mpc002-2022-dec-b-5",
+      "mpc002-2024-dec-a-4",
+      "mpc002-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Early Childhood Development",
+    "description": "Covers physical, psychosocial, cognitive, and motor development in early childhood, including hazards.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-a-2",
+      "mpc002-2019-dec-b-6",
+      "mpc002-2020-jun-a-1",
+      "mpc002-2020-jun-c-11",
+      "mpc002-2022-jun-b-6",
+      "mpc002-2023-dec-c-10",
+      "mpc002-2024-dec-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Middle Childhood and School Years",
+    "description": "Addresses cognitive development, moral development, school skills, and physical development during middle childhood.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-dec-a-2",
+      "mpc002-2019-dec-c-11",
+      "mpc002-2020-jun-a-4",
+      "mpc002-2021-jun-c-3",
+      "mpc002-2021-dec-a-8",
+      "mpc002-2022-jun-a-2",
+      "mpc002-2022-jun-c-11",
+      "mpc002-2022-dec-c-10",
+      "mpc002-2022-dec-c-11",
+      "mpc002-2024-jun-b-8",
+      "mpc002-2024-dec-b-9",
+      "mpc002-2024-dec-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Adolescence: Identity and Challenges",
+    "description": "Explores cognitive development, identity crisis, self-concept, sexuality, and high-risk behavior in adolescence.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-b-7",
+      "mpc002-2019-dec-b-7",
+      "mpc002-2020-jun-a-7",
+      "mpc002-2021-jun-b-5",
+      "mpc002-2021-jun-b-6",
+      "mpc002-2021-dec-c-10",
+      "mpc002-2022-jun-b-7",
+      "mpc002-2022-jun-b-8",
+      "mpc002-2022-dec-b-7",
+      "mpc002-2022-dec-c-12",
+      "mpc002-2023-dec-b-5",
+      "mpc002-2023-dec-b-7",
+      "mpc002-2024-jun-b-7",
+      "mpc002-2024-dec-b-8",
+      "mpc002-2025-jun-a-2",
+      "mpc002-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Early Adulthood Development",
+    "description": "Covers cognitive and psychosocial changes, family life cycle, and stage theories in early adulthood.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-a-4",
+      "mpc002-2019-jun-b-8",
+      "mpc002-2019-dec-b-8",
+      "mpc002-2020-jun-a-3",
+      "mpc002-2021-jun-a-2",
+      "mpc002-2021-dec-a-2",
+      "mpc002-2022-jun-a-4",
+      "mpc002-2022-dec-b-8",
+      "mpc002-2023-dec-b-9",
+      "mpc002-2024-dec-a-2",
+      "mpc002-2024-dec-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Middle Adulthood Development",
+    "description": "Focuses on cognitive changes, psychosocial issues, ageing challenges, and developmental tasks in middle adulthood.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2021-jun-a-4",
+      "mpc002-2022-jun-b-9",
+      "mpc002-2022-dec-b-9",
+      "mpc002-2023-dec-b-8",
+      "mpc002-2024-jun-a-3",
+      "mpc002-2024-dec-b-7",
+      "mpc002-2025-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Late Adulthood and Ageing",
+    "description": "Discusses ageing issues, challenges, psychosocial changes, cognitive decline, and retirement in late adulthood.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-b-9",
+      "mpc002-2019-dec-a-3",
+      "mpc002-2019-dec-b-9",
+      "mpc002-2020-jun-a-9",
+      "mpc002-2020-jun-c-12",
+      "mpc002-2021-jun-c-4",
+      "mpc002-2022-dec-a-4",
+      "mpc002-2022-dec-b-6",
+      "mpc002-2024-jun-c-12",
+      "mpc002-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Cognitive Development Theories",
+    "description": "Covers Piaget's stages, information processing, and cognitive development across the lifespan.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2021-dec-a-1",
+      "mpc002-2022-jun-a-3",
+      "mpc002-2024-jun-a-4",
+      "mpc002-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Moral Development Theories",
+    "description": "Compares Piaget's and Kohlberg's theories of moral development.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-b-6",
+      "mpc002-2023-dec-a-2",
+      "mpc002-2024-dec-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Language and Concept Development",
+    "description": "Includes language components, semantics, grammar, and concept formation.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-c-11",
+      "mpc002-2019-jun-c-12",
+      "mpc002-2021-jun-b-7",
+      "mpc002-2021-jun-c-11",
+      "mpc002-2022-jun-b-5",
+      "mpc002-2023-dec-c-11",
+      "mpc002-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Motor Development and Physical Growth",
+    "description": "Covers motor development, fine and gross motor skills, growth spurts, and factors affecting height and weight.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-dec-c-12",
+      "mpc002-2021-jun-b-8",
+      "mpc002-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Learning Disabilities and Remediation",
+    "description": "Addresses definition, characteristics, causes, identification, and remedial programs for learning disabilities.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2019-jun-a-3",
+      "mpc002-2020-jun-a-8",
+      "mpc002-2021-jun-a-3",
+      "mpc002-2022-jun-c-12",
+      "mpc002-2023-dec-b-6",
+      "mpc002-2024-dec-c-11",
+      "mpc002-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Exceptional Children and Special Education",
+    "description": "Covers gifted children, intellectual disability, ADHD, and effective teaching strategies.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2021-jun-c-12",
+      "mpc002-2021-dec-a-7",
+      "mpc002-2021-dec-c-12",
+      "mpc002-2024-jun-b-9",
+      "mpc002-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Social and Emotional Development",
+    "description": "Includes attachment patterns, emotions, self-esteem, social cognition, and role of family and peers.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2021-jun-b-9",
+      "mpc002-2021-dec-c-11",
+      "mpc002-2022-jun-c-10",
+      "mpc002-2023-dec-c-12",
+      "mpc002-2024-jun-c-10",
+      "mpc002-2024-dec-c-12",
+      "mpc002-2025-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-002",
+    "question_ids": [
+      "mpc002-2023-dec-a-3",
+      "mpc002-2024-jun-a-2",
+      "mpc002-2021-dec-a-9"
+    ]
+  },
+  {
+    "cluster_name": "Personality Assessment Methods",
+    "description": "Covers the need, aims, purpose, and various methods of personality assessment including projective, behavioural, case study, interview, and self-report techniques.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-a-1",
+      "mpc003-2019-jun-b-6",
+      "mpc003-2019-jun-b-7",
+      "mpc003-2019-jun-b-8",
+      "mpc003-2019-dec-a-3",
+      "mpc003-2019-dec-a-4",
+      "mpc003-2019-dec-b-9",
+      "mpc003-2020-jun-a-3",
+      "mpc003-2020-jun-a-4",
+      "mpc003-2020-jun-b-8",
+      "mpc003-2020-jun-b-9",
+      "mpc003-2021-jun-a-4",
+      "mpc003-2021-jun-b-9",
+      "mpc003-2021-jun-c-12",
+      "mpc003-2021-jun-c-4",
+      "mpc003-2021-dec-a-9",
+      "mpc003-2021-dec-c-11",
+      "mpc003-2021-dec-c-12",
+      "mpc003-2022-jun-a-4",
+      "mpc003-2022-jun-b-8",
+      "mpc003-2022-jun-b-9",
+      "mpc003-2022-dec-a-4",
+      "mpc003-2022-dec-b-9",
+      "mpc003-2023-dec-b-6",
+      "mpc003-2023-dec-b-7",
+      "mpc003-2024-jun-b-6",
+      "mpc003-2024-jun-b-7",
+      "mpc003-2024-dec-a-2",
+      "mpc003-2024-dec-b-8",
+      "mpc003-2024-dec-b-9",
+      "mpc003-2024-dec-c-11",
+      "mpc003-2025-jun-b-5",
+      "mpc003-2025-jun-b-7",
+      "mpc003-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Trait Theories of Personality",
+    "description": "Focuses on trait-based theories including Allport, Cattell, Guilford, Eysenck, and the Big Five model.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-a-2",
+      "mpc003-2019-jun-a-4",
+      "mpc003-2019-dec-b-5",
+      "mpc003-2019-dec-b-7",
+      "mpc003-2020-jun-b-5",
+      "mpc003-2021-jun-a-1",
+      "mpc003-2021-jun-a-3",
+      "mpc003-2021-jun-c-3",
+      "mpc003-2022-dec-a-1",
+      "mpc003-2022-dec-b-7",
+      "mpc003-2023-dec-a-2",
+      "mpc003-2023-dec-a-4",
+      "mpc003-2023-dec-b-5",
+      "mpc003-2024-jun-a-1",
+      "mpc003-2024-dec-a-4",
+      "mpc003-2024-dec-b-5",
+      "mpc003-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Psychoanalytic and Neo-Freudian Theories",
+    "description": "Covers Freud's structural model, psychosexual stages, defense mechanisms, and theories by Sullivan, Horney, and developmental epochs.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-a-3",
+      "mpc003-2019-jun-b-5",
+      "mpc003-2019-dec-b-6",
+      "mpc003-2020-jun-b-7",
+      "mpc003-2021-jun-b-6",
+      "mpc003-2021-jun-c-10",
+      "mpc003-2022-jun-a-3",
+      "mpc003-2023-dec-c-11",
+      "mpc003-2023-dec-c-12",
+      "mpc003-2024-jun-a-2",
+      "mpc003-2024-dec-b-6",
+      "mpc003-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Humanistic and Existential Theories",
+    "description": "Includes Rogers' theory, Maslow's hierarchy of needs, self-actualisation, and growth versus deficiency needs.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-dec-c-11",
+      "mpc003-2020-jun-a-2",
+      "mpc003-2021-jun-b-7",
+      "mpc003-2021-dec-a-7",
+      "mpc003-2022-jun-a-2",
+      "mpc003-2022-dec-b-6",
+      "mpc003-2024-jun-b-9",
+      "mpc003-2024-jun-c-11",
+      "mpc003-2024-dec-b-7",
+      "mpc003-2025-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Learning and Social-Cognitive Theories",
+    "description": "Covers classical conditioning, operant conditioning, schedules of reinforcement, extinction, generalisation, discrimination, and Bandura's social learning theory.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-b-9",
+      "mpc003-2019-jun-c-10",
+      "mpc003-2019-dec-a-2",
+      "mpc003-2021-jun-a-2",
+      "mpc003-2021-jun-c-11",
+      "mpc003-2021-jun-c-2",
+      "mpc003-2021-dec-c-10",
+      "mpc003-2022-jun-b-6",
+      "mpc003-2022-jun-c-10",
+      "mpc003-2022-dec-a-2",
+      "mpc003-2022-dec-b-8",
+      "mpc003-2022-dec-c-10",
+      "mpc003-2023-dec-a-3",
+      "mpc003-2023-dec-b-9",
+      "mpc003-2024-jun-b-8",
+      "mpc003-2024-dec-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Biological and Type Approaches",
+    "description": "Addresses biological factors, neurophysiological basis, Eysenck's type/trait hierarchy, Sheldon's somatotypes, Ayurvedic body types, and introvert-extrovert differences.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-c-12",
+      "mpc003-2019-dec-a-1",
+      "mpc003-2019-dec-c-12",
+      "mpc003-2021-dec-a-8",
+      "mpc003-2022-jun-a-1",
+      "mpc003-2022-jun-c-12",
+      "mpc003-2022-dec-a-3",
+      "mpc003-2022-dec-b-5",
+      "mpc003-2023-dec-a-1",
+      "mpc003-2024-jun-b-5",
+      "mpc003-2024-jun-c-12",
+      "mpc003-2024-dec-a-1",
+      "mpc003-2025-jun-a-1",
+      "mpc003-2025-jun-c-10",
+      "mpc003-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Allport's Dispositional Theory",
+    "description": "Focuses on Allport's trait theory, proprium, functional autonomy, mature personality, and common vs. unique traits.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2021-jun-b-8",
+      "mpc003-2022-jun-b-7",
+      "mpc003-2022-dec-c-11",
+      "mpc003-2024-jun-a-4",
+      "mpc003-2025-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Specific Personality Inventories and Tests",
+    "description": "Covers specific assessment tools like MMPI, NEO-PI, Rorschach, TAT, and Children Apperception Test.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-dec-b-8",
+      "mpc003-2019-dec-c-10",
+      "mpc003-2020-jun-c-11",
+      "mpc003-2022-dec-c-12",
+      "mpc003-2024-jun-c-10",
+      "mpc003-2024-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Nomothetic vs. Idiographic Approaches",
+    "description": "Differentiates between nomothetic and idiographic approaches and discusses theoretical models of personality.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2023-dec-b-8",
+      "mpc003-2024-dec-c-10",
+      "mpc003-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Personality Types and Blocks",
+    "description": "Covers Block's personality types and related typological concepts.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2019-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-003",
+    "question_ids": [
+      "mpc003-2021-dec-a-1",
+      "mpc003-2022-jun-b-5",
+      "mpc003-2020-jun-b-6",
+      "mpc003-2021-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Attitude: Concept, Formation, Change",
+    "description": "Covers the nature, components, characteristics, formation, organization, and change of attitudes, including the relationship with beliefs.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-a-1",
+      "mpc004-2021-jun-c-4",
+      "mpc004-2022-jun-b-8",
+      "mpc004-2022-dec-c-12",
+      "mpc004-2023-dec-b-5",
+      "mpc004-2024-dec-a-2",
+      "mpc004-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Prejudice and Discrimination",
+    "description": "Addresses the causes, manifestations, maintenance, and reduction of prejudice and discrimination, including stereotypes.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-dec-a-8",
+      "mpc004-2022-jun-a-3",
+      "mpc004-2022-dec-a-3",
+      "mpc004-2023-dec-b-6",
+      "mpc004-2024-jun-b-5",
+      "mpc004-2024-jun-b-6",
+      "mpc004-2024-dec-c-10",
+      "mpc004-2024-dec-c-11",
+      "mpc004-2025-jun-a-2",
+      "mpc004-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Prosocial Behaviour and Altruism",
+    "description": "Explores prosocial and altruistic behaviour, helping behaviour factors, the empathy-altruism hypothesis, and theoretical perspectives.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-a-2",
+      "mpc004-2022-dec-a-1",
+      "mpc004-2024-jun-a-3",
+      "mpc004-2024-jun-c-11",
+      "mpc004-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Aggression: Nature, Causes, Measurement",
+    "description": "Examines the nature, types, causes, and measurement of aggressive behaviour.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-c-3",
+      "mpc004-2022-jun-a-2",
+      "mpc004-2024-jun-a-4",
+      "mpc004-2024-dec-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Group Dynamics and Cohesion",
+    "description": "Focuses on group definition, features, types, development, rules, dynamics, interpersonal attraction, cohesion, and communication.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-a-9",
+      "mpc004-2022-jun-b-9",
+      "mpc004-2022-jun-c-12",
+      "mpc004-2022-dec-b-7",
+      "mpc004-2022-dec-b-8",
+      "mpc004-2023-dec-b-8",
+      "mpc004-2023-dec-b-9",
+      "mpc004-2024-jun-b-7",
+      "mpc004-2024-dec-a-1",
+      "mpc004-2024-dec-b-5",
+      "mpc004-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Social Conflict and Resolution",
+    "description": "Covers the nature, forms, causes, effects, and resolution methods of social conflict, including cooperation and competition.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-c-10",
+      "mpc004-2022-jun-b-7",
+      "mpc004-2022-dec-a-2",
+      "mpc004-2022-dec-a-4",
+      "mpc004-2023-dec-b-7",
+      "mpc004-2024-jun-b-8",
+      "mpc004-2024-dec-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Conformity, Obedience, Compliance",
+    "description": "Discusses conformity, factors increasing it, Asch's experiment, obedience factors, and compliance principles including Cialdini's and low-ball technique.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-a-6",
+      "mpc004-2023-dec-a-3",
+      "mpc004-2023-dec-c-11",
+      "mpc004-2024-dec-b-6",
+      "mpc004-2025-jun-a-4",
+      "mpc004-2022-dec-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Interpersonal Attraction",
+    "description": "Explores factors, theories (evolutionary, reciprocity-of-liking, similarity), and rules of interpersonal attraction.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-dec-c-12",
+      "mpc004-2022-dec-b-6",
+      "mpc004-2023-dec-a-4",
+      "mpc004-2024-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Attribution Theories and Errors",
+    "description": "Covers attribution theory, fundamental attribution error, Bem's self-perception theory, Heider's balance theory, and cognitive algebra.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-dec-c-11",
+      "mpc004-2022-jun-b-6",
+      "mpc004-2022-dec-b-9",
+      "mpc004-2023-dec-a-2",
+      "mpc004-2024-jun-c-12",
+      "mpc004-2024-dec-c-12",
+      "mpc004-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Crowd and Mass Psychology",
+    "description": "Defines crowd, mass psychology, theories of crowd behaviour, and group mind theory.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-dec-c-10",
+      "mpc004-2022-jun-a-4",
+      "mpc004-2024-jun-b-9",
+      "mpc004-2025-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Social Influence and Norms",
+    "description": "Examines normative social influence, social interaction theory, and primacy versus recency effects.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2022-jun-c-10",
+      "mpc004-2022-jun-c-11",
+      "mpc004-2023-dec-c-12",
+      "mpc004-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Research Methods in Social Psychology",
+    "description": "Covers experimental, quasi-experimental, correlation, and ethnographic methods, including validity threats and ethical issues.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-c-11",
+      "mpc004-2021-dec-a-2",
+      "mpc004-2022-jun-b-5",
+      "mpc004-2022-dec-b-5",
+      "mpc004-2024-jun-a-2",
+      "mpc004-2024-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "History, Trends, and Applications",
+    "description": "Traces historical development, current trends, interdisciplinary approaches, and applications in population, health, environment, and industry.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2022-jun-a-1",
+      "mpc004-2023-dec-a-1",
+      "mpc004-2024-jun-a-1",
+      "mpc004-2024-jun-c-10",
+      "mpc004-2024-dec-b-8",
+      "mpc004-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Ethnography and Cultural Patterning",
+    "description": "Focuses on ethnography definition, characteristics, methods, evaluation, and cultural patterning.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-a-7",
+      "mpc004-2022-dec-c-10",
+      "mpc004-2024-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Social Isolation and Group Mind",
+    "description": "Covers social isolation and related group mind concepts.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-jun-c-12",
+      "mpc004-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-004",
+    "question_ids": [
+      "mpc004-2021-dec-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Reliability and Validity",
+    "description": "Covers definitions, methods of estimating reliability, types of validity, and threats to internal validity.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-a-1",
+      "mpc005-2022-dec-b-5",
+      "mpc005-2023-dec-b-5",
+      "mpc005-2024-jun-b-5",
+      "mpc005-2024-dec-b-5",
+      "mpc005-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Experimental and Quasi-Experimental Designs",
+    "description": "Includes experimental research design, quasi-experimental design types, field experiments, and group designs.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-a-2",
+      "mpc005-2021-jun-b-7",
+      "mpc005-2021-dec-a-2",
+      "mpc005-2022-jun-a-1",
+      "mpc005-2022-jun-b-7",
+      "mpc005-2022-dec-a-2",
+      "mpc005-2022-dec-a-3",
+      "mpc005-2022-dec-b-9",
+      "mpc005-2023-dec-b-8",
+      "mpc005-2024-dec-a-3",
+      "mpc005-2025-jun-b-7",
+      "mpc005-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Correlational and Ex-Post Facto Designs",
+    "description": "Focuses on correlational design, ex-post facto research, causal comparative design, and their comparisons.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-a-3",
+      "mpc005-2021-dec-a-7",
+      "mpc005-2022-jun-b-8",
+      "mpc005-2022-dec-b-7",
+      "mpc005-2024-jun-c-11",
+      "mpc005-2024-dec-a-2",
+      "mpc005-2024-dec-b-6",
+      "mpc005-2025-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Factorial and Single-Factor Designs",
+    "description": "Covers factorial design, two-factor design, single-factor design, interaction, and counterbalanced design.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-a-4",
+      "mpc005-2021-jun-c-12",
+      "mpc005-2021-jun-c-4",
+      "mpc005-2022-dec-c-12",
+      "mpc005-2023-dec-a-2",
+      "mpc005-2024-jun-a-3",
+      "mpc005-2024-dec-c-11",
+      "mpc005-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Between-Group and Within-Group Designs",
+    "description": "Compares between-group and within-group designs, including randomized group design.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2022-jun-a-4",
+      "mpc005-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Variables and Constructs",
+    "description": "Defines variables, constructs, concepts, and their types and distinctions.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-b-5",
+      "mpc005-2021-dec-a-1",
+      "mpc005-2022-jun-b-5",
+      "mpc005-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Sampling Techniques",
+    "description": "Explains probability and non-probability sampling methods, including snowball, purposive, and simple random sampling.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-b-6",
+      "mpc005-2023-dec-b-6",
+      "mpc005-2024-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Qualitative Research Overview",
+    "description": "Covers relevance, types, and comparison of qualitative and quantitative research.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-dec-a-8",
+      "mpc005-2022-jun-b-9",
+      "mpc005-2024-jun-a-4",
+      "mpc005-2024-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Grounded Theory",
+    "description": "Focuses on goals, steps, coding system, and types of coding in grounded theory.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-dec-a-3",
+      "mpc005-2022-jun-a-2",
+      "mpc005-2023-dec-a-3",
+      "mpc005-2024-jun-b-9",
+      "mpc005-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Discourse Analysis",
+    "description": "Covers definition, approaches, steps, and relevance of discourse analysis.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-b-9",
+      "mpc005-2022-jun-c-11",
+      "mpc005-2022-dec-a-4",
+      "mpc005-2023-dec-b-9",
+      "mpc005-2024-jun-b-7",
+      "mpc005-2024-dec-b-7",
+      "mpc005-2025-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Ethnography and Case Study",
+    "description": "Includes ethnographic research types, assumptions, steps, and case study nature and steps.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-dec-c-12",
+      "mpc005-2022-jun-c-12",
+      "mpc005-2022-dec-b-8",
+      "mpc005-2024-jun-b-6",
+      "mpc005-2024-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Survey Research",
+    "description": "Covers types, steps, data collection methods, and advantages/disadvantages of survey research.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-c-11",
+      "mpc005-2022-jun-b-6",
+      "mpc005-2023-dec-b-7",
+      "mpc005-2024-jun-a-2",
+      "mpc005-2024-dec-c-10",
+      "mpc005-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Research Process and Design",
+    "description": "Covers steps in research process, objectives of research design, and qualities of good research.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-c-10",
+      "mpc005-2022-dec-a-1",
+      "mpc005-2023-dec-a-1",
+      "mpc005-2024-jun-a-1",
+      "mpc005-2024-dec-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Hypothesis and Research Biases",
+    "description": "Discusses types of hypothesis, difficulties in formulating hypotheses, and research biases.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-dec-c-10",
+      "mpc005-2021-dec-c-11",
+      "mpc005-2022-dec-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Qualitative Data Analysis and Reporting",
+    "description": "Covers steps in analyzing qualitative data, content analysis, and contents of qualitative research reports.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2021-jun-b-8",
+      "mpc005-2021-dec-a-9",
+      "mpc005-2022-dec-c-10",
+      "mpc005-2023-dec-a-4",
+      "mpc005-2024-jun-b-8",
+      "mpc005-2024-jun-c-12",
+      "mpc005-2024-dec-b-8",
+      "mpc005-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-005",
+    "question_ids": [
+      "mpc005-2023-dec-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Data Organization and Measurement",
+    "description": "Covers techniques for organizing data, levels of measurement, and classification of data.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-b-1",
+      "mpc006-2021-jun-b-9",
+      "mpc006-2022-jun-c-10",
+      "mpc006-2023-dec-a-1",
+      "mpc006-2024-dec-a-2",
+      "mpc006-2025-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Normal Distribution and Divergence",
+    "description": "Focuses on the normal probability curve, its characteristics, applications, and factors causing divergence from normality.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-b-2",
+      "mpc006-2021-dec-a-1",
+      "mpc006-2022-jun-b-9",
+      "mpc006-2022-dec-b-5",
+      "mpc006-2022-dec-b-9",
+      "mpc006-2023-dec-b-5",
+      "mpc006-2024-jun-a-2",
+      "mpc006-2024-dec-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Parametric vs Non-parametric Statistics",
+    "description": "Differentiates between parametric and non-parametric statistics, including assumptions, advantages, and disadvantages.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-c-2",
+      "mpc006-2022-jun-a-1",
+      "mpc006-2023-jun-a-1",
+      "mpc006-2024-jun-a-1",
+      "mpc006-2024-dec-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Hypothesis Testing and Errors",
+    "description": "Covers hypothesis testing, Type I and Type II errors, decision errors, and level of significance.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-c-10",
+      "mpc006-2022-dec-b-6",
+      "mpc006-2023-jun-c-10",
+      "mpc006-2023-dec-b-9",
+      "mpc006-2024-jun-c-10",
+      "mpc006-2024-dec-c-10",
+      "mpc006-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Measures of Central Tendency and Dispersion",
+    "description": "Describes measures of central tendency and dispersion, including variance and standard error.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-c-11",
+      "mpc006-2021-dec-b-8",
+      "mpc006-2022-jun-b-6",
+      "mpc006-2022-dec-a-1",
+      "mpc006-2024-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Correlation: Pearson and Spearman",
+    "description": "Covers Pearson's product-moment correlation, Spearman's rho, and related concepts like linear and non-linear relationships.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-dec-b-7",
+      "mpc006-2022-jun-c-11",
+      "mpc006-2022-dec-a-2",
+      "mpc006-2023-jun-a-4",
+      "mpc006-2023-dec-a-4",
+      "mpc006-2024-jun-b-5",
+      "mpc006-2024-dec-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Special Correlations: Biserial, Tetrachoric, Phi",
+    "description": "Focuses on biserial, tetrachoric, point-biserial, and phi coefficient correlations.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2022-jun-b-5",
+      "mpc006-2022-dec-b-8",
+      "mpc006-2023-jun-a-2",
+      "mpc006-2023-dec-c-10",
+      "mpc006-2024-dec-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Partial and Part Correlation",
+    "description": "Explains partial and part (semi-partial) correlation with examples.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2022-dec-c-11",
+      "mpc006-2023-dec-a-2",
+      "mpc006-2024-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Regression Analysis",
+    "description": "Covers linear regression, multiple regression, and the regression equation.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-c-12",
+      "mpc006-2021-dec-c-12",
+      "mpc006-2022-jun-a-2",
+      "mpc006-2023-dec-c-11",
+      "mpc006-2024-dec-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Chi-Square Test",
+    "description": "Involves computation and application of the Chi-square test for categorical data.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-b-7",
+      "mpc006-2021-dec-a-6",
+      "mpc006-2022-jun-b-7",
+      "mpc006-2023-jun-b-6",
+      "mpc006-2023-dec-b-6",
+      "mpc006-2024-jun-a-4",
+      "mpc006-2024-dec-a-4",
+      "mpc006-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Mann-Whitney U Test",
+    "description": "Focuses on computation and interpretation of the Mann-Whitney U test.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-b-6",
+      "mpc006-2021-dec-b-5",
+      "mpc006-2022-dec-c-12",
+      "mpc006-2023-jun-b-8",
+      "mpc006-2023-dec-b-8",
+      "mpc006-2024-jun-b-6",
+      "mpc006-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Kruskal-Wallis and Wilcoxon Tests",
+    "description": "Covers Kruskal-Wallis ANOVA and Wilcoxon matched-pair signed-rank test.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-dec-b-9",
+      "mpc006-2022-jun-b-8",
+      "mpc006-2023-jun-c-12",
+      "mpc006-2024-jun-c-11",
+      "mpc006-2024-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Kendall's Tau",
+    "description": "Focuses on computation and interpretation of Kendall's tau correlation coefficient.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2022-jun-a-3",
+      "mpc006-2022-dec-a-3",
+      "mpc006-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "ANOVA: One-Way and Two-Way",
+    "description": "Covers one-way and two-way ANOVA, including interactional effects, merits, and demerits.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2021-jun-b-8",
+      "mpc006-2021-dec-a-4",
+      "mpc006-2021-dec-c-11",
+      "mpc006-2022-jun-a-4",
+      "mpc006-2023-jun-a-3",
+      "mpc006-2023-jun-b-9",
+      "mpc006-2023-dec-a-3",
+      "mpc006-2024-jun-a-3",
+      "mpc006-2024-jun-b-8",
+      "mpc006-2024-dec-b-9",
+      "mpc006-2025-jun-a-2",
+      "mpc006-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Scatter Plots and Outliers",
+    "description": "Covers scatter plots, outliers, curvilinearity, and related graphical concepts.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2022-jun-c-12",
+      "mpc006-2023-jun-c-11",
+      "mpc006-2023-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPC-006",
+    "question_ids": [
+      "mpc006-2022-dec-c-10",
+      "mpc006-2021-dec-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Anxiety and Related Disorders",
+    "description": "Covers clinical features, etiology, and treatment of anxiety disorders including OCD, phobic disorder, GAD, panic disorder, and PTSD.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2021-dec-b-5",
+      "mpce011-2021-dec-b-6",
+      "mpce011-2021-dec-a-7",
+      "mpce011-2022-dec-a-2",
+      "mpce011-2022-dec-b-6",
+      "mpce011-2020-jun-a-1",
+      "mpce011-2020-jun-b-8",
+      "mpce011-2022-jun-a-2",
+      "mpce011-2022-jun-a-3",
+      "mpce011-2023-jun-b-5",
+      "mpce011-2023-jun-b-6",
+      "mpce011-2024-jun-a-1",
+      "mpce011-2024-jun-a-2",
+      "mpce011-2024-jun-b-6",
+      "mpce011-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Mood Disorders",
+    "description": "Covers symptoms, classification, causes, and treatment of depressive and bipolar disorders.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-a-3",
+      "mpce011-2022-dec-b-7",
+      "mpce011-2023-dec-a-3",
+      "mpce011-2023-dec-b-7",
+      "mpce011-2022-jun-a-4",
+      "mpce011-2022-jun-c-12",
+      "mpce011-2023-jun-b-7",
+      "mpce011-2023-jun-b-8",
+      "mpce011-2024-jun-a-3",
+      "mpce011-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Psychotic Disorders",
+    "description": "Covers schizophrenia, delusional disorder, paranoia, and related psychotic symptoms and diagnosis.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2021-dec-a-3",
+      "mpce011-2021-dec-c-12",
+      "mpce011-2022-dec-c-12",
+      "mpce011-2023-dec-a-4",
+      "mpce011-2020-jun-b-9",
+      "mpce011-2020-jun-c-12",
+      "mpce011-2021-jun-a-7",
+      "mpce011-2021-jun-a-9",
+      "mpce011-2021-jun-a-3",
+      "mpce011-2022-jun-b-6",
+      "mpce011-2022-jun-b-7",
+      "mpce011-2023-jun-a-4",
+      "mpce011-2023-jun-c-11",
+      "mpce011-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Substance Use and Psychotic Disorders",
+    "description": "Covers substance-induced psychotic disorders, depressants vs stimulants, hallucinogens, and detoxification.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2021-dec-a-8",
+      "mpce011-2021-dec-a-1",
+      "mpce011-2020-jun-b-7",
+      "mpce011-2020-jun-c-11",
+      "mpce011-2022-jun-c-11",
+      "mpce011-2023-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Somatoform and Dissociative Disorders",
+    "description": "Covers somatoform disorders, dissociative disorders, hypochondriasis, body dysmorphic disorder, pain disorder, and dissociative amnesia.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2021-dec-a-2",
+      "mpce011-2023-dec-a-2",
+      "mpce011-2023-dec-c-11",
+      "mpce011-2020-jun-a-4",
+      "mpce011-2020-jun-c-10",
+      "mpce011-2021-jun-a-1",
+      "mpce011-2021-jun-c-11",
+      "mpce011-2023-jun-a-3",
+      "mpce011-2024-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Personality Disorders",
+    "description": "Covers symptoms, causes, and treatment of various personality disorders including borderline, narcissistic, dependent, paranoid, and histrionic.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-b-8",
+      "mpce011-2022-dec-b-9",
+      "mpce011-2023-dec-b-8",
+      "mpce011-2023-dec-b-9",
+      "mpce011-2020-jun-a-2",
+      "mpce011-2020-jun-a-3",
+      "mpce011-2021-jun-a-8",
+      "mpce011-2022-jun-b-8",
+      "mpce011-2022-jun-b-9",
+      "mpce011-2023-jun-b-9",
+      "mpce011-2024-jun-c-11",
+      "mpce011-2024-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Neurodevelopmental and Childhood Disorders",
+    "description": "Covers mental retardation, pervasive developmental disorders, ADHD, autism, Asperger syndrome, childhood disintegrative disorder, oppositional defiant disorder, conduct disorder, separation anxiety, and childhood depression.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2021-dec-a-9",
+      "mpce011-2021-dec-c-10",
+      "mpce011-2022-dec-a-1",
+      "mpce011-2023-dec-b-5",
+      "mpce011-2020-jun-b-5",
+      "mpce011-2020-jun-b-6",
+      "mpce011-2021-jun-c-10",
+      "mpce011-2022-jun-c-10",
+      "mpce011-2023-jun-a-1",
+      "mpce011-2024-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Causes of Psychopathology",
+    "description": "Covers biological, psychosocial, socio-cultural, and historical causes of psychopathology including parental deprivation and supernatural beliefs.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-b-5",
+      "mpce011-2023-dec-a-1",
+      "mpce011-2022-jun-a-1",
+      "mpce011-2022-jun-b-5",
+      "mpce011-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Theoretical Approaches to Psychopathology",
+    "description": "Covers humanistic and behavioral approaches to understanding and treating psychopathology.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2023-dec-b-6",
+      "mpce011-2023-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Therapeutic Techniques and Concepts",
+    "description": "Covers specific therapeutic techniques such as EMDR, aversion therapy, and key concepts like hallucination, delusion, and positive/negative symptoms.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-c-10",
+      "mpce011-2023-dec-c-10",
+      "mpce011-2023-dec-c-12",
+      "mpce011-2021-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Miscellaneous Short Notes",
+    "description": "Covers remaining short-answer topics including seasonal affective disorder, post-partum depression, and clinical picture of histrionic personality disorder.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-c-11",
+      "mpce011-2021-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-011",
+    "question_ids": [
+      "mpce011-2022-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Foundations of Psychodiagnostics",
+    "description": "Covers definitions, purposes, types, and data sources of psychodiagnostic assessment.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-a-1",
+      "mpce012-2020-dec-b-6",
+      "mpce012-2021-jun-a-1",
+      "mpce012-2022-jun-a-2",
+      "mpce012-2023-jun-a-1",
+      "mpce012-2023-jun-a-2",
+      "mpce012-2023-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Interview Methods and Skills",
+    "description": "Focuses on interview formats, types, skills, techniques, and diagnostic interviewing.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-a-4",
+      "mpce012-2021-dec-b-6",
+      "mpce012-2022-dec-b-6",
+      "mpce012-2020-jun-a-1",
+      "mpce012-2021-jun-b-6",
+      "mpce012-2022-jun-b-6",
+      "mpce012-2023-jun-a-4",
+      "mpce012-2024-jun-a-3",
+      "mpce012-2024-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Mental Status Examination",
+    "description": "Covers the concept, description, and areas of mental status examination.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-c-12",
+      "mpce012-2022-dec-a-2",
+      "mpce012-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Self-Report Inventories",
+    "description": "Discusses formats, strengths, weaknesses, and examples of self-report inventories.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2021-dec-b-5",
+      "mpce012-2023-dec-a-1",
+      "mpce012-2020-jun-a-4",
+      "mpce012-2022-jun-a-1",
+      "mpce012-2024-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Projective Techniques",
+    "description": "Covers nature, categories, assumptions, merits, and clinical usefulness of projective tests.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2021-dec-b-7",
+      "mpce012-2023-dec-c-12",
+      "mpce012-2020-jun-b-8",
+      "mpce012-2021-jun-a-3",
+      "mpce012-2023-jun-b-7",
+      "mpce012-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Rorschach Inkblot Test",
+    "description": "Focuses on administration, scoring, reliability, validity, and current status of the Rorschach test.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-b-8",
+      "mpce012-2021-dec-a-2",
+      "mpce012-2022-dec-b-8",
+      "mpce012-2023-dec-b-8",
+      "mpce012-2022-jun-a-4",
+      "mpce012-2023-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Thematic Apperception Test",
+    "description": "Covers administration, application, measurement, reliability, and validity of TAT and Children's Apperception Test.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2022-dec-a-4",
+      "mpce012-2021-jun-c-12",
+      "mpce012-2022-jun-b-8",
+      "mpce012-2022-jun-c-12",
+      "mpce012-2023-jun-c-10",
+      "mpce012-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Personality Assessment Inventories",
+    "description": "Discusses personality testing, objective tests, MMPI, CPI, NEO-PI, and psychological functioning.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-b-9",
+      "mpce012-2021-dec-a-1",
+      "mpce012-2022-dec-b-9",
+      "mpce012-2023-dec-b-9",
+      "mpce012-2022-jun-b-9",
+      "mpce012-2023-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Intelligence and Cognitive Assessment",
+    "description": "Covers intelligence measures, Stanford-Binet, Wechsler scales, KABC, and cognitive assessment.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2021-dec-a-3",
+      "mpce012-2022-dec-a-3",
+      "mpce012-2022-dec-c-12",
+      "mpce012-2023-dec-a-3",
+      "mpce012-2023-dec-c-11",
+      "mpce012-2020-jun-c-10",
+      "mpce012-2021-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Memory Assessment",
+    "description": "Focuses on memory measurement, explicit vs implicit memory, and memory systems classification.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-a-2",
+      "mpce012-2021-dec-b-9",
+      "mpce012-2023-dec-a-4",
+      "mpce012-2021-jun-b-8",
+      "mpce012-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Creativity and Abstract Reasoning",
+    "description": "Covers creativity definition, measures, Torrance tests, abstract attitude, and tests of abstraction.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-b-7",
+      "mpce012-2021-dec-b-8",
+      "mpce012-2023-dec-b-7",
+      "mpce012-2020-jun-a-3",
+      "mpce012-2021-jun-b-7",
+      "mpce012-2021-jun-b-9",
+      "mpce012-2022-jun-a-3",
+      "mpce012-2022-jun-b-7",
+      "mpce012-2023-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Neuropsychological Assessment",
+    "description": "Discusses tests, uses, and applications of neuropsychological assessment.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2021-dec-a-4",
+      "mpce012-2022-dec-b-7",
+      "mpce012-2023-jun-b-6",
+      "mpce012-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Ethical and Methodological Issues",
+    "description": "Covers ethical issues, fallacies, pitfalls, biases, and cross-cultural considerations in assessment.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2022-dec-a-1",
+      "mpce012-2023-dec-b-5",
+      "mpce012-2023-dec-c-10",
+      "mpce012-2020-jun-c-12",
+      "mpce012-2021-jun-a-4",
+      "mpce012-2022-jun-c-10",
+      "mpce012-2023-jun-b-9",
+      "mpce012-2024-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Assessment in Clinical Practice",
+    "description": "Focuses on role of assessment in therapy, treatment phases, and applications in clinical settings.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-c-10",
+      "mpce012-2021-dec-c-11",
+      "mpce012-2022-dec-b-5",
+      "mpce012-2020-jun-a-2",
+      "mpce012-2021-jun-b-5",
+      "mpce012-2020-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Observational and Specialized Assessments",
+    "description": "Covers direct observation, self-monitoring, analogue observation, disguised observation, and vocational/placement testing.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-c-11",
+      "mpce012-2021-dec-c-10",
+      "mpce012-2021-dec-c-12",
+      "mpce012-2022-dec-c-10",
+      "mpce012-2021-jun-c-10",
+      "mpce012-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Test Batteries and Comparative Concepts",
+    "description": "Discusses test batteries, differentiation between assessment types, and comparison of psychodiagnostic assessment with psychiatric consultation.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2022-dec-c-11",
+      "mpce012-2023-dec-a-2",
+      "mpce012-2023-dec-b-6",
+      "mpce012-2020-jun-b-5",
+      "mpce012-2020-jun-b-6",
+      "mpce012-2022-jun-b-5",
+      "mpce012-2023-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Psychological Report Writing",
+    "description": "Covers guidelines and description of writing psychological reports.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Computer-Assisted and Special Interviews",
+    "description": "Covers computer-assisted interviews and Adlerian theory of counselling.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2021-jun-c-11",
+      "mpce012-2022-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-012",
+    "question_ids": [
+      "mpce012-2020-dec-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Psychodynamic and Psychoanalytic Therapy",
+    "description": "Covers Freudian concepts, psychodynamic therapy components, techniques, and object relations theory.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-a-1",
+      "mpce013-2020-dec-b-5",
+      "mpce013-2021-dec-a-1",
+      "mpce013-2021-dec-b-7",
+      "mpce013-2021-dec-c-10",
+      "mpce013-2022-dec-a-3",
+      "mpce013-2022-dec-c-11",
+      "mpce013-2022-dec-c-12",
+      "mpce013-2023-dec-a-1",
+      "mpce013-2023-dec-a-3",
+      "mpce013-2023-dec-b-9",
+      "mpce013-2023-dec-c-12",
+      "mpce013-2020-jun-a-1",
+      "mpce013-2020-jun-b-8",
+      "mpce013-2020-jun-c-11",
+      "mpce013-2021-jun-a-4",
+      "mpce013-2022-jun-b-5",
+      "mpce013-2022-jun-b-7",
+      "mpce013-2023-jun-a-3",
+      "mpce013-2023-jun-b-6",
+      "mpce013-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Client-Centered and Existential Therapy",
+    "description": "Focuses on Roger's client-centered therapy, existential therapy, empathy, and the therapeutic process.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-a-2",
+      "mpce013-2020-dec-c-12",
+      "mpce013-2021-dec-a-2",
+      "mpce013-2022-dec-a-4",
+      "mpce013-2020-jun-a-2",
+      "mpce013-2024-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Cognitive Behavioural Therapy",
+    "description": "Covers cognitive behavioural techniques, dysfunctional thinking, and therapy for various populations.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-b-9",
+      "mpce013-2021-dec-b-5",
+      "mpce013-2022-dec-a-1",
+      "mpce013-2023-dec-a-4",
+      "mpce013-2020-jun-b-7",
+      "mpce013-2020-jun-c-10",
+      "mpce013-2022-jun-a-3",
+      "mpce013-2023-jun-b-7",
+      "mpce013-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Behaviour Modification and Conditioning",
+    "description": "Includes behaviour modification principles, respondent conditioning, counter-conditioning, and operant procedures.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-a-4",
+      "mpce013-2020-dec-b-7",
+      "mpce013-2022-dec-b-7",
+      "mpce013-2023-dec-a-2",
+      "mpce013-2023-dec-b-7",
+      "mpce013-2020-jun-b-6",
+      "mpce013-2021-jun-b-5",
+      "mpce013-2022-jun-a-4",
+      "mpce013-2023-jun-a-2",
+      "mpce013-2023-jun-c-12",
+      "mpce013-2024-jun-b-9",
+      "mpce013-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Short-Term and Brief Therapies",
+    "description": "Explores features, types, and applications of short-term, brief, and solution-focused therapies.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-a-3",
+      "mpce013-2020-dec-c-10",
+      "mpce013-2023-dec-b-8",
+      "mpce013-2020-jun-b-5",
+      "mpce013-2021-jun-c-11",
+      "mpce013-2022-jun-a-1",
+      "mpce013-2022-jun-b-9",
+      "mpce013-2023-jun-a-1",
+      "mpce013-2023-jun-b-8",
+      "mpce013-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Interpersonal and Integrative Therapies",
+    "description": "Covers interpersonal therapy, eclectic and integrative approaches, multimodal therapy, and the transtheoretical model.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2021-dec-a-4",
+      "mpce013-2023-dec-b-5",
+      "mpce013-2020-jun-b-9",
+      "mpce013-2021-jun-a-1",
+      "mpce013-2021-jun-a-2",
+      "mpce013-2021-jun-b-7",
+      "mpce013-2022-jun-b-8",
+      "mpce013-2022-jun-c-10",
+      "mpce013-2023-jun-b-9",
+      "mpce013-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Family and Couples Therapy",
+    "description": "Includes family therapy models, couples therapy approaches, and systemic therapy.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2023-dec-c-11",
+      "mpce013-2021-jun-a-3",
+      "mpce013-2022-jun-c-12",
+      "mpce013-2023-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Group Psychotherapy",
+    "description": "Discusses group therapy principles, advantages, and therapeutic processes.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2022-dec-b-9",
+      "mpce013-2020-jun-c-12",
+      "mpce013-2024-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Child and Adolescent Psychotherapy",
+    "description": "Covers play therapy, child psychotherapy methods, and developmental considerations for adolescents.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-b-6",
+      "mpce013-2021-dec-b-8",
+      "mpce013-2021-dec-b-9",
+      "mpce013-2023-dec-b-6",
+      "mpce013-2021-jun-b-8",
+      "mpce013-2023-jun-a-4",
+      "mpce013-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Adult Psychotherapy Across Lifespan",
+    "description": "Focuses on psychotherapy for fledgling adults, middle adulthood, and older adults.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2021-dec-b-6",
+      "mpce013-2022-dec-b-6",
+      "mpce013-2022-dec-b-8",
+      "mpce013-2020-jun-a-3",
+      "mpce013-2021-jun-b-6",
+      "mpce013-2022-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Psychotherapy for Terminal and Chronic Illness",
+    "description": "Addresses therapy for terminally ill patients, cancer, AIDS/HIV, and dementia.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-b-8",
+      "mpce013-2020-dec-c-11",
+      "mpce013-2021-dec-a-3",
+      "mpce013-2022-dec-b-5",
+      "mpce013-2020-jun-a-4",
+      "mpce013-2022-jun-c-11",
+      "mpce013-2023-jun-b-5",
+      "mpce013-2023-jun-c-10",
+      "mpce013-2024-jun-b-7",
+      "mpce013-2024-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Attachment Theory and Interventions",
+    "description": "Explores attachment theory, attachment-based interventions, and dyadic developmental psychotherapy.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-a-1",
+      "mpce013-2022-dec-a-2",
+      "mpce013-2024-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Crisis Intervention and Specialized Approaches",
+    "description": "Covers crisis intervention, very brief therapy, narrative therapy, cognitive analytical therapy, and critical incident debriefing.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2021-dec-c-12",
+      "mpce013-2023-dec-c-10",
+      "mpce013-2021-jun-c-12",
+      "mpce013-2024-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Therapeutic Concepts and Techniques",
+    "description": "Includes empathy, projective identification, transference, counter-transference, reinforcement variables, and contingency contracting.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2020-dec-c-12",
+      "mpce013-2021-dec-c-10",
+      "mpce013-2022-dec-b-7",
+      "mpce013-2022-dec-c-12",
+      "mpce013-2023-jun-c-12",
+      "mpce013-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-013",
+    "question_ids": [
+      "mpce013-2021-jun-b-9",
+      "mpce013-2022-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Person-Centered and Existential Approaches",
+    "description": "Questions covering person-centered and existential counselling theories, core conditions, techniques, and human nature views.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-b-5",
+      "mpce021-2019-jun-c-12",
+      "mpce021-2020-jun-a-1",
+      "mpce021-2020-jun-a-4",
+      "mpce021-2022-jun-a-3",
+      "mpce021-2024-dec-a-2",
+      "mpce021-2024-dec-c-11",
+      "mpce021-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Psychoanalytic and Adlerian Approaches",
+    "description": "Questions on psychoanalytic and Adlerian counselling approaches, including techniques, human nature, and comparison.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-dec-a-1",
+      "mpce021-2021-jun-c-11",
+      "mpce021-2021-dec-a-1",
+      "mpce021-2022-jun-b-5",
+      "mpce021-2022-jun-c-11",
+      "mpce021-2022-dec-a-1",
+      "mpce021-2023-dec-a-1",
+      "mpce021-2023-dec-b-7",
+      "mpce021-2024-jun-c-11",
+      "mpce021-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Cognitive Behavioral and Rational Emotive Therapy",
+    "description": "Questions on CBT, ABC model, rational emotive therapy, techniques, and cognitive errors.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2020-jun-b-5",
+      "mpce021-2020-jun-c-10",
+      "mpce021-2021-jun-c-2",
+      "mpce021-2022-dec-a-2",
+      "mpce021-2023-dec-c-12",
+      "mpce021-2024-dec-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Behavioural Techniques and Systematic Desensitization",
+    "description": "Questions on behavioural therapy, classical and operant conditioning, systematic desensitization, and aversive conditioning.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-b-9",
+      "mpce021-2019-dec-c-12",
+      "mpce021-2022-jun-b-6",
+      "mpce021-2022-dec-b-8",
+      "mpce021-2022-dec-c-11",
+      "mpce021-2023-dec-a-2",
+      "mpce021-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Solution-Focused Brief Therapy",
+    "description": "Questions on solution-focused counselling process, goals, techniques, and therapeutic process.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-b-7",
+      "mpce021-2019-dec-a-3",
+      "mpce021-2021-jun-a-1",
+      "mpce021-2021-dec-a-1",
+      "mpce021-2024-dec-a-3",
+      "mpce021-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Gestalt and Transactional Analysis",
+    "description": "Questions on Gestalt approach, transactional analysis, and related techniques.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-dec-b-5",
+      "mpce021-2020-jun-b-7",
+      "mpce021-2022-dec-b-6",
+      "mpce021-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Art, Drama, and Creative Therapies",
+    "description": "Questions on art therapy, drama therapy, stages, techniques, and applications.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-a-3",
+      "mpce021-2019-jun-b-8",
+      "mpce021-2020-jun-c-3",
+      "mpce021-2022-jun-b-7",
+      "mpce021-2024-jun-a-3",
+      "mpce021-2025-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Counselling Process and Relationship",
+    "description": "Questions on counselling process, building relationship, core conditions, termination, and factors influencing counselling.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-b-6",
+      "mpce021-2019-dec-b-6",
+      "mpce021-2021-jun-b-5",
+      "mpce021-2021-jun-c-10",
+      "mpce021-2022-jun-a-1",
+      "mpce021-2022-dec-c-10",
+      "mpce021-2023-dec-b-6",
+      "mpce021-2024-jun-b-7",
+      "mpce021-2024-dec-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Ethics and Professional Issues in Counselling",
+    "description": "Questions on ethical principles, professional code, beneficence, counsellor characteristics, and licensure.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-dec-c-10",
+      "mpce021-2020-jun-b-6",
+      "mpce021-2021-dec-a-5",
+      "mpce021-2021-dec-c-10",
+      "mpce021-2022-dec-b-5",
+      "mpce021-2023-dec-b-5",
+      "mpce021-2024-jun-a-1",
+      "mpce021-2024-dec-b-8",
+      "mpce021-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Personality Disorders",
+    "description": "Questions on clinical features, nature, causes, and types of personality disorders, including Cluster B and C.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-a-1",
+      "mpce021-2019-dec-a-2",
+      "mpce021-2019-dec-b-7",
+      "mpce021-2020-jun-a-2",
+      "mpce021-2021-dec-c-12",
+      "mpce021-2022-dec-b-9",
+      "mpce021-2023-dec-a-3",
+      "mpce021-2024-dec-c-12",
+      "mpce021-2025-jun-b-5",
+      "mpce021-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Depression: Causes, Symptoms, and Treatment",
+    "description": "Questions on depression causes, symptoms, cognitive theories, and treatment approaches.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-a-2",
+      "mpce021-2019-dec-b-8",
+      "mpce021-2020-jun-b-8",
+      "mpce021-2022-jun-a-2",
+      "mpce021-2022-dec-a-4",
+      "mpce021-2023-dec-c-12",
+      "mpce021-2024-jun-b-5",
+      "mpce021-2024-dec-b-5",
+      "mpce021-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Eating Disorders",
+    "description": "Questions on anorexia nervosa, bulimia nervosa, symptoms, diagnostic criteria, causes, and incidence.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-c-11",
+      "mpce021-2020-jun-a-3",
+      "mpce021-2021-jun-a-2",
+      "mpce021-2022-jun-b-9",
+      "mpce021-2023-dec-a-4",
+      "mpce021-2024-dec-b-6",
+      "mpce021-2025-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Addiction, Anxiety, and Related Disorders",
+    "description": "Questions on addiction and anxiety symptoms, causes, treatment, and seasonal affective disorder.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2020-jun-b-8",
+      "mpce021-2021-dec-a-7",
+      "mpce021-2023-dec-b-8",
+      "mpce021-2023-dec-b-9",
+      "mpce021-2024-jun-c-12",
+      "mpce021-2024-dec-a-4",
+      "mpce021-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Child Rights, Abuse, and Vulnerable Children",
+    "description": "Questions on child rights, child protection, child abuse, counselling for abuse, and vulnerable children.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-a-4",
+      "mpce021-2019-dec-b-9",
+      "mpce021-2020-jun-c-12",
+      "mpce021-2021-jun-c-3",
+      "mpce021-2021-dec-a-8",
+      "mpce021-2022-jun-b-8",
+      "mpce021-2022-dec-c-12",
+      "mpce021-2024-jun-c-10",
+      "mpce021-2024-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Educational and Vocational Counselling",
+    "description": "Questions on educational and vocational counselling need, scope, and stages.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-dec-a-4",
+      "mpce021-2021-jun-a-8",
+      "mpce021-2022-jun-a-4",
+      "mpce021-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "HIV/AIDS Counselling and Special Populations",
+    "description": "Questions on HIV/AIDS counselling aims, misconceptions, and group therapy for addiction and anxiety.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2021-dec-a-9",
+      "mpce021-2022-dec-a-3",
+      "mpce021-2024-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Basic Concepts and Miscellaneous Topics",
+    "description": "Questions on foundational concepts like counselling vs psychotherapy, transference, counter-transference, empathy, self-disclosure, and supportive psychotherapy.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2019-jun-c-10",
+      "mpce021-2019-dec-c-11",
+      "mpce021-2022-jun-c-10",
+      "mpce021-2023-dec-c-10",
+      "mpce021-2024-dec-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-021",
+    "question_ids": [
+      "mpce021-2022-jun-c-12",
+      "mpce021-2020-jun-c-11",
+      "mpce021-2021-jun-c-12",
+      "mpce021-2021-dec-c-11",
+      "mpce021-2024-jun-b-6",
+      "mpce021-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Assessment: Purpose, Issues, Methods",
+    "description": "Covers the purpose, need, issues, prerequisites, principles, process, methods, and errors in psychological assessment.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-a-1",
+      "mpce022-2019-jun-b-7",
+      "mpce022-2019-dec-a-1",
+      "mpce022-2020-jun-b-8",
+      "mpce022-2021-jun-a-1",
+      "mpce022-2022-jun-a-1",
+      "mpce022-2022-dec-a-1",
+      "mpce022-2023-jun-a-1",
+      "mpce022-2023-jun-b-5",
+      "mpce022-2023-dec-a-1",
+      "mpce022-2023-dec-a-3",
+      "mpce022-2024-jun-a-1",
+      "mpce022-2024-jun-a-2",
+      "mpce022-2024-dec-a-1",
+      "mpce022-2024-dec-a-2",
+      "mpce022-2024-dec-b-5",
+      "mpce022-2025-jun-a-1",
+      "mpce022-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Psychological Testing: Types and Characteristics",
+    "description": "Focuses on definition, types, classification, and characteristics of good psychological tests, and differentiation from assessment.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-c-10",
+      "mpce022-2020-jun-a-1",
+      "mpce022-2020-jun-b-7",
+      "mpce022-2021-jun-b-6",
+      "mpce022-2021-dec-a-1",
+      "mpce022-2022-jun-b-5",
+      "mpce022-2022-dec-b-5",
+      "mpce022-2023-jun-a-3",
+      "mpce022-2023-dec-b-5",
+      "mpce022-2024-jun-b-5",
+      "mpce022-2024-jun-c-11",
+      "mpce022-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Interview and Case History",
+    "description": "Covers interview characteristics, types, differentiation from conversation, case history format, issues, and mental status examination.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-a-2",
+      "mpce022-2019-jun-b-9",
+      "mpce022-2021-jun-b-9",
+      "mpce022-2021-dec-b-9",
+      "mpce022-2023-jun-a-4",
+      "mpce022-2024-jun-a-3",
+      "mpce022-2024-jun-b-7",
+      "mpce022-2024-dec-a-3",
+      "mpce022-2024-dec-b-6",
+      "mpce022-2025-jun-a-2",
+      "mpce022-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Guidance and Counselling: Concepts and Roles",
+    "description": "Differentiates guidance and counselling, discusses characteristics of effective counsellors, roles, and counselling setting.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-a-3",
+      "mpce022-2019-dec-a-3",
+      "mpce022-2020-jun-a-3",
+      "mpce022-2021-jun-a-3",
+      "mpce022-2021-jun-c-12",
+      "mpce022-2021-dec-c-11",
+      "mpce022-2022-jun-a-2",
+      "mpce022-2022-jun-b-6",
+      "mpce022-2023-jun-b-7",
+      "mpce022-2023-dec-b-6",
+      "mpce022-2024-jun-a-4",
+      "mpce022-2024-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Guidance and Counselling Programmes",
+    "description": "Addresses need, purpose, rationale, components, services, and implications of guidance and counselling programmes in schools.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-a-4",
+      "mpce022-2019-jun-b-6",
+      "mpce022-2019-dec-b-6",
+      "mpce022-2019-dec-b-7",
+      "mpce022-2020-jun-b-6",
+      "mpce022-2021-jun-a-4",
+      "mpce022-2022-jun-a-4",
+      "mpce022-2022-dec-a-4",
+      "mpce022-2022-dec-b-7",
+      "mpce022-2022-dec-b-9",
+      "mpce022-2023-jun-b-9",
+      "mpce022-2023-dec-b-9",
+      "mpce022-2023-dec-c-10",
+      "mpce022-2024-jun-c-12",
+      "mpce022-2024-dec-b-9",
+      "mpce022-2025-jun-a-4",
+      "mpce022-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Person-Centered and Psychodynamic Theories",
+    "description": "Covers Rogers' theory, fully functioning person, self-concept, positive regard, Freudian, Jungian, and Adlerian psychodynamic theories.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-c-12",
+      "mpce022-2019-dec-a-2",
+      "mpce022-2019-dec-b-9",
+      "mpce022-2019-dec-c-12",
+      "mpce022-2021-jun-c-11",
+      "mpce022-2021-dec-b-7",
+      "mpce022-2021-dec-c-10",
+      "mpce022-2022-dec-b-6",
+      "mpce022-2023-dec-a-2",
+      "mpce022-2024-jun-b-8",
+      "mpce022-2024-dec-b-7",
+      "mpce022-2025-jun-c-11",
+      "mpce022-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Cognitive and Behavioral Counselling Approaches",
+    "description": "Explains REBT, ABC model, behavioural counselling techniques, Gestalt therapy, systematic desensitization, and Beck's assumptions.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-b-5",
+      "mpce022-2020-jun-b-9",
+      "mpce022-2021-dec-b-6",
+      "mpce022-2021-dec-c-12",
+      "mpce022-2022-jun-a-3",
+      "mpce022-2022-jun-c-12",
+      "mpce022-2022-dec-a-3",
+      "mpce022-2023-jun-b-8",
+      "mpce022-2023-dec-b-7",
+      "mpce022-2024-jun-b-9",
+      "mpce022-2024-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Narrative Therapy",
+    "description": "Covers basic concepts, techniques, objectives, and key beliefs of narrative therapy.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-b-8",
+      "mpce022-2019-dec-b-8",
+      "mpce022-2020-jun-a-2",
+      "mpce022-2021-dec-a-3",
+      "mpce022-2023-jun-b-6",
+      "mpce022-2024-dec-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Counselling Skills and Process",
+    "description": "Focuses on initial counselling skills, active listening, goals of counselling, individual vs group counselling, group process, and pre-counselling interview.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-dec-b-5",
+      "mpce022-2020-jun-c-10",
+      "mpce022-2020-jun-c-11",
+      "mpce022-2021-dec-a-2",
+      "mpce022-2021-dec-b-8",
+      "mpce022-2022-jun-b-7",
+      "mpce022-2022-dec-a-2",
+      "mpce022-2022-dec-c-11",
+      "mpce022-2023-jun-a-2",
+      "mpce022-2024-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Multicultural Counselling and Positive Health",
+    "description": "Covers multicultural counselling, client-counsellor status, multiculturalism history, positive health, optimism, and positive psychology.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2020-jun-b-5",
+      "mpce022-2021-jun-a-2",
+      "mpce022-2021-jun-b-8",
+      "mpce022-2022-jun-b-8",
+      "mpce022-2022-dec-b-8",
+      "mpce022-2023-jun-c-10",
+      "mpce022-2023-dec-c-12",
+      "mpce022-2024-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Career Planning and Decision Making",
+    "description": "Discusses career planning, its importance, interrelation with counselling, and decision-making process.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2020-jun-a-4",
+      "mpce022-2021-jun-b-7",
+      "mpce022-2021-dec-b-5",
+      "mpce022-2022-jun-b-9",
+      "mpce022-2023-jun-c-11",
+      "mpce022-2023-dec-b-8",
+      "mpce022-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Evaluation: Purpose, Steps, and Types",
+    "description": "Covers purpose, criteria, steps, types of evaluation, and the Accountability Bridge Model.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-jun-c-11",
+      "mpce022-2019-dec-a-4",
+      "mpce022-2019-dec-c-10",
+      "mpce022-2020-jun-c-12",
+      "mpce022-2021-dec-a-4",
+      "mpce022-2022-jun-c-10",
+      "mpce022-2023-jun-c-12",
+      "mpce022-2024-dec-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Observation and Case Study Methods",
+    "description": "Describes observation method, case study method, and experimental method as assessment tools.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2019-dec-c-11",
+      "mpce022-2021-jun-b-5",
+      "mpce022-2022-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-022",
+    "question_ids": [
+      "mpce022-2023-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Childhood Disorders and Interventions",
+    "description": "Covers symptoms, causes, and counselling techniques for childhood disorders like anxiety, ADHD, autism, and learning disabilities.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-a-1",
+      "mpce023-2019-dec-a-3",
+      "mpce023-2020-jun-a-1",
+      "mpce023-2020-jun-b-5",
+      "mpce023-2021-jun-b-6",
+      "mpce023-2021-dec-a-1",
+      "mpce023-2022-jun-b-5",
+      "mpce023-2022-dec-a-1",
+      "mpce023-2023-jun-a-1",
+      "mpce023-2024-jun-a-1",
+      "mpce023-2024-jun-c-10",
+      "mpce023-2024-jun-c-11",
+      "mpce023-2024-dec-a-1",
+      "mpce023-2024-dec-b-5",
+      "mpce023-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Cognitive Behavioural Approaches",
+    "description": "Focuses on cognitive therapy, cognitive distortions, behaviour modification, REBT, and cognitive-behavioural techniques.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-a-4",
+      "mpce023-2019-dec-b-7",
+      "mpce023-2020-jun-b-6",
+      "mpce023-2020-jun-b-7",
+      "mpce023-2021-dec-a-2",
+      "mpce023-2022-jun-b-6",
+      "mpce023-2022-jun-b-8",
+      "mpce023-2022-jun-c-10",
+      "mpce023-2022-dec-b-8",
+      "mpce023-2023-jun-a-3",
+      "mpce023-2023-jun-a-4",
+      "mpce023-2023-dec-a-2",
+      "mpce023-2023-dec-b-6",
+      "mpce023-2023-dec-b-7",
+      "mpce023-2024-jun-a-2",
+      "mpce023-2024-jun-b-7",
+      "mpce023-2025-jun-a-1",
+      "mpce023-2025-jun-a-2",
+      "mpce023-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Person-Centred and Humanistic Counselling",
+    "description": "Covers Rogerian client-centred therapy, fully functioning person, self-actualizing tendency, and unconditional positive regard.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-a-2",
+      "mpce023-2019-dec-b-9",
+      "mpce023-2020-jun-b-9",
+      "mpce023-2021-jun-a-4",
+      "mpce023-2021-dec-b-9",
+      "mpce023-2022-jun-a-4",
+      "mpce023-2022-dec-c-10",
+      "mpce023-2023-dec-c-12",
+      "mpce023-2024-jun-a-3",
+      "mpce023-2024-dec-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Integrative and Eclectic Counselling",
+    "description": "Addresses integrative counselling concepts, approaches, potentials, limitations, and eclectic counselling.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2020-jun-a-3",
+      "mpce023-2021-jun-a-1",
+      "mpce023-2021-dec-b-6",
+      "mpce023-2022-dec-b-5",
+      "mpce023-2023-jun-b-5",
+      "mpce023-2024-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Interpersonal and Couple Counselling",
+    "description": "Includes interpersonal counselling, interpersonal therapy, couple/marriage counselling, and object relations theory in couple work.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2020-jun-a-2",
+      "mpce023-2020-jun-b-8",
+      "mpce023-2021-jun-b-5",
+      "mpce023-2021-jun-b-7",
+      "mpce023-2021-dec-a-3",
+      "mpce023-2021-dec-b-5",
+      "mpce023-2022-jun-a-1",
+      "mpce023-2022-jun-b-9",
+      "mpce023-2022-dec-a-2",
+      "mpce023-2022-dec-a-3",
+      "mpce023-2022-dec-b-6",
+      "mpce023-2024-jun-a-4",
+      "mpce023-2024-jun-b-6",
+      "mpce023-2024-dec-b-6",
+      "mpce023-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Group and Family Counselling",
+    "description": "Covers types of groups, group counselling process, family counselling, psychoeducational groups, and family therapy techniques.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-c-12",
+      "mpce023-2021-jun-a-3",
+      "mpce023-2021-dec-b-8",
+      "mpce023-2023-jun-a-2",
+      "mpce023-2024-dec-c-11",
+      "mpce023-2025-jun-a-3",
+      "mpce023-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Solution-Focused and Brief Therapies",
+    "description": "Focuses on solution-focused counselling, brief therapy, miracle question, and short-term counselling.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-b-6",
+      "mpce023-2020-jun-c-11",
+      "mpce023-2021-jun-c-10",
+      "mpce023-2022-jun-a-2",
+      "mpce023-2022-dec-a-4",
+      "mpce023-2022-dec-c-11",
+      "mpce023-2023-jun-b-7",
+      "mpce023-2023-dec-a-3",
+      "mpce023-2023-dec-b-5",
+      "mpce023-2024-dec-c-10",
+      "mpce023-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Psychodynamic and Psychoanalytic Approaches",
+    "description": "Covers psychoanalytic and psychodynamic theory, object relations theory, and their applications.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2020-jun-a-4",
+      "mpce023-2021-jun-c-12",
+      "mpce023-2022-dec-b-6",
+      "mpce023-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Existential and Gestalt Therapy",
+    "description": "Includes existential therapy, Gestalt therapy, and their key concepts.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-b-9",
+      "mpce023-2022-jun-a-4",
+      "mpce023-2023-jun-c-11",
+      "mpce023-2023-dec-b-8",
+      "mpce023-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "e-Counselling and Research Ethics",
+    "description": "Covers e-counselling benefits, challenges, ethical issues, and counselling research methods.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-b-8",
+      "mpce023-2021-jun-b-8",
+      "mpce023-2021-dec-a-4",
+      "mpce023-2022-jun-a-3",
+      "mpce023-2023-jun-b-9",
+      "mpce023-2023-dec-b-9",
+      "mpce023-2024-jun-b-9",
+      "mpce023-2024-jun-c-12",
+      "mpce023-2024-dec-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Counselling Process and Skills",
+    "description": "Covers counselling steps, interpersonal relationship skills, and development of counselling.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-b-5",
+      "mpce023-2021-jun-b-9",
+      "mpce023-2024-dec-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Behaviour Modification and Self-Management",
+    "description": "Focuses on behaviour modification techniques, self-management strategies, token economy, and self-instructional techniques.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2021-dec-b-7",
+      "mpce023-2022-jun-c-10",
+      "mpce023-2022-jun-c-11",
+      "mpce023-2023-jun-a-3",
+      "mpce023-2023-jun-a-4",
+      "mpce023-2023-dec-b-6",
+      "mpce023-2024-jun-a-2",
+      "mpce023-2024-jun-b-8",
+      "mpce023-2025-jun-a-1",
+      "mpce023-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Specialized Counselling Techniques",
+    "description": "Covers psychodrama, multimodal therapy, systematic desensitization, stress inoculation, PLISSIT model, and intensive therapy.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-c-11",
+      "mpce023-2020-jun-b-6",
+      "mpce023-2020-jun-c-12",
+      "mpce023-2021-jun-c-11",
+      "mpce023-2021-dec-c-12",
+      "mpce023-2022-jun-b-7",
+      "mpce023-2022-jun-b-8",
+      "mpce023-2022-dec-b-7",
+      "mpce023-2022-dec-c-12",
+      "mpce023-2023-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Counselling vs Psychotherapy and Foundations",
+    "description": "Differentiates counselling and psychotherapy, covers basic concepts and approaches to counselling.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2020-jun-c-10",
+      "mpce023-2021-dec-c-10",
+      "mpce023-2024-dec-b-7",
+      "mpce023-2025-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Miscellaneous Short Notes",
+    "description": "Covers various short-answer topics including sleepwalk, selective mutism, functional enuresis/encopresis, and multisensory approach.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2019-dec-c-10",
+      "mpce023-2023-dec-c-10",
+      "mpce023-2024-jun-c-10",
+      "mpce023-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-023",
+    "question_ids": [
+      "mpce023-2021-jun-a-2",
+      "mpce023-2023-jun-b-8",
+      "mpce023-2024-dec-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Foundations of OB",
+    "description": "Covers the scope, definition, goals, and historical development of organisational behaviour and psychology.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-b-5",
+      "mpce031-2021-dec-c-1",
+      "mpce031-2021-dec-c-10",
+      "mpce031-2022-dec-b-5",
+      "mpce031-2022-dec-b-6",
+      "mpce031-2022-dec-c-12",
+      "mpce031-2023-dec-a-1",
+      "mpce031-2023-dec-a-2",
+      "mpce031-2023-dec-b-5",
+      "mpce031-2020-jun-a-1",
+      "mpce031-2020-jun-b-7",
+      "mpce031-2021-jun-b-5",
+      "mpce031-2022-jun-a-1",
+      "mpce031-2022-jun-b-5",
+      "mpce031-2023-jun-a-2",
+      "mpce031-2024-jun-a-10"
+    ]
+  },
+  {
+    "cluster_name": "Organisational Metaphors and Models",
+    "description": "Includes Morgan's organisational metaphors and the four models of organisational behaviour.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-b-6",
+      "mpce031-2022-dec-a-1",
+      "mpce031-2020-jun-b-8",
+      "mpce031-2021-jun-b-6",
+      "mpce031-2021-jun-c-1",
+      "mpce031-2021-jun-c-11",
+      "mpce031-2022-jun-b-6",
+      "mpce031-2023-jun-a-1",
+      "mpce031-2023-jun-a-3",
+      "mpce031-2024-jun-a-1",
+      "mpce031-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Motivation Theories",
+    "description": "Covers major motivation theories including Maslow, Herzberg, Vroom, Equity, and reinforcement theory.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-b-8",
+      "mpce031-2021-dec-a-9",
+      "mpce031-2022-dec-a-4",
+      "mpce031-2022-dec-b-7",
+      "mpce031-2023-dec-a-4",
+      "mpce031-2020-jun-b-9",
+      "mpce031-2020-jun-c-10",
+      "mpce031-2021-jun-c-4",
+      "mpce031-2022-jun-a-2",
+      "mpce031-2022-jun-b-9",
+      "mpce031-2023-jun-a-4",
+      "mpce031-2023-jun-b-6",
+      "mpce031-2023-jun-b-7",
+      "mpce031-2024-jun-a-12"
+    ]
+  },
+  {
+    "cluster_name": "Motivation Process and Employee Ownership",
+    "description": "Focuses on the process of motivation, employee ownership, and related concepts.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-c-3",
+      "mpce031-2022-dec-b-9",
+      "mpce031-2020-jun-a-2",
+      "mpce031-2021-jun-c-12",
+      "mpce031-2023-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Job Satisfaction and Commitment",
+    "description": "Addresses job satisfaction, organisational commitment, and their components and antecedents.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2022-dec-a-2",
+      "mpce031-2023-dec-a-3",
+      "mpce031-2023-dec-b-6",
+      "mpce031-2021-jun-b-7",
+      "mpce031-2022-jun-b-7",
+      "mpce031-2022-jun-c-10",
+      "mpce031-2023-jun-b-5",
+      "mpce031-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Leadership and Team Building",
+    "description": "Covers leadership definitions, approaches, managerial grid, and team building techniques.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2023-dec-b-7",
+      "mpce031-2023-dec-b-8",
+      "mpce031-2020-jun-c-11",
+      "mpce031-2021-jun-c-10",
+      "mpce031-2022-jun-a-3",
+      "mpce031-2023-jun-b-8",
+      "mpce031-2024-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Conflict Resolution",
+    "description": "Includes steps, techniques, and principles of conflict resolution.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-c-11",
+      "mpce031-2022-dec-a-3",
+      "mpce031-2023-dec-c-12",
+      "mpce031-2021-jun-b-8",
+      "mpce031-2022-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Change Management",
+    "description": "Discusses change management, issues, and factors in consent to change.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2022-dec-b-8",
+      "mpce031-2020-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Learning Theories",
+    "description": "Covers cognitive mapping, social learning theory, and theories of learning.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2020-jun-b-5",
+      "mpce031-2022-jun-a-4",
+      "mpce031-2023-jun-c-11",
+      "mpce031-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Psychological Contract and People-Organisation Relationship",
+    "description": "Explores psychological contract and the nature of people in organisations.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-dec-c-2",
+      "mpce031-2021-dec-c-12",
+      "mpce031-2023-dec-b-9",
+      "mpce031-2022-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Organisational Culture and Paradigm Shift",
+    "description": "Covers organisational culture and paradigm shifts.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2023-dec-c-10",
+      "mpce031-2021-jun-c-2"
+    ]
+  },
+  {
+    "cluster_name": "Human Relations and Management Approaches",
+    "description": "Includes human relations movement, management functions, and OB management approaches.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2022-dec-c-11",
+      "mpce031-2020-jun-c-12",
+      "mpce031-2021-jun-c-3"
+    ]
+  },
+  {
+    "cluster_name": "Motives and Quality Circles",
+    "description": "Covers primary/secondary motives, meta-needs, and quality control circles.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2022-dec-c-10",
+      "mpce031-2022-jun-c-11",
+      "mpce031-2022-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-031",
+    "question_ids": [
+      "mpce031-2021-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "HRM Fundamentals and Functions",
+    "description": "Covers the aims, functions, objectives, and principles of Human Resource Management and the role of HR managers.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-b-6",
+      "mpce032-2023-dec-a-1",
+      "mpce032-2023-dec-b-5",
+      "mpce032-2020-jun-a-2",
+      "mpce032-2020-jun-b-6",
+      "mpce032-2024-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "HR Planning and Strategy",
+    "description": "Focuses on human resource planning, forecasting, alignment with business strategy, and related concepts like hard/soft planning and limitations.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-a-1",
+      "mpce032-2023-dec-b-8",
+      "mpce032-2023-dec-b-9",
+      "mpce032-2023-dec-c-12",
+      "mpce032-2020-jun-a-1",
+      "mpce032-2020-jun-a-4",
+      "mpce032-2020-jun-c-11",
+      "mpce032-2022-jun-a-4",
+      "mpce032-2024-jun-a-1",
+      "mpce032-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Training and Development Methods",
+    "description": "Covers training methods (on-the-job, off-the-job, cognitive), evaluation, behavior modeling, and the meaning and advantages of training.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-b-7",
+      "mpce032-2022-dec-c-10",
+      "mpce032-2023-dec-a-3",
+      "mpce032-2020-jun-a-3",
+      "mpce032-2021-jun-b-6",
+      "mpce032-2021-jun-c-11",
+      "mpce032-2022-jun-b-6",
+      "mpce032-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Performance Appraisal and Competency",
+    "description": "Includes performance appraisal processes and benefits, competency mapping, and benchmarking HR practices.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-c-12",
+      "mpce032-2023-dec-c-10",
+      "mpce032-2020-jun-b-9",
+      "mpce032-2021-jun-b-9",
+      "mpce032-2024-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Employee Retention and Choice Plans",
+    "description": "Addresses strategies for retaining employees, significance of retaining qualified personnel, and employee choice plans.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-a-4",
+      "mpce032-2021-dec-b-5",
+      "mpce032-2022-jun-b-5",
+      "mpce032-2022-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Workplace Violence and Bullying",
+    "description": "Covers workplace violence and bullying, their types, effects, and prevention strategies.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-b-8",
+      "mpce032-2022-dec-a-3",
+      "mpce032-2023-dec-a-4",
+      "mpce032-2021-jun-b-7",
+      "mpce032-2022-jun-b-8",
+      "mpce032-2024-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Diversity and Cross-Cultural Management",
+    "description": "Focuses on diversity in organizations, individual and organizational approaches to managing diversity, and cross-cultural training.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-a-2",
+      "mpce032-2023-dec-b-6",
+      "mpce032-2021-jun-a-2",
+      "mpce032-2022-jun-c-10",
+      "mpce032-2024-jun-b-6",
+      "mpce032-2024-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Personality, Perception, and Attitudes",
+    "description": "Explores Big Five personality traits, work-related attitudes, personality influencing behavior, perception, and creativity in organizations.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-a-1",
+      "mpce032-2023-dec-a-2",
+      "mpce032-2021-jun-a-1",
+      "mpce032-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Corporate Social Responsibility",
+    "description": "Covers the concept, significance, types, and components of Corporate Social Responsibility.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-c-12",
+      "mpce032-2022-dec-b-8",
+      "mpce032-2021-jun-a-4",
+      "mpce032-2024-jun-a-4"
+    ]
+  },
+  {
+    "cluster_name": "Intellectual Property Rights",
+    "description": "Discusses the nature, objectives, types, significance, and emerging issues of Intellectual Property Rights.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-b-7",
+      "mpce032-2020-jun-b-7",
+      "mpce032-2021-jun-a-3",
+      "mpce032-2022-jun-a-3",
+      "mpce032-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Human Rights and Labour Laws",
+    "description": "Includes human rights concepts, laws in India, Universal Declaration, trade union acts, industrial disputes act, and international labour laws.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-a-3",
+      "mpce032-2021-dec-c-11",
+      "mpce032-2022-dec-b-9",
+      "mpce032-2022-dec-c-11",
+      "mpce032-2023-dec-b-7",
+      "mpce032-2020-jun-b-8",
+      "mpce032-2021-jun-b-8",
+      "mpce032-2021-jun-c-12",
+      "mpce032-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Assertiveness and Counselling",
+    "description": "Covers assertiveness training, voice training, corporate counselling, and time and anger management.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-b-9",
+      "mpce032-2020-jun-b-5",
+      "mpce032-2021-jun-b-5",
+      "mpce032-2022-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Dysfunctional Behaviour and Its Management",
+    "description": "Focuses on dysfunctional behavior, its types, and methods to overcome it.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-c-10",
+      "mpce032-2023-dec-c-11",
+      "mpce032-2022-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Globalization and Future HR Trends",
+    "description": "Discusses globalization dilemmas for HR, future role of HR professionals, six sigma interventions, and driving factors of globalization.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-b-5",
+      "mpce032-2022-dec-b-6",
+      "mpce032-2022-jun-a-2",
+      "mpce032-2022-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Management Principles and Subcontracting",
+    "description": "Covers Fayol's principles of management and subcontracting as a business practice.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2021-dec-a-2",
+      "mpce032-2021-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-032",
+    "question_ids": [
+      "mpce032-2022-dec-a-4",
+      "mpce032-2020-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Foundations of Organisational Development",
+    "description": "Covers the definition, nature, characteristics, goals, and importance of organisational development.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-b-5",
+      "mpce033-2021-dec-a-1",
+      "mpce033-2022-dec-a-1",
+      "mpce033-2023-dec-a-1",
+      "mpce033-2020-jun-a-1",
+      "mpce033-2021-jun-a-1",
+      "mpce033-2022-jun-a-1",
+      "mpce033-2024-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Change Models and Strategies",
+    "description": "Includes first and second order change, models of change (Lewin, Weisbord, Fisher), and strategies for change.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-a-1",
+      "mpce033-2021-dec-a-3",
+      "mpce033-2022-dec-a-3",
+      "mpce033-2023-dec-a-3",
+      "mpce033-2020-jun-a-7",
+      "mpce033-2021-jun-a-3",
+      "mpce033-2022-jun-a-2",
+      "mpce033-2022-jun-b-5",
+      "mpce033-2022-jun-b-8",
+      "mpce033-2024-jun-a-1",
+      "mpce033-2024-jun-b-7",
+      "mpce033-2024-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Action Research and Diagnosis",
+    "description": "Focuses on action research, its theories, and the phases and goals of organisational diagnosis.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-b-8",
+      "mpce033-2021-dec-b-8",
+      "mpce033-2022-dec-b-6",
+      "mpce033-2022-dec-b-9",
+      "mpce033-2023-dec-b-5",
+      "mpce033-2020-jun-a-3",
+      "mpce033-2021-jun-b-7",
+      "mpce033-2024-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "OD Interventions and Design",
+    "description": "Covers the concept, families, classification, and design of organisational development interventions.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-a-4",
+      "mpce033-2022-dec-a-4",
+      "mpce033-2023-dec-a-4",
+      "mpce033-2020-jun-a-8",
+      "mpce033-2021-jun-a-4",
+      "mpce033-2021-jun-b-8",
+      "mpce033-2022-jun-a-4",
+      "mpce033-2022-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Empowerment and Participation",
+    "description": "Explores empowerment (concept, benefits, techniques) and participation (programmes, role of managers).",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-a-2",
+      "mpce033-2021-dec-a-2",
+      "mpce033-2022-dec-a-2",
+      "mpce033-2023-dec-b-6",
+      "mpce033-2023-dec-c-11",
+      "mpce033-2020-jun-a-6",
+      "mpce033-2021-jun-b-6",
+      "mpce033-2024-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Teams and Team Development",
+    "description": "Addresses team definition, types, stages of development, problems affecting teamwork, and high-performing teams.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-b-7",
+      "mpce033-2021-dec-b-6",
+      "mpce033-2022-dec-b-7",
+      "mpce033-2023-dec-a-2",
+      "mpce033-2020-jun-a-5",
+      "mpce033-2020-jun-c-11",
+      "mpce033-2022-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Mentoring and Coaching",
+    "description": "Discusses mentoring relationships, techniques, and coaching in organisational development.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-b-9",
+      "mpce033-2021-dec-a-4",
+      "mpce033-2020-jun-a-9",
+      "mpce033-2021-jun-c-12",
+      "mpce033-2022-jun-c-12",
+      "mpce033-2024-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Organisational Learning and Structures",
+    "description": "Covers organisational learning, parallel learning structures, and global/multinational orientation.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-c-10",
+      "mpce033-2021-dec-b-7",
+      "mpce033-2023-dec-c-10",
+      "mpce033-2020-jun-a-2",
+      "mpce033-2020-jun-c-10",
+      "mpce033-2021-jun-a-2",
+      "mpce033-2021-jun-c-10",
+      "mpce033-2022-jun-b-7",
+      "mpce033-2024-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Resistance to Change",
+    "description": "Focuses on resistance to change, strategies to overcome it, and related approaches like power-coercive and normative re-educative.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-c-11",
+      "mpce033-2021-dec-c-10",
+      "mpce033-2022-dec-c-10",
+      "mpce033-2024-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Job Design and Motivation",
+    "description": "Includes job design approaches, employee motivation strategies, and related concepts.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-b-6",
+      "mpce033-2021-dec-b-5",
+      "mpce033-2023-dec-b-9",
+      "mpce033-2021-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Programme Evaluation",
+    "description": "Covers models, types, stages, and concepts of programme evaluation including CIRO model.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-a-3",
+      "mpce033-2021-dec-c-11",
+      "mpce033-2023-dec-c-12",
+      "mpce033-2021-jun-b-5",
+      "mpce033-2022-jun-a-3",
+      "mpce033-2024-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "OD Methods and Techniques",
+    "description": "Includes appreciative inquiry, survey feedback, process consultation, and other intervention methods.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2021-dec-b-9",
+      "mpce033-2024-jun-a-4",
+      "mpce033-2024-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Key Concepts and Models",
+    "description": "Covers miscellaneous key concepts like management by objectives, force field analysis, Weisbord's six box model, and third wave consulting.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2020-dec-c-12",
+      "mpce033-2021-dec-c-12",
+      "mpce033-2022-dec-c-11",
+      "mpce033-2022-dec-c-12",
+      "mpce033-2020-jun-c-13"
+    ]
+  },
+  {
+    "cluster_name": "Other Topics",
+    "description": "Miscellaneous questions not fitting the main clusters.",
+    "course_code": "MPCE-033",
+    "question_ids": [
+      "mpce033-2022-dec-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Foundations of Positive Psychology",
+    "description": "Covers the definition, scope, and historical development of positive psychology, including its relation to other areas and waves.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-a-1",
+      "mpce046-2023-dec-b-4",
+      "mpce046-2024-dec-c-10",
+      "mpce046-2025-jun-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Happiness and Well-Being Models",
+    "description": "Explores concepts of happiness, well-being, and major models like PERMA and hedonic/eudaimonic perspectives.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-b-6",
+      "mpce046-2023-dec-a-3",
+      "mpce046-2024-jun-c-12",
+      "mpce046-2024-dec-c-11",
+      "mpce046-2025-jun-b-5"
+    ]
+  },
+  {
+    "cluster_name": "Mindfulness and Meditation",
+    "description": "Focuses on mindfulness, mindfulness-based interventions, meditation categories, and related practices.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-a-3",
+      "mpce046-2024-jun-b-9",
+      "mpce046-2025-jun-a-2"
+    ]
+  },
+  {
+    "cluster_name": "Stress Management and Coping",
+    "description": "Addresses stress concepts, models, and strategies for managing stress through cognitive, affective, and other approaches.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-a-2",
+      "mpce046-2024-jun-b-8",
+      "mpce046-2024-dec-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Emotions, Mood, and Affect",
+    "description": "Covers emotion, mood, affect, emotional management, and theories like Broaden-and-Build.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-dec-a-2",
+      "mpce046-2023-dec-c-10"
+    ]
+  },
+  {
+    "cluster_name": "Self-Concept, Self-Esteem, and Self-Efficacy",
+    "description": "Examines self-concept, self-esteem, self-efficacy, real vs. ideal self, and strategies for enhancing self-efficacy.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2024-jun-a-2",
+      "mpce046-2024-dec-b-4",
+      "mpce046-2025-jun-b-6"
+    ]
+  },
+  {
+    "cluster_name": "Character Strengths and Virtues",
+    "description": "Focuses on character strengths, VIA classification, and their role in well-being.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2024-jun-b-4",
+      "mpce046-2024-dec-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Optimism, Hope, and Grit",
+    "description": "Covers optimism, hope (Snyder's model), grit, and their benefits and risks.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-b-5",
+      "mpce046-2023-jun-c-12",
+      "mpce046-2023-dec-b-6",
+      "mpce046-2024-jun-b-6",
+      "mpce046-2025-jun-a-1"
+    ]
+  },
+  {
+    "cluster_name": "Forgiveness and Gratitude",
+    "description": "Explores forgiveness, self-forgiveness, gratitude, and their links to well-being.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-c-10",
+      "mpce046-2023-dec-b-5",
+      "mpce046-2024-jun-c-11",
+      "mpce046-2025-jun-c-12"
+    ]
+  },
+  {
+    "cluster_name": "Flow and Engagement",
+    "description": "Discusses flow experience, its components, and differentiation from engagement.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-dec-b-8",
+      "mpce046-2024-dec-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Resilience and Post-Traumatic Growth",
+    "description": "Covers resilience research waves, models, post-traumatic growth, and their distinctions.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-dec-c-12",
+      "mpce046-2024-jun-b-5",
+      "mpce046-2024-dec-c-12",
+      "mpce046-2025-jun-b-8"
+    ]
+  },
+  {
+    "cluster_name": "Positive Psychology Applications in Contexts",
+    "description": "Applies positive psychology to family, close relationships, workplace, and schools.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-b-7",
+      "mpce046-2023-jun-b-9",
+      "mpce046-2023-dec-b-7",
+      "mpce046-2024-jun-b-7",
+      "mpce046-2024-dec-b-5",
+      "mpce046-2025-jun-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Indian and Western Psychological Perspectives",
+    "description": "Compares Indian and Western psychology, including Patanjali's Yogasutra, Ashtanga Yoga, and concepts like Gunas and Svabhava.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-b-4",
+      "mpce046-2023-dec-b-9",
+      "mpce046-2024-jun-c-10",
+      "mpce046-2024-dec-b-9",
+      "mpce046-2025-jun-b-9"
+    ]
+  },
+  {
+    "cluster_name": "Psychological Capital and Mindset",
+    "description": "Covers psychological capital, mindset types, and their contribution to well-being.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-b-8",
+      "mpce046-2023-dec-a-1",
+      "mpce046-2024-dec-b-7"
+    ]
+  },
+  {
+    "cluster_name": "Research Methods and Ethics in Positive Psychology",
+    "description": "Addresses research goals, types, steps, and ethical guidelines in psychology.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2024-jun-a-1",
+      "mpce046-2024-dec-a-2",
+      "mpce046-2025-jun-b-4",
+      "mpce046-2025-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Aging and Positive Psychology",
+    "description": "Focuses on successful aging and applications of positive psychology in later life.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2024-jun-a-3",
+      "mpce046-2025-jun-a-3"
+    ]
+  },
+  {
+    "cluster_name": "Emotional Storytelling and Related Concepts",
+    "description": "Covers emotional storytelling and its role in positive psychology.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-jun-c-11"
+    ]
+  },
+  {
+    "cluster_name": "Mindfulness in Parenting",
+    "description": "Explores mindfulness specifically in the context of parenting.",
+    "course_code": "MPCE-046",
+    "question_ids": [
+      "mpce046-2023-dec-c-11"
+    ]
+  }
+]
