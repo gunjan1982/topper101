@@ -20,9 +20,9 @@ export const metadata: Metadata = {
   title: "Topper101 — IGNOU MAPC Exam Prep",
   description: "AI-powered exam prep built specifically for IGNOU MAPC students.",
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon-32.png",
   },
 };
 
