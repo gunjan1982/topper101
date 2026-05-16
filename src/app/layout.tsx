@@ -5,6 +5,7 @@ import { PostHogProvider } from "./providers";
 import PostHogPageview from "./PostHogPageview";
 import ThemeProvider from "./ThemeProvider";
 import { Suspense } from "react";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,18 @@ export default function RootLayout({
         {/* Anti-flash: apply stored theme before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();` }} />
       </head>
+      {/* Google Analytics 4 — only loads if NEXT_PUBLIC_GA_MEASUREMENT_ID is set */}
+      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="ga4-init" strategy="afterInteractive">
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}',{page_path:window.location.pathname});`}
+          </Script>
+        </>
+      )}
       <Suspense fallback={null}>
         <PostHogPageview />
       </Suspense>

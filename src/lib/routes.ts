@@ -11,6 +11,8 @@ export const ROUTES = {
   onboardingPapers: '/onboarding/papers',
   onboardingFreeSubject: '/onboarding/free-subject',
   authCallback: '/auth/callback',
+  admin: '/admin',
+  adminUsers: '/admin/users',
 } as const;
 
 export const AUTH_ROUTE_PREFIXES = [
