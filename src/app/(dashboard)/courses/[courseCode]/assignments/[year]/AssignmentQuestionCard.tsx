@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePostHog } from 'posthog-js/react';
+import AnswerRenderer from '@/components/AnswerRenderer';
 
 interface QuestionDetails {
   question_text: string;
@@ -83,8 +84,8 @@ export default function AssignmentQuestionCard({
         marks: question.marks,
       });
 
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setIsLoading(false);
     }
@@ -134,12 +135,19 @@ export default function AssignmentQuestionCard({
              answer ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest text-teal-700">Generated Answer</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-teal-700">AI-written Study Answer</span>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{answer.word_count} words</span>
                 </div>
-                <div className="prose prose-zinc prose-sm md:prose-base dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                  {answer.answer_text}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
+                  <div className="font-bold">Source clarity</div>
+                  <p className="mt-1">
+                    This is AI-written for study and drafting support. It may use the listed textbook reference when available, but it is not an official IGNOU answer or a verbatim textbook extract.
+                  </p>
+                  <p className="mt-2 text-xs font-bold text-sky-800 dark:text-sky-200">
+                    Blue blocks, when present, are extra AI simplifications or examples beyond the core answer.
+                  </p>
                 </div>
+                <AnswerRenderer answer={answer.answer_text} />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-6 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 dark:bg-zinc-900/40 dark:border-zinc-800 space-y-4">

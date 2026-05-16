@@ -1,40 +1,76 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
+import { ROUTES } from '@/lib/routes';
+import { cleanQuestionText } from '@/lib/questionDisplay';
+import AnswerRenderer from '@/components/AnswerRenderer';
 import { getAnswer, updateProgress, submitFlag } from '../../actions';
 
 interface Question {
   id: string;
-  year: number;
-  session: string;
-  section: string;
+  year: number | null;
+  session: string | null;
+  section: string | null;
   question_text: string;
   marks: number;
-  answer_status?: string;
+  answer_status?: string | null;
   course_id?: string;
 }
 
+type AnswerData =
+  | { status: 'success'; answer: string; creditsRemaining?: number }
+  | { status: 'paywall'; trigger?: 'subject_locked' | 'credit_limit' }
+  | { status: 'missing_answer' };
+
 interface QuestionCardProps {
   question: Question;
+  variations?: Array<{
+    id: string;
+    tee: string;
+    section: string | null;
+    marks: number;
+    text: string;
+  }>;
   courseCode?: string;
   isPaid?: boolean;
+  referralCode?: string | null;
+  userEmail?: string | null;
   frequencyTier?: string;
+  initialProgress?: {
+    reviewed: boolean;
+    bookmarked: boolean;
+  };
 }
 
-export default function QuestionCard({ question, courseCode = '', isPaid = false, frequencyTier = 'LOW' }: QuestionCardProps) {
+export default function QuestionCard({
+  question,
+  variations = [],
+  courseCode = '',
+  isPaid = false,
+  referralCode = null,
+  userEmail = null,
+  frequencyTier = 'LOW',
+  initialProgress = { reviewed: false, bookmarked: false },
+}: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [answerData, setAnswerData] = useState<any>(null);
-  const [status, setStatus] = useState<'reviewed' | 'bookmarked' | 'skipped' | null>(null);
+  const [answerData, setAnswerData] = useState<AnswerData | null>(null);
+  const [reviewed, setReviewed] = useState(initialProgress.reviewed);
+  const [bookmarked, setBookmarked] = useState(initialProgress.bookmarked);
+  const displayText = cleanQuestionText(question);
+  const teeTags = variations.length > 0
+    ? variations.map((variation) => variation.tee)
+    : [[question.session, question.year].filter(Boolean).join(' ')];
+  const uniqueTeeTags = [...new Set(teeTags)].filter(Boolean);
 
   // Thumbs state
   const [thumbs, setThumbs] = useState<'up' | 'down' | null>(null);
 
   // Flag form state
   const [showFlagForm, setShowFlagForm] = useState(false);
-  const [flagType, setFlagType] = useState('Factual error');
+  const [flagType, setFlagType] = useState('error');
   const [flagDesc, setFlagDesc] = useState('');
   const [flagSubmitting, setFlagSubmitting] = useState(false);
   const [flagDone, setFlagDone] = useState(false);
@@ -75,13 +111,31 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
     }
   };
 
-  const handleStatusChange = async (newStatus: 'reviewed' | 'bookmarked' | 'skipped') => {
-    setStatus(newStatus);
+  const handleProgressToggle = async (newStatus: 'reviewed' | 'bookmarked') => {
+    const nextActive = newStatus === 'reviewed' ? !reviewed : !bookmarked;
+
+    if (newStatus === 'reviewed') {
+      setReviewed(nextActive);
+    } else {
+      setBookmarked(nextActive);
+    }
+
     posthog?.capture('question_marked', {
       question_id: question.id,
       status: newStatus,
+      active: nextActive,
     });
-    await updateProgress(question.id, newStatus);
+
+    try {
+      await updateProgress(question.id, newStatus, nextActive);
+    } catch (error) {
+      if (newStatus === 'reviewed') {
+        setReviewed(!nextActive);
+      } else {
+        setBookmarked(!nextActive);
+      }
+      console.error(error);
+    }
   };
 
   const handleFlagSubmit = async () => {
@@ -106,9 +160,14 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
     return (
       <div className="rounded-3xl border border-amber-200 bg-amber-50/50 p-6 dark:border-amber-900/30 dark:bg-amber-900/10">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider mb-4">
-          {(question.session || question.year) && (
+          {uniqueTeeTags.slice(0, 4).map((tag) => (
+            <span key={tag} className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+              {tag}
+            </span>
+          ))}
+          {uniqueTeeTags.length > 4 && (
             <span className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-              {[question.session, question.year].filter(Boolean).join(' ')}
+              +{uniqueTeeTags.length - 4} TEEs
             </span>
           )}
           <span className="rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
@@ -120,7 +179,7 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
         </div>
 
         <p className="text-lg font-medium leading-snug dark:text-white">
-          {question.question_text}
+          {displayText}
         </p>
 
         <div className="mt-6 rounded-2xl border border-amber-200 bg-white p-4 text-sm text-amber-700 dark:border-amber-900/30 dark:bg-zinc-900 dark:text-amber-400">
@@ -134,35 +193,89 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
     <>
       <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider mb-4">
-          {(question.session || question.year) && (
+          {uniqueTeeTags.slice(0, 4).map((tag) => (
+            <span key={tag} className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+              {tag}
+            </span>
+          ))}
+          {uniqueTeeTags.length > 4 && (
             <span className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-              {[question.session, question.year].filter(Boolean).join(' ')}
+              +{uniqueTeeTags.length - 4} TEEs
             </span>
           )}
           <span className="rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
             {question.section ? `Section ${question.section} · ` : ''}{question.marks} Marks
           </span>
+          {variations.length > 1 && (
+            <span className="rounded bg-violet-50 px-2 py-1 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300">
+              Repeated {variations.length} times
+            </span>
+          )}
         </div>
         
         <p className="text-lg font-medium leading-snug dark:text-white">
-          {question.question_text}
+          {displayText}
         </p>
 
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex gap-2">
+        {variations.length > 1 && (
+          <div className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/20">
+            <div className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">
+              TEE variations
+            </div>
+            <div className="space-y-3">
+              {variations.map((variation) => {
+                const sameText = variation.text === displayText;
+
+                return (
+                  <div key={variation.id} className="grid gap-2 text-sm sm:grid-cols-[180px_1fr]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-zinc-200 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        {variation.tee}
+                      </span>
+                      <span className="rounded bg-teal-50 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-teal-700 dark:bg-teal-950/30 dark:text-teal-300">
+                        {variation.section ? `Section ${variation.section} · ` : ''}{variation.marks} marks
+                      </span>
+                    </div>
+                    <p className="text-zinc-600 dark:text-zinc-300">
+                      {sameText ? 'Same framing' : variation.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              Progress
+            </span>
             <button 
-              onClick={() => handleStatusChange('reviewed')}
-              className={`h-10 w-10 flex items-center justify-center rounded-full border transition-all ${status === 'reviewed' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-zinc-200 text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 dark:border-zinc-800'}`}
-              title="Mark as Reviewed"
+              onClick={() => handleProgressToggle('reviewed')}
+              aria-pressed={reviewed}
+              className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-all ${
+                reviewed
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                  : 'border-zinc-200 text-zinc-600 hover:border-emerald-500 hover:text-emerald-600 dark:border-zinc-800 dark:text-zinc-400'
+              }`}
+              title="Mark this question as reviewed for progress tracking"
             >
-              ✅
+              <span aria-hidden="true">✓</span>
+              {reviewed ? 'Reviewed' : 'Mark reviewed'}
             </button>
             <button 
-              onClick={() => handleStatusChange('bookmarked')}
-              className={`h-10 w-10 flex items-center justify-center rounded-full border transition-all ${status === 'bookmarked' ? 'bg-amber-500 border-amber-500 text-white' : 'border-zinc-200 text-zinc-400 hover:border-amber-500 hover:text-amber-500 dark:border-zinc-800'}`}
-              title="Bookmark"
+              onClick={() => handleProgressToggle('bookmarked')}
+              aria-pressed={bookmarked}
+              className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-all ${
+                bookmarked
+                  ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
+                  : 'border-zinc-200 text-zinc-600 hover:border-amber-500 hover:text-amber-600 dark:border-zinc-800 dark:text-zinc-400'
+              }`}
+              title="Save this question for quick revision later"
             >
-              🔖
+              <span aria-hidden="true">☆</span>
+              {bookmarked ? 'Saved' : 'Save for later'}
             </button>
           </div>
           
@@ -181,7 +294,12 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-100 p-6 dark:border-zinc-800">
-              <h2 className="text-xl font-bold dark:text-white">AI Model Answer</h2>
+              <div>
+                <h2 className="text-xl font-bold dark:text-white">AI-written Study Answer</h2>
+                <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  Not an official IGNOU textbook extract
+                </p>
+              </div>
               <button 
                 onClick={() => setIsOpen(false)}
                 className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
@@ -199,38 +317,85 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
               ) : answerData?.status === 'paywall' ? (
                 <div className="text-center py-12">
                   <span className="text-6xl mb-6 block">💳</span>
-                  <h3 className="text-2xl font-bold dark:text-white">You've used your 5 free answers</h3>
+                  <h3 className="text-2xl font-bold dark:text-white">
+                    {answerData.trigger === 'subject_locked'
+                      ? 'This paper is locked'
+                      : 'You have used your free answers'}
+                  </h3>
                   <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-                    Upgrade to Topper Pass to get unlimited AI answers for all papers and sessions.
+                    {answerData.trigger === 'subject_locked'
+                      ? 'Your first paper is free. Upgrade to unlock every selected paper for this TEE.'
+                      : 'Upgrade to Topper Pass to get AI study answers for all papers and sessions.'}
                   </p>
                   <div className="mt-10 flex flex-col gap-4">
-                    <button className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20">
+                    <button
+                      onClick={() => {
+                        window.location.href = ROUTES.pricing;
+                      }}
+                      className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20"
+                    >
                       Unlock All Answers → ₹299
                     </button>
                     <button 
-                      className="text-sm font-medium text-zinc-500 hover:text-teal-700"
+                      className="text-sm font-medium text-zinc-500 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => {
-                        const link = `${window.location.origin}?ref=referral`;
+                        const link = `${window.location.origin}${ROUTES.signup}?ref=${encodeURIComponent(referralCode ?? '')}`;
                         navigator.clipboard.writeText(link);
                         posthog?.capture('referral_link_shared', { channel: 'copy' });
                       }}
+                      disabled={!referralCode}
                     >
-                      Or invite 2 friends for a free month
+                      Or invite a friend to unlock another paper
                     </button>
                   </div>
                 </div>
+              ) : answerData?.status === 'missing_answer' ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-200">
+                  <h3 className="font-bold">Answer coming soon</h3>
+                  <p className="mt-2 text-sm">
+                    This question is available in the bank, but the model answer has not been reviewed or loaded yet. Your free credits were not used.
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-6">
+                <div
+                  className="relative space-y-6 select-none"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
                   {answerData?.creditsRemaining !== undefined && (
                     <div className="rounded-xl bg-teal-50 p-4 text-xs font-bold text-teal-700 dark:bg-teal-900/30">
                       💡 {answerData.creditsRemaining} free answers left this month
                     </div>
                   )}
-                  <div className="prose prose-zinc dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap dark:text-zinc-300">
-                      {answerData?.answer || "No answer found for this question."}
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
+                    <div className="font-bold">Source clarity</div>
+                    <p className="mt-1">
+                      This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+                      <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
+                        Main text: AI-composed study answer
+                      </span>
+                      <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
+                        Blue blocks: extra AI simplification/add-on
+                      </span>
                     </div>
                   </div>
+                  <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
+
+                  {/* Email watermark — discourages screenshots and unauthorised sharing */}
+                  {userEmail && (
+                    <div
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.04]"
+                      aria-hidden="true"
+                    >
+                      <span
+                        className="select-none whitespace-nowrap text-xl font-bold text-zinc-950 dark:text-white"
+                        style={{ transform: 'rotate(-30deg)', letterSpacing: '0.05em' }}
+                      >
+                        {userEmail} · topper101.com
+                      </span>
+                    </div>
+                  )}
 
                   {/* Source attribution */}
                   <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
@@ -238,7 +403,7 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
                     </svg>
                     <span>
-                      AI-generated answer based on IGNOU MAPC syllabus and past paper patterns. Not sourced from official IGNOU study material. Always cross-check with your course books.
+                      Use this as a revision aid. For final exam preparation, cross-check facts, definitions, and theorists with your IGNOU course books.
                     </span>
                   </div>
                   
@@ -291,9 +456,9 @@ export default function QuestionCard({ question, courseCode = '', isPaid = false
                             onChange={(e) => setFlagType(e.target.value)}
                             className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                           >
-                            <option value="Factual error">Factual error</option>
-                            <option value="Unclear">Unclear</option>
-                            <option value="Incomplete">Incomplete</option>
+                            <option value="error">Factual error</option>
+                            <option value="unclear">Unclear</option>
+                            <option value="incomplete">Incomplete</option>
                           </select>
                         </div>
 

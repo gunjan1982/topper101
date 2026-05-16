@@ -20,7 +20,11 @@ export const metadata: Metadata = {
   title: "Topper101 — IGNOU MAPC Exam Prep",
   description: "AI-powered exam prep built specifically for IGNOU MAPC students.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
     shortcut: "/favicon.ico",
     apple: "/favicon-32.png",
   },

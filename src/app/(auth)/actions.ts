@@ -1,12 +1,31 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { isGoogleAuthEnabled } from '@/lib/authConfig';
+import { safeNextPath } from '@/lib/navigation';
+import { ROUTES } from '@/lib/routes';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+
+async function authCallbackUrl(next: string) {
+  const headerStore = await headers();
+  const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : undefined;
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    vercelProductionUrl ??
+    headerStore.get('origin') ??
+    'http://localhost:3000';
+
+  return `${origin}${ROUTES.authCallback}?next=${encodeURIComponent(next)}`;
+}
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
+  const redirectTo = safeNextPath(formData.get('redirectTo') as string | null);
 
   const data = {
     email: formData.get('email') as string,
@@ -25,15 +44,21 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/dashboard');
+  redirect(redirectTo);
 }
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
+  const redirectTo = safeNextPath(formData.get('redirectTo') as string | null);
 
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
+    options: {
+      data: {
+        referred_by: (formData.get('referral_code') as string | null)?.trim() || null,
+      },
+    },
   };
 
   const referralCode = formData.get('referral_code') as string | null;
@@ -53,17 +78,26 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/login?message=Check your email to confirm your account');
+  redirect(`${ROUTES.login}?message=${encodeURIComponent('Check your email to confirm your account')}&next=${encodeURIComponent(redirectTo)}`);
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData?: FormData) {
+  if (!isGoogleAuthEnabled()) {
+    redirect(`${ROUTES.login}?error=${encodeURIComponent('Google sign-in is not enabled yet. Please use email login for now.')}`);
+  }
+
   const supabase = await createClient();
+  const redirectTo = safeNextPath(formData?.get('redirectTo') as string | null);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: await authCallbackUrl(redirectTo),
     },
   });
+
+  if (error) {
+    redirect(`${ROUTES.login}?error=${encodeURIComponent(error.message)}`);
+  }
 
   if (data.url) {
     redirect(data.url);
@@ -74,5 +108,5 @@ export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath('/', 'layout');
-  redirect('/login');
+  redirect(ROUTES.login);
 }

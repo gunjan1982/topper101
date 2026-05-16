@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { safeNextPath } from '@/lib/navigation';
+import { ROUTES } from '@/lib/routes';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  // if "next" is in search params, use it as the redirection URL
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = safeNextPath(searchParams.get('next'));
 
   if (code) {
     const supabase = await createClient();
@@ -46,5 +47,5 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=Could not authenticate user`);
+  return NextResponse.redirect(`${origin}${ROUTES.login}?error=Could not authenticate user`);
 }

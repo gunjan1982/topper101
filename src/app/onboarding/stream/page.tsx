@@ -1,21 +1,16 @@
 import { updateStream } from '../actions';
+import { MAPC_STREAMS } from '@/lib/courseCatalog';
 
 export default function StreamSelectionPage() {
-  const streams = [
-    { id: 'Counselling', name: 'Counselling Psychology', icon: '🤝' },
-    { id: 'Clinical', name: 'Clinical Psychology', icon: '🏥' },
-    { id: 'Organisational', name: 'Organisational Psychology', icon: '🏢' },
-  ];
-
   return (
     <div className="space-y-8 text-center">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight dark:text-white">What's your specialisation?</h1>
+        <h1 className="text-3xl font-bold tracking-tight dark:text-white">Choose your specialisation</h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">Choose your Year 2 stream to see the right papers.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {streams.map((stream) => (
+        {MAPC_STREAMS.map((stream) => (
           <form key={stream.id} action={updateStream.bind(null, stream.id)}>
             <button
               type="submit"

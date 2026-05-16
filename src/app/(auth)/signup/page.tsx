@@ -1,11 +1,18 @@
-import { login, signup, signInWithGoogle } from '../actions';
+import { signup, signInWithGoogle } from '../actions';
 import Link from 'next/link';
+import { isGoogleAuthEnabled } from '@/lib/authConfig';
+import { safeNextPath, withRedirectTo } from '@/lib/navigation';
 
-export default function SignupPage({
+export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: { error?: string; message?: string };
+  searchParams: Promise<{ error?: string; message?: string; next?: string; ref?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
+  const next = safeNextPath(resolvedSearchParams.next);
+  const referralCode = resolvedSearchParams.ref?.trim() ?? '';
+  const googleAuthEnabled = isGoogleAuthEnabled();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -19,6 +26,13 @@ export default function SignupPage({
         </div>
 
         <form className="mt-8 space-y-6" action={signup}>
+          <input type="hidden" name="redirectTo" value={next} />
+          <input type="hidden" name="referral_code" value={referralCode} />
+          {referralCode && (
+            <div className="rounded-xl bg-teal-50 p-3 text-center text-sm font-semibold text-teal-800 ring-1 ring-inset ring-teal-100 dark:bg-teal-950/30 dark:text-teal-200 dark:ring-teal-900/50">
+              Referral applied. You can unlock an extra paper after onboarding.
+            </div>
+          )}
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -50,15 +64,15 @@ export default function SignupPage({
             </div>
           </div>
 
-          {searchParams.error && (
+          {resolvedSearchParams.error && (
             <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/30">
-              <p className="text-sm text-red-800 dark:text-red-200">{searchParams.error}</p>
+              <p className="text-sm text-red-800 dark:text-red-200">{resolvedSearchParams.error}</p>
             </div>
           )}
 
-          {searchParams.message && (
+          {resolvedSearchParams.message && (
             <div className="rounded-md bg-emerald-50 p-4 dark:bg-emerald-900/30">
-              <p className="text-sm text-emerald-800 dark:text-emerald-200">{searchParams.message}</p>
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">{resolvedSearchParams.message}</p>
             </div>
           )}
 
@@ -72,6 +86,7 @@ export default function SignupPage({
           </div>
         </form>
 
+        {googleAuthEnabled && (
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -86,6 +101,7 @@ export default function SignupPage({
 
           <div className="mt-6">
             <form action={signInWithGoogle}>
+              <input type="hidden" name="redirectTo" value={next} />
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-zinc-950 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:ring-transparent dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 dark:hover:bg-zinc-800 transition-all active:scale-95"
@@ -113,11 +129,12 @@ export default function SignupPage({
             </form>
           </div>
         </div>
+        )}
 
         <p className="mt-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
           Already have an account?{' '}
           <Link
-            href="/login"
+            href={withRedirectTo('/login', next)}
             className="font-semibold leading-6 text-teal-700 hover:text-teal-600"
           >
             Log in

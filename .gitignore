@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -44,3 +46,4 @@ scripts/pipeline/
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+.repeat-build/

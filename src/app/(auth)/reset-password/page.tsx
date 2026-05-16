@@ -1,10 +1,12 @@
 import Link from 'next/link';
 
-export default function ResetPasswordPage({
+export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: { error?: string; message?: string };
+  searchParams: Promise<{ error?: string; message?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -13,7 +15,7 @@ export default function ResetPasswordPage({
             Reset your password
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Enter your email and we'll send you a link to reset your password.
+            Enter your email and we will send you a link to reset your password.
           </p>
         </div>
 
@@ -35,15 +37,15 @@ export default function ResetPasswordPage({
             </div>
           </div>
 
-          {searchParams.error && (
+          {resolvedSearchParams.error && (
             <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/30">
-              <p className="text-sm text-red-800 dark:text-red-200">{searchParams.error}</p>
+              <p className="text-sm text-red-800 dark:text-red-200">{resolvedSearchParams.error}</p>
             </div>
           )}
 
-          {searchParams.message && (
+          {resolvedSearchParams.message && (
             <div className="rounded-md bg-emerald-50 p-4 dark:bg-emerald-900/30">
-              <p className="text-sm text-emerald-800 dark:text-emerald-200">{searchParams.message}</p>
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">{resolvedSearchParams.message}</p>
             </div>
           )}
 

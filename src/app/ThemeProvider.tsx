@@ -14,14 +14,14 @@ export function useTheme() {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    return (localStorage.getItem('theme') as Theme | null) ?? 'light';
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme') as Theme | null;
-    const initial = stored ?? 'light';
-    setTheme(initial);
-    document.documentElement.classList.toggle('dark', initial === 'dark');
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   const toggle = () => {
     const next = theme === 'light' ? 'dark' : 'light';

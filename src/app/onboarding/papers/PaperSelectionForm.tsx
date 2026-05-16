@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { completeOnboarding } from '../actions';
 
 interface Course {
@@ -13,12 +13,16 @@ interface PaperSelectionFormProps {
   courses: Course[];
   year: number;
   stream: string | null;
+  initialSelected?: string[];
 }
 
-export default function PaperSelectionForm({ courses, year, stream }: PaperSelectionFormProps) {
-  const [selected, setSelected] = useState<string[]>([]);
+export default function PaperSelectionForm({ courses, year, stream, initialSelected = [] }: PaperSelectionFormProps) {
+  const visibleCodes = new Set(courses.map((course) => course.code));
+  const [selected, setSelected] = useState<string[]>(
+    initialSelected.filter((code) => visibleCodes.has(code))
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const startedAtRef = useRef<number>(Date.now());
+  const [startedAt] = useState(() => Date.now());
 
   const togglePaper = (code: string) => {
     setSelected((prev) =>
@@ -33,7 +37,7 @@ export default function PaperSelectionForm({ courses, year, stream }: PaperSelec
       await completeOnboarding(selected, {
         year,
         stream,
-        startedAt: startedAtRef.current,
+        startedAt,
       });
     } catch (error) {
       console.error(error);
@@ -43,6 +47,11 @@ export default function PaperSelectionForm({ courses, year, stream }: PaperSelec
 
   return (
     <div className="space-y-8">
+      {courses.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
+          We could not load papers for this selection. Go back and choose your year again, or try refreshing the page.
+        </div>
+      ) : (
       <div className="grid gap-4 sm:grid-cols-2">
         {courses.map((course) => (
           <button
@@ -65,6 +74,7 @@ export default function PaperSelectionForm({ courses, year, stream }: PaperSelec
           </button>
         ))}
       </div>
+      )}
 
       <div className="flex justify-center pt-8">
         <button

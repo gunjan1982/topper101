@@ -4,17 +4,28 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run guardrails",
     "build": "next build",
     "vercel-build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "guardrails": "node scripts/check-flow-guardrails.mjs && npm run repeat:check",
+    "repeat:check": "node --no-warnings scripts/check-repeat-algorithm.mjs",
+    "repeat:audit": "node --no-warnings scripts/audit-repeat-groups.mjs",
+    "study:audit": "node --no-warnings scripts/audit-study-hooks.mjs",
+    "repeat:backfill": "node --no-warnings scripts/backfill-question-intelligence.mjs",
+    "entitlements:backfill-free": "node --no-warnings scripts/backfill-free-subject-entitlements.mjs",
+    "env:sync": "node scripts/sync-env-from-infisical.mjs",
+    "env:check": "node scripts/check-env.mjs",
+    "test:e2e": "playwright test",
+    "verify": "npm run guardrails && npx tsc --noEmit && npm run lint && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@iconify/react": "^6.0.2",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.3",
-    "next": "16.2.1",
+    "next": "^16.2.6",
     "openai": "^6.34.0",
     "posthog-js": "^1.363.2",
     "posthog-node": "^5.29.2",
@@ -25,13 +36,17 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.14"
   }
 }

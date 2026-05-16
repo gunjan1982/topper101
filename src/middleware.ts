@@ -1,4 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
+import { safeNextPath } from '@/lib/navigation';
+import { AUTH_ROUTE_PREFIXES, PROTECTED_ROUTE_PREFIXES, ROUTES } from '@/lib/routes';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -17,7 +19,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           response = NextResponse.next({
@@ -35,20 +37,19 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
-                     request.nextUrl.pathname.startsWith('/signup') ||
-                     request.nextUrl.pathname.startsWith('/reset-password');
+  const isAuthPage = AUTH_ROUTE_PREFIXES.some((route) => request.nextUrl.pathname.startsWith(route));
   
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
-                           request.nextUrl.pathname.startsWith('/onboarding') ||
-                           request.nextUrl.pathname.startsWith('/courses');
+  const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some((route) => request.nextUrl.pathname.startsWith(route));
 
   if (!user && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const loginUrl = new URL(ROUTES.login, request.url);
+    loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const next = safeNextPath(request.nextUrl.searchParams.get('next'));
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   return response;

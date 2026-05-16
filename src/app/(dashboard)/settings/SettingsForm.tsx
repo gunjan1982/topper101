@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { updateSettings } from './actions';
+import { MAPC_STREAMS, isTheoryCourse, normalizeStream } from '@/lib/courseCatalog';
+import { formatExamDate, getExamSchedule } from '@/lib/examSchedule';
 
 interface Course {
   id: string;
@@ -9,6 +11,7 @@ interface Course {
   name: string;
   year: number;
   stream: string | null;
+  course_type: 'theory' | 'practical' | 'internship' | 'project';
 }
 
 interface SettingsFormProps {
@@ -18,7 +21,7 @@ interface SettingsFormProps {
   allCourses: Course[];
 }
 
-const STREAMS = ['Counselling', 'Clinical', 'Organisational'] as const;
+const paperFilters = ['All', 'Year 1', 'Clinical', 'Counselling', 'Organisational', 'Common'] as const;
 
 export default function SettingsForm({
   initialYear,
@@ -28,46 +31,20 @@ export default function SettingsForm({
 }: SettingsFormProps) {
   const [year, setYear] = useState<number>(initialYear);
   const [stream, setStream] = useState<string | null>(initialStream);
-  const [pendingStream, setPendingStream] = useState<string | null>(null);
-  const [showStreamConfirm, setShowStreamConfirm] = useState(false);
+  const [paperFilter, setPaperFilter] = useState<(typeof paperFilters)[number]>('All');
   const [selectedPapers, setSelectedPapers] = useState<string[]>(initialPapers);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Compute which courses to show based on current year/stream selection
-  const visibleCourses = allCourses.filter((c) => {
-    if (c.year !== year) return false;
-    if (year === 2) return c.stream === stream;
-    return true;
+  const theoryCourses = allCourses
+    .filter((course) => isTheoryCourse(course))
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  const visibleCourses = theoryCourses.filter((course) => {
+    if (paperFilter === 'All') return true;
+    if (paperFilter === 'Year 1') return course.year === 1;
+    return normalizeStream(course.stream) === normalizeStream(paperFilter);
   });
-
-  const handleYearChange = (newYear: number) => {
-    setYear(newYear);
-    setStream(null);
-    // Reset papers when year changes — different courses apply
-    setSelectedPapers([]);
-  };
-
-  const handleStreamRequest = (newStream: string) => {
-    if (newStream === stream) return;
-    // Only show confirm dialog if user already had papers from old stream
-    if (stream && selectedPapers.length > 0) {
-      setPendingStream(newStream);
-      setShowStreamConfirm(true);
-    } else {
-      setStream(newStream);
-      setSelectedPapers([]);
-    }
-  };
-
-  const confirmStreamChange = () => {
-    if (pendingStream) {
-      setStream(pendingStream);
-      setSelectedPapers([]);
-    }
-    setShowStreamConfirm(false);
-    setPendingStream(null);
-  };
 
   const togglePaper = (code: string) => {
     setSelectedPapers((prev) =>
@@ -81,52 +58,34 @@ export default function SettingsForm({
       setError('Please select a stream before saving.');
       return;
     }
+    if (selectedPapers.length === 0) {
+      setError('Select at least one paper for your dashboard.');
+      return;
+    }
     setSaving(true);
     try {
       await updateSettings({ year, stream, papers: selectedPapers });
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setSaving(false);
     }
   };
 
   return (
     <div className="space-y-10">
-      {/* Stream Confirmation Dialog */}
-      {showStreamConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl dark:bg-zinc-900">
-            <h3 className="text-xl font-bold dark:text-white">Change Stream?</h3>
-            <p className="mt-3 text-zinc-600 dark:text-zinc-400">
-              Your progress in <strong>{stream}</strong> papers will be preserved but hidden from your dashboard.
-            </p>
-            <div className="mt-8 flex gap-4">
-              <button
-                onClick={confirmStreamChange}
-                className="flex-1 rounded-full bg-teal-700 py-3 text-sm font-bold text-white hover:bg-teal-600 transition-all"
-              >
-                Yes, change stream
-              </button>
-              <button
-                onClick={() => { setShowStreamConfirm(false); setPendingStream(null); }}
-                className="flex-1 rounded-full border border-zinc-200 py-3 text-sm font-bold text-zinc-600 hover:bg-zinc-50 transition-all dark:border-zinc-700 dark:text-zinc-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Year Selection */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold dark:text-white">Year of Study</h2>
+        <div>
+          <h2 className="text-lg font-bold dark:text-white">Profile</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            This helps us default your stream, but it no longer restricts which exam papers you can add.
+          </p>
+        </div>
         <div className="flex gap-4">
           {[1, 2].map((y) => (
             <button
               key={y}
-              onClick={() => handleYearChange(y)}
+              onClick={() => setYear(y)}
               className={`flex-1 rounded-2xl border p-5 text-center font-bold transition-all ${
                 year === y
                   ? 'border-teal-700 bg-teal-50 text-teal-700 ring-1 ring-teal-700 dark:bg-teal-900/20'
@@ -139,41 +98,64 @@ export default function SettingsForm({
         </div>
       </section>
 
-      {/* Stream Selection (Year 2 only) */}
-      {year === 2 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-bold dark:text-white">Stream</h2>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            {STREAMS.map((s) => (
-              <button
-                key={s}
-                onClick={() => handleStreamRequest(s)}
-                className={`flex-1 rounded-2xl border p-4 text-center text-sm font-bold transition-all ${
-                  stream === s
-                    ? 'border-teal-700 bg-teal-50 text-teal-700 ring-1 ring-teal-700 dark:bg-teal-900/20'
-                    : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold dark:text-white">Year 2 Stream</h2>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {MAPC_STREAMS.map((mapcStream) => {
+            const s = mapcStream.id;
+            return (
+            <button
+              key={s}
+              onClick={() => setStream(s)}
+              className={`flex-1 rounded-2xl border p-4 text-center text-sm font-bold transition-all ${
+                stream === s
+                  ? 'border-teal-700 bg-teal-50 text-teal-700 ring-1 ring-teal-700 dark:bg-teal-900/20'
+                  : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
+              }`}
+            >
+              {s}
+            </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Paper Selection */}
-      {visibleCourses.length > 0 && (
-        <section className="space-y-4">
+      <section className="space-y-4">
+        <div>
           <h2 className="text-lg font-bold dark:text-white">
             Your Papers
             <span className="ml-2 text-sm font-normal text-zinc-400">
               ({selectedPapers.length} selected)
             </span>
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Select everything you are writing this TEE. Year 1 and Year 2 can live together on the dashboard.
+          </p>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {paperFilters.map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setPaperFilter(filter)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-all ${
+                paperFilter === filter
+                  ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950'
+                  : 'border border-zinc-200 bg-white text-zinc-600 hover:border-teal-700 hover:text-teal-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        {visibleCourses.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleCourses.map((course) => (
               <button
-                key={course.id}
+                key={course.code}
                 onClick={() => togglePaper(course.code)}
                 className={`flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${
                   selectedPapers.includes(course.code)
@@ -188,12 +170,20 @@ export default function SettingsForm({
                 }`}>
                   {course.code}
                 </div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                  Year {course.year}{course.stream ? ` · ${course.stream}` : ''}
+                </div>
                 <h3 className="font-bold leading-tight dark:text-white">{course.name}</h3>
+                {getExamSchedule(course.code) && (
+                  <p className="mt-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                    Exam: {formatExamDate(getExamSchedule(course.code)!.date)}
+                  </p>
+                )}
               </button>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Error */}
       {error && (

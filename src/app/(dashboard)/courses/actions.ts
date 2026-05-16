@@ -1,10 +1,16 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { revalidatePath } from 'next/cache';
 
-export async function getAnswer(questionId: string) {
+type AnswerResult =
+  | { status: 'success'; answer: string; creditsRemaining?: number }
+  | { status: 'paywall'; trigger: 'subject_locked' | 'credit_limit' }
+  | { status: 'missing_answer' };
+
+export async function getAnswer(questionId: string): Promise<AnswerResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -15,7 +21,7 @@ export async function getAnswer(questionId: string) {
   // Fetch user credit info and plan
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('plan_tier, free_credits_used')
+    .select('plan_tier')
     .eq('id', user.id)
     .single();
 
@@ -26,7 +32,7 @@ export async function getAnswer(questionId: string) {
   // Fetch question details
   const { data: question, error: questionError } = await supabase
     .from('questions')
-    .select('*')
+    .select('*, courses(code)')
     .eq('id', questionId)
     .single();
 
@@ -34,34 +40,34 @@ export async function getAnswer(questionId: string) {
     throw new Error('Question not found');
   }
 
+  const answer = question.ai_answer ?? question.model_answer;
+  if (!answer) {
+    return { status: 'missing_answer' };
+  }
+
+  const courseCode = question.courses?.code;
+  if (!courseCode) {
+    throw new Error('Question course not found');
+  }
+
+  const entitlements = await fetchSubjectEntitlements(supabase, user.id);
+  const hasAccess = canAccessCourse({
+    planTier: userData.plan_tier,
+    courseCode,
+    entitlements,
+  });
+
+  if (!hasAccess) {
+    return { status: 'paywall', trigger: 'subject_locked' };
+  }
+
   // Business Logic: Check Access
   
-  // 1. Paid users get everything
-  if (userData.plan_tier !== 'free') {
-    return { answer: question.ai_answer, status: 'success' };
-  }
-
-  // 2. Free users check credits
-  if (userData.free_credits_used < 5) {
-    // Increment credits used
-    await supabase
-      .from('users')
-      .update({ free_credits_used: userData.free_credits_used + 1 })
-      .eq('id', user.id);
-    
-    revalidatePath('/dashboard', 'layout');
-    return { 
-      answer: question.ai_answer, 
-      status: 'success', 
-      creditsRemaining: 5 - (userData.free_credits_used + 1) 
-    };
-  }
-
-  // 3. Free users at limit: Paywall
-  return { status: 'paywall', trigger: 'credit_limit' };
+  revalidatePath('/dashboard', 'layout');
+  return { answer, status: 'success' };
 }
 
-export async function updateProgress(questionId: string, status: 'reviewed' | 'bookmarked' | 'skipped') {
+export async function updateProgress(questionId: string, status: 'reviewed' | 'bookmarked' | 'skipped', active = true) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -69,14 +75,21 @@ export async function updateProgress(questionId: string, status: 'reviewed' | 'b
     throw new Error('Unauthorized');
   }
 
-  const { error } = await supabase
-    .from('user_progress')
-    .upsert({
-      user_id: user.id,
-      question_id: questionId,
-      status,
-      reviewed_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,question_id' });
+  const { error } = active
+    ? await supabase
+        .from('user_progress')
+        .upsert({
+          user_id: user.id,
+          question_id: questionId,
+          status,
+          reviewed_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,question_id,status' })
+    : await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('question_id', questionId)
+        .eq('status', status);
 
   if (error) {
     throw new Error(error.message);
@@ -99,7 +112,7 @@ export async function submitFlag(questionId: string, flagType: string, descripti
     .insert({
       user_id: user.id,
       question_id: questionId,
-      flag_type: flagType,
+      flag_type: flagType.toLowerCase().replace('factual ', ''),
       description,
     });
 

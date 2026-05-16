@@ -7,6 +7,7 @@ import { headers } from 'next/headers';
 import PostHogIdentify from '../PostHogIdentify';
 import ThemeToggle from '../ThemeToggle';
 import Logo from '../Logo';
+import { DASHBOARD_NAV_LINKS, ROUTES } from '@/lib/routes';
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(ROUTES.login);
   }
 
   // PostHog: session_started — fire on every authenticated page load
@@ -40,15 +41,22 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href={ROUTES.dashboard} className="flex items-center gap-2">
               <Logo size={32} />
               <span className="text-xl font-bold tracking-tight dark:text-white">Topper101</span>
             </Link>
             <nav className="hidden gap-6 text-sm font-medium md:flex">
-              <Link href="/dashboard" className="text-zinc-950 dark:text-zinc-50">Dashboard</Link>
-              <Link href="/courses" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 transition-colors">Question Bank</Link>
-              <Link href="/planner" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 transition-colors">Study Planner</Link>
-              <Link href="/settings" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 transition-colors">Settings</Link>
+              {DASHBOARD_NAV_LINKS.map((link, index) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={index === 0
+                    ? 'text-zinc-950 dark:text-zinc-50'
+                    : 'text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 transition-colors'}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
           </div>
 

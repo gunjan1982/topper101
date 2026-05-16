@@ -35,10 +35,63 @@ create table questions (
   ai_answer text,
   ai_model_used text,                  -- e.g. 'gpt-4o'
   answer_status text default 'draft' check (answer_status in ('draft', 'reviewed', 'published')),
+  repeat_family_key text,              -- exact/near-exact repeated question family
+  repeat_family_label text,            -- display label for repeat_family_key
+  study_hook_key text,                 -- broader high-yield preparation hook
+  study_hook_label text,               -- display label for study_hook_key
+  repeat_algo_version text,            -- algorithm version used for persisted intelligence
+  repeat_intelligence_updated_at timestamptz,
+  repeat_intelligence_reviewed_at timestamptz,
   reviewed_by text,
   reviewed_at timestamptz,
   created_at timestamptz default now()
 );
+
+-- User entitlements for free subject unlocks, referral rewards, purchases, and admin grants
+create table user_entitlements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  entitlement_type text not null check (entitlement_type in ('subject_unlock', 'answer_credit')),
+  course_code text references courses(code) on delete cascade,
+  quantity integer,
+  source text not null check (source in ('signup_free', 'referral', 'purchase', 'admin')),
+  source_ref text,
+  metadata jsonb not null default '{}'::jsonb,
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (user_id, entitlement_type, course_code, source)
+);
+
+create index if not exists user_entitlements_user_idx
+  on user_entitlements (user_id);
+
+create index if not exists user_entitlements_subject_idx
+  on user_entitlements (user_id, course_code)
+  where entitlement_type = 'subject_unlock';
+
+-- Referral records qualify after the referred user signs up and completes useful onboarding activity
+create table referrals (
+  id uuid primary key default gen_random_uuid(),
+  referrer_user_id uuid references users(id) on delete cascade,
+  referred_user_id uuid references users(id) on delete cascade,
+  referral_code text not null,
+  status text not null default 'pending' check (status in ('pending', 'qualified', 'rewarded', 'rejected')),
+  referrer_reward_entitlement_id uuid references user_entitlements(id) on delete set null,
+  referred_reward_entitlement_id uuid references user_entitlements(id) on delete set null,
+  qualified_at timestamptz,
+  rewarded_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (referred_user_id)
+);
+
+create index if not exists referrals_referrer_idx
+  on referrals (referrer_user_id, status);
+
+create index if not exists questions_course_repeat_family_idx
+  on questions (course_id, repeat_family_key);
+
+create index if not exists questions_course_study_hook_idx
+  on questions (course_id, study_hook_key);
 
 -- Concept tree nodes (7-layer psychology framework)
 create table concept_tree (
@@ -95,8 +148,11 @@ create table user_progress (
   question_id uuid references questions(id) on delete cascade,
   status text check (status in ('reviewed', 'bookmarked', 'skipped')),
   reviewed_at timestamptz default now(),
-  unique(user_id, question_id)
+  unique(user_id, question_id, status)
 );
+
+create index if not exists user_progress_user_question_idx
+  on user_progress (user_id, question_id);
 
 -- User concept tree progress
 create table concept_progress (
@@ -175,6 +231,17 @@ create policy "questions_read_all" on questions for select using (auth.role() = 
 alter table user_progress enable row level security;
 create policy "progress_own" on user_progress using (auth.uid() = user_id);
 
+-- Entitlements: own rows only
+alter table user_entitlements enable row level security;
+create policy "entitlements_own_read" on user_entitlements for select using (auth.uid() = user_id);
+create policy "entitlements_own_insert" on user_entitlements for insert with check (auth.uid() = user_id);
+create policy "entitlements_own_update" on user_entitlements for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Referrals: participants can read; referred user can create their own pending referral
+alter table referrals enable row level security;
+create policy "referrals_participant_read" on referrals for select using (auth.uid() = referrer_user_id or auth.uid() = referred_user_id);
+create policy "referrals_referred_insert" on referrals for insert with check (auth.uid() = referred_user_id);
+
 -- Subscriptions: own rows only
 alter table subscriptions enable row level security;
 create policy "subscriptions_own" on subscriptions using (auth.uid() = user_id);
@@ -215,8 +282,13 @@ create policy "assignment_answers_own" on assignment_answers using (auth.uid() =
 create or replace function handle_new_user()
 returns trigger as $$
 begin
-  insert into public.users (id, email, auth_provider)
-  values (new.id, new.email, new.raw_app_meta_data->>'provider');
+  insert into public.users (id, email, auth_provider, referred_by)
+  values (
+    new.id,
+    new.email,
+    new.raw_app_meta_data->>'provider',
+    nullif(new.raw_user_meta_data->>'referred_by', '')
+  );
   return new;
 end;
 $$ language plpgsql security definer;

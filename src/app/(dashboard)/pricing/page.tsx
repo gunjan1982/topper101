@@ -5,6 +5,23 @@ import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 
+type RazorpayFailureResponse = {
+  error?: {
+    code?: string;
+  };
+};
+
+type RazorpayInstance = {
+  open: () => void;
+  on: (event: 'payment.failed', handler: (response: RazorpayFailureResponse) => void) => void;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => RazorpayInstance;
+  }
+}
+
 export default function PricingPage() {
   const posthog = usePostHog();
   const [loading, setLoading] = useState<string | null>(null);
@@ -19,14 +36,14 @@ export default function PricingPage() {
       });
       const { orderId, amount, currency } = await res.json();
 
-      const options = {
+      const options: Record<string, unknown> = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: amount,
         currency: currency,
         name: 'Topper101',
         description: `Upgrade to ${planId}`,
         order_id: orderId,
-        handler: function (response: any) {
+        handler: function () {
           // Success — webhook handles DB update; just redirect
           router.push('/dashboard?payment=success');
         },
@@ -49,9 +66,13 @@ export default function PricingPage() {
         },
       };
 
-      const rzp = new (window as any).Razorpay(options);
+      if (!window.Razorpay) {
+        throw new Error('Razorpay checkout failed to load');
+      }
+
+      const rzp = new window.Razorpay(options);
       
-      rzp.on('payment.failed', function (response: any) {
+      rzp.on('payment.failed', function (response: RazorpayFailureResponse) {
         posthog?.capture('payment_failed', {
           error_type: response?.error?.code || 'unknown',
           plan_tier: planId,
@@ -78,7 +99,10 @@ export default function PricingPage() {
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-base font-semibold leading-7 text-teal-700">Pricing</h2>
           <p className="mt-2 text-4xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-5xl">
-            Choose the plan that's right for you
+            Your first paper is free.
+          </p>
+          <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
+            Upgrade only when Topper101 has earned your trust.
           </p>
         </div>
 
@@ -87,7 +111,9 @@ export default function PricingPage() {
           <div className="flex flex-col justify-between rounded-3xl bg-white p-8 ring-1 ring-zinc-200 xl:p-10 dark:bg-zinc-900 dark:ring-zinc-800">
             <div>
               <h3 className="text-lg font-semibold leading-8 text-zinc-900 dark:text-zinc-50">Topper Pass</h3>
-              <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Perfect for focused semester prep.</p>
+              <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                Unlock all selected theory papers for focused TEE prep.
+              </p>
               <div className="mt-6 flex flex-col gap-4">
                 <button 
                   onClick={() => handleUpgrade('pass', 'monthly')}
@@ -111,7 +137,9 @@ export default function PricingPage() {
           <div className="flex flex-col justify-between rounded-3xl bg-teal-700 p-8 text-white xl:p-10">
             <div>
               <h3 className="text-lg font-semibold leading-8">Topper Pro</h3>
-              <p className="mt-4 text-sm leading-6 opacity-80">Full suite for dedicated MAPC students.</p>
+              <p className="mt-4 text-sm leading-6 opacity-80">
+                Full suite for dedicated MAPC students, including deeper answer and assignment support.
+              </p>
               <div className="mt-6 flex flex-col gap-4">
                 <button 
                   onClick={() => handleUpgrade('pro', 'monthly')}

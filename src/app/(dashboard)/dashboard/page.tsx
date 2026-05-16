@@ -1,44 +1,66 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
+import { canAccessCourse, fetchSubjectEntitlements, unlockedCourseCodes } from '@/lib/entitlements';
+import { ROUTES } from '@/lib/routes';
+import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule, nextScheduledExam } from '@/lib/examSchedule';
+import CopyReferralLink from '@/components/CopyReferralLink';
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(ROUTES.login);
   }
 
   // Fetch user data including onboarding status and selected papers
   const { data: userData } = await supabase
     .from('users')
-    .select('name, onboarding_complete, selected_papers, plan_tier')
+    .select('name, onboarding_complete, selected_papers, plan_tier, referral_code')
     .eq('id', user.id)
     .single();
 
   if (!userData?.onboarding_complete) {
-    redirect('/onboarding/year');
+    redirect(ROUTES.onboardingYear);
   }
 
   const selectedPapers: string[] = (userData.selected_papers as string[]) ?? [];
+  const entitlements = await fetchSubjectEntitlements(supabase, user.id);
+  const unlockedCourses = unlockedCourseCodes(entitlements);
 
   // Guard: if onboarding marked complete but no papers selected, send back to pick papers
   if (selectedPapers.length === 0) {
-    redirect('/onboarding/papers');
+    redirect(ROUTES.onboardingPapers);
+  }
+
+  // Guard: free users who haven't picked their free subject yet
+  if (userData.plan_tier === 'free' && entitlements.length === 0) {
+    redirect(ROUTES.onboardingFreeSubject);
   }
 
   // Fetch course details for selected papers
-  const { data: courses, error: coursesError } = await supabase
+  const { data: dbCourses, error: coursesError } = await supabase
     .from('courses')
-    .select('id, code, name')
+    .select('id, code, name, year, stream, course_type')
     .in('code', selectedPapers);
 
+  if (coursesError) {
+    console.error('Error fetching dashboard courses:', coursesError);
+  }
 
+  const courses = selectedPapers
+    .map((code) => courseByCode((dbCourses as CourseCatalogItem[] | null) ?? [], code))
+    .filter((course): course is CourseCatalogItem => Boolean(course));
 
   // Batch-fetch progress for all selected courses in a single query
   // We join via questions: user_progress → questions → courses
-  const courseIds = courses?.map((c) => c.id) ?? [];
+  const courseIds = courses.map((course) => course.id).filter(isUuid);
 
   // Count reviewed and bookmarked per course
   type ProgressRow = {
@@ -47,8 +69,8 @@ export default async function DashboardPage() {
     questions: { course_id: string } | null;
   };
 
-  let progressByCourse: Record<string, { reviewed: number; bookmarked: number }> = {};
-  let totalsByCourse: Record<string, number> = {};
+  const progressByCourse: Record<string, { reviewed: number; bookmarked: number }> = {};
+  const totalsByCourse: Record<string, number> = {};
 
   if (courseIds.length > 0) {
     // Reviewed + bookmarked counts
@@ -82,10 +104,9 @@ export default async function DashboardPage() {
   // Overall stats
   const totalReviewed = Object.values(progressByCourse).reduce((s, p) => s + p.reviewed, 0);
 
-  // Days until June TEE
-  const examDate = new Date('2026-06-01');
-  const today = new Date();
-  const daysLeft = Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const nextExam = nextScheduledExam(selectedPapers);
+  const nextExamCourse = nextExam ? courseByCode(courses, nextExam.courseCode) : null;
+  const nextExamDaysLeft = nextExam ? daysUntilExam(nextExam.date) : null;
 
   return (
     <div className="space-y-10">
@@ -95,24 +116,60 @@ export default async function DashboardPage() {
           Welcome back{userData.name ? `, ${userData.name}` : ''}.
         </h1>
         <p className="mt-1 text-lg text-zinc-600 dark:text-zinc-400">
-          {daysLeft > 0 ? `${daysLeft} days until June TEE.` : 'June TEE has started!'}
+          {nextExam && nextExamDaysLeft != null
+            ? `${nextExamDaysLeft > 0 ? `${nextExamDaysLeft} days until` : 'Today is'} ${nextExam.courseCode}: ${nextExamCourse?.name ?? 'your next paper'}.`
+            : 'June 2026 TEE schedule is ready for your selected papers.'}
         </p>
       </div>
+
+      {nextExam && (
+        <div className="rounded-3xl border border-teal-200 bg-white p-6 shadow-sm dark:border-teal-900/50 dark:bg-zinc-900">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-widest text-teal-700">Next exam</p>
+              <h2 className="mt-2 text-2xl font-bold dark:text-white">
+                {nextExam.courseCode} on {formatExamDate(nextExam.date)}
+              </h2>
+              <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+                {formatExamWeekday(nextExam.date)}, {nextExam.session} session, {nextExam.startTime}-{nextExam.endTime}
+              </p>
+            </div>
+            <Link
+              href={`/courses/${nextExam.courseCode}`}
+              className="rounded-full bg-teal-700 px-6 py-3 text-center text-sm font-bold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
+            >
+              Study this paper first
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Upgrade Banner for free users */}
       {userData.plan_tier === 'free' && (
         <div className="relative overflow-hidden rounded-3xl bg-teal-700 p-8 text-white shadow-xl shadow-teal-700/20">
           <div className="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
-              <h2 className="text-2xl font-bold">Unlock the full question bank</h2>
-              <p className="mt-1 opacity-90">Get AI model answers for all questions and see the frequency heat map.</p>
+              <h2 className="text-2xl font-bold">Your first paper is free</h2>
+              <p className="mt-1 opacity-90">
+                Study one paper fully. Upgrade when Topper101 has earned your trust, or invite a friend to unlock another paper.
+              </p>
             </div>
             <Link 
-              href="/pricing" 
+              href={ROUTES.pricing}
               className="rounded-full bg-white px-6 py-3 text-sm font-bold text-teal-700 hover:bg-zinc-100 transition-all active:scale-95"
             >
               Upgrade to Topper Pass ₹299
             </Link>
+            {userData.referral_code && (
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-teal-200">Invite a friend → unlock another paper free</p>
+                <CopyReferralLink
+                  referralCode={userData.referral_code}
+                  siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.topper101.com'}
+                  signupPath={ROUTES.signup}
+                />
+              </div>
+            )}
           </div>
           <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         </div>
@@ -137,11 +194,24 @@ export default async function DashboardPage() {
 
       {/* Paper Cards */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold dark:text-white">Your Papers</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold dark:text-white">Your Papers</h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Add Year 1 or Year 2 papers anytime; the dashboard orders your next exam automatically.
+            </p>
+          </div>
+          <Link
+            href={ROUTES.settings}
+            className="rounded-full border border-zinc-300 px-5 py-2.5 text-center text-sm font-bold text-zinc-700 transition-all hover:border-teal-700 hover:text-teal-700 dark:border-zinc-700 dark:text-zinc-300"
+          >
+            Add or change papers
+          </Link>
+        </div>
         {(!courses || courses.length === 0) ? (
           <div className="rounded-3xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
             <p className="text-zinc-500 dark:text-zinc-400">No courses found for your selected papers.</p>
-            <Link href="/onboarding/papers" className="mt-4 inline-block rounded-full bg-teal-700 px-6 py-2 text-sm font-bold text-white hover:bg-teal-600">
+            <Link href={ROUTES.onboardingPapers} className="mt-4 inline-block rounded-full bg-teal-700 px-6 py-2 text-sm font-bold text-white hover:bg-teal-600">
               Re-select Papers
             </Link>
           </div>
@@ -151,6 +221,12 @@ export default async function DashboardPage() {
             const progress = progressByCourse[course.id] ?? { reviewed: 0, bookmarked: 0 };
             const total = totalsByCourse[course.id] ?? 0;
             const pct = total > 0 ? Math.round((progress.reviewed / total) * 100) : 0;
+            const exam = getExamSchedule(course.code);
+            const unlocked = canAccessCourse({
+              planTier: userData.plan_tier,
+              courseCode: course.code,
+              entitlements,
+            });
 
             return (
               <div key={course.code} className="group flex flex-col rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm hover:border-teal-700/50 transition-all dark:border-zinc-800 dark:bg-zinc-900">
@@ -158,11 +234,27 @@ export default async function DashboardPage() {
                   <div className="rounded-lg bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700 dark:bg-teal-900/30">
                     {course.code}
                   </div>
-                  <div className="text-xs font-medium text-zinc-400">{pct}% reviewed</div>
+                  <div className="flex items-center gap-2">
+                    {userData.plan_tier === 'free' && (
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                        unlockedCourses.has(course.code)
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                          : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+                      }`}>
+                        {unlocked ? 'Unlocked' : 'Preview'}
+                      </span>
+                    )}
+                    <div className="text-xs font-medium text-zinc-400">{pct}% reviewed</div>
+                  </div>
                 </div>
                 <h3 className="mt-4 text-xl font-bold leading-tight dark:text-white group-hover:text-teal-700 transition-colors">
                   {course.name}
                 </h3>
+                {exam && (
+                  <p className="mt-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                    Exam: {formatExamDate(exam.date)} · {exam.startTime}-{exam.endTime}
+                  </p>
+                )}
 
                 {/* Progress Bar */}
                 <div className="mt-5 space-y-2">

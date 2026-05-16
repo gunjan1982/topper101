@@ -4,6 +4,20 @@ import OpenAI from 'openai';
 
 const MODEL = 'deepseek-chat';
 
+type AssignmentQuestion = {
+  question_text: string;
+  marks?: number;
+};
+
+type AssignmentCourseJoin = {
+  name: string;
+};
+
+type GeneratedAssignmentAnswer = {
+  answer_text?: string;
+  word_count?: number;
+};
+
 function getClient() {
   return new OpenAI({
     apiKey: process.env.DEEPSEEK_API_KEY,
@@ -65,13 +79,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
-    const questionsArray = assignmentData.questions as any[];
+    const questionsArray = assignmentData.questions as AssignmentQuestion[];
     if (question_index < 0 || question_index >= questionsArray.length) {
       return NextResponse.json({ error: 'question_index out of bounds' }, { status: 400 });
     }
 
     const questionDetail = questionsArray[question_index];
-    const courseName = (assignmentData.courses as any).name;
+    const courseJoin = assignmentData.courses as AssignmentCourseJoin | AssignmentCourseJoin[] | null;
+    const courseName = (Array.isArray(courseJoin) ? courseJoin[0]?.name : courseJoin?.name) ?? 'IGNOU MAPC';
     const marks = questionDetail.marks || 10;
     
     // Set word counts constraints targeting structure
@@ -96,6 +111,8 @@ Requirements:
 - Structure: Introduction → Body paragraphs with subheadings → Conclusion
 - Use correct psychological terminology
 - Reference relevant theorists by name
+- Do not claim the answer is copied from the IGNOU textbook or official IGNOU material
+- If you add a simplification, modern example, memory aid, or explanation beyond the core textbook-aligned answer, wrap it exactly as [[AI_STUDY_NOTE]]...[[/AI_STUDY_NOTE]]
 - Stay within the word count target
 
 Return ONLY valid JSON:
@@ -104,7 +121,7 @@ Return ONLY valid JSON:
 
     // 4. Hit DeepSeek completion safely mapping JSON
     let aiResponse;
-    let jsonContent;
+    let jsonContent: GeneratedAssignmentAnswer;
     
     try {
       // First attempt
@@ -153,8 +170,11 @@ Return ONLY valid JSON:
     }
 
     return NextResponse.json(jsonContent);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Assignment Generation API Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

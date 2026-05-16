@@ -3,6 +3,19 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import AssignmentQuestionCard from './AssignmentQuestionCard';
 
+type AssignmentQuestion = {
+  question_text: string;
+  marks: number;
+  block_ref?: string | null;
+  chapter_ref?: string | null;
+  page_ref?: string | null;
+};
+
+type CachedAssignmentAnswer = {
+  answer_text: string;
+  word_count: number;
+};
+
 export default async function AssignmentYearPage({
   params,
 }: {
@@ -48,7 +61,7 @@ export default async function AssignmentYearPage({
     notFound();
   }
 
-  const questionsArray = (assignmentData.questions as any[]) || [];
+  const questionsArray = (assignmentData.questions as AssignmentQuestion[] | null) || [];
 
   // Query Assignment cached generation data directly avoiding expensive nested loop calls
   const { data: cachedAnswersPayload } = await supabase
@@ -58,10 +71,10 @@ export default async function AssignmentYearPage({
     .eq('assignment_id', assignmentData.id);
 
   // Map into O(1) format
-  const preFetchedAnswers: Record<number, any> = {};
+  const preFetchedAnswers: Record<number, CachedAssignmentAnswer> = {};
   if (cachedAnswersPayload) {
     cachedAnswersPayload.forEach((row) => {
-      preFetchedAnswers[row.question_index] = row.content;
+      preFetchedAnswers[row.question_index] = row.content as CachedAssignmentAnswer;
     });
   }
 

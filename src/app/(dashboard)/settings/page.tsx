@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import SettingsForm from './SettingsForm';
+import { COURSE_CATALOG, type CourseCatalogItem } from '@/lib/courseCatalog';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -24,16 +25,16 @@ export default async function SettingsPage() {
   // Fetch all courses to populate paper picker
   const { data: allCourses } = await supabase
     .from('courses')
-    .select('id, code, name, year, stream')
+    .select('id, code, name, year, stream, course_type')
     .order('year')
     .order('code');
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10">
+    <div className="mx-auto max-w-5xl space-y-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight dark:text-white">Account Settings</h1>
         <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-          Update your year, stream, and paper selection. Changes take effect immediately.
+          Update your profile and choose any papers you are attempting, even across both years.
         </p>
       </div>
 
@@ -41,7 +42,7 @@ export default async function SettingsPage() {
         initialYear={userData.year ?? 1}
         initialStream={userData.stream ?? null}
         initialPapers={(userData.selected_papers as string[]) ?? []}
-        allCourses={allCourses ?? []}
+        allCourses={(allCourses as CourseCatalogItem[] | null) ?? COURSE_CATALOG}
       />
     </div>
   );

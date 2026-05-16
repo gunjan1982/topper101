@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "scripts/pipeline/venv/**",
+    "scripts/seed.js",
+    "node_modules/**",
+    ".repeat-build/**",
   ]),
 ]);
 
