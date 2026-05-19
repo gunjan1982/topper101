@@ -27,6 +27,16 @@ export default async function DashboardLayout({
   const ua = headersList.get('user-agent') || '';
   const isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
   const deviceType = isMobile ? 'mobile' : 'desktop';
+  const { data: profile } = await supabase
+    .from('users')
+    .select('phone')
+    .eq('id', user.id)
+    .single();
+
+  await supabase
+    .from('users')
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq('id', user.id);
 
   await captureServerEvent(user.id, 'session_started', {
     device_type: deviceType,
@@ -36,7 +46,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <PostHogIdentify userId={user.id} email={user.email} />
+      <PostHogIdentify userId={user.id} email={user.email} phone={profile?.phone ?? null} />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">

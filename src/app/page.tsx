@@ -111,9 +111,9 @@ export default function LandingPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {[
-                { name: 'Free', price: '₹0', features: ['5 AI model answers', 'Paper selection', 'Basic progress tracking'] },
-                { name: 'Topper Pass', price: '₹299', period: '/mo', highlight: true, features: ['Unlimited AI answers', 'All past papers', 'Frequency heat map'] },
-                { name: 'Topper Pro', price: '₹499', period: '/mo', features: ['Everything in Pass', 'Assignment answer generation', 'Full concept tree'] },
+                { name: 'Free', price: '₹0', features: ['1 full subject unlocked', 'Paper selection', 'Basic progress tracking'] },
+                { name: 'Pass: 1 Subject', price: '₹99', period: '/mo', features: ['1 subject unlocked', 'AI answer views', 'Frequency heat map'] },
+                { name: 'Pass: 5 Subjects', price: '₹299', period: '/mo', highlight: true, features: ['Up to 5 subjects unlocked', 'AI answer views', 'Frequency heat map'] },
               ].map((plan) => (
                 <div key={plan.name} className={`rounded-lg border p-6 ${
                   plan.highlight

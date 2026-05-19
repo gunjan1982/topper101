@@ -28,16 +28,16 @@ export default async function AdminPage() {
     { count: totalUsers },
     { count: freeUsers },
     { count: passUsers },
-    { count: proUsers },
   ] = await Promise.all([
     admin.from('users').select('id', { count: 'exact', head: true }),
     admin.from('users').select('id', { count: 'exact', head: true }).eq('plan_tier', 'free'),
     admin.from('users').select('id', { count: 'exact', head: true }).eq('plan_tier', 'pass'),
-    admin.from('users').select('id', { count: 'exact', head: true }).eq('plan_tier', 'pro'),
   ]);
 
   // ── recent signups (last 7 days) ─────────────────────────────────────────
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgoDate = new Date();
+  sevenDaysAgoDate.setDate(sevenDaysAgoDate.getDate() - 7);
+  const sevenDaysAgo = sevenDaysAgoDate.toISOString();
   const { count: newUsersWeek } = await admin
     .from('users')
     .select('id', { count: 'exact', head: true })
@@ -56,10 +56,53 @@ export default async function AdminPage() {
   const [
     { count: freeUnlocks },
     { count: referralUnlocks },
+    { count: purchaseUnlocks },
   ] = await Promise.all([
     admin.from('user_entitlements').select('id', { count: 'exact', head: true }).eq('source', 'signup_free'),
     admin.from('user_entitlements').select('id', { count: 'exact', head: true }).eq('source', 'referral'),
+    admin.from('user_entitlements').select('id', { count: 'exact', head: true }).eq('source', 'purchase'),
   ]);
+
+  const [
+    { count: landingViews },
+    { count: pricingViews },
+    { count: signupViews },
+    { count: openRequests },
+  ] = await Promise.all([
+    admin.from('page_events').select('id', { count: 'exact', head: true }).eq('path', '/'),
+    admin.from('page_events').select('id', { count: 'exact', head: true }).eq('path', ROUTES.pricing),
+    admin.from('page_events').select('id', { count: 'exact', head: true }).eq('path', ROUTES.signup),
+    admin.from('support_requests').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+  ]);
+
+  const { data: pageVisitors } = await admin
+    .from('page_events')
+    .select('anonymous_id, user_id')
+    .limit(10000);
+
+  const uniqueVisitors = new Set(
+    ((pageVisitors as Array<{ anonymous_id: string | null; user_id: string | null }> | null) ?? [])
+      .map((event) => event.user_id ?? event.anonymous_id)
+      .filter(Boolean)
+  ).size;
+
+  const { data: questionEvents } = await admin
+    .from('user_question_events')
+    .select('user_id, question_id, event_type, access_state')
+    .limit(10000);
+
+  const questionEventRows = (questionEvents as Array<{
+    user_id: string;
+    question_id: string;
+    event_type: string;
+    access_state: string;
+  }> | null) ?? [];
+
+  const distinctQuestionCount = (eventType: string, accessState: string) => new Set(
+    questionEventRows
+      .filter((event) => event.event_type === eventType && event.access_state === accessState)
+      .map((event) => `${event.user_id}:${event.question_id}`)
+  ).size;
 
   // ── recent users ─────────────────────────────────────────────────────────
   const { data: recentUsers } = await admin
@@ -68,7 +111,7 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  const paidTotal = (passUsers ?? 0) + (proUsers ?? 0);
+  const paidTotal = passUsers ?? 0;
 
   return (
     <div className="space-y-10">
@@ -82,16 +125,30 @@ export default async function AdminPage() {
       {/* Stats grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total users" value={totalUsers ?? 0} sub={`+${newUsersWeek ?? 0} this week`} href={ROUTES.adminUsers} />
-        <StatCard label="Paid users" value={paidTotal} sub={`${passUsers ?? 0} pass · ${proUsers ?? 0} pro`} href={ROUTES.adminUsers} />
+        <StatCard label="Paid users" value={paidTotal} sub={`${passUsers ?? 0} pass`} href={ROUTES.adminUsers} />
         <StatCard label="Free users" value={freeUsers ?? 0} sub={`${totalUsers ? Math.round((paidTotal / totalUsers) * 100) : 0}% conversion`} />
+        <StatCard label="Open requests" value={openRequests ?? 0} href={ROUTES.adminRequests} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Landing views" value={landingViews ?? 0} sub={`${uniqueVisitors} unique visitors tracked`} />
+        <StatCard label="Signup page views" value={signupViews ?? 0} />
+        <StatCard label="Pricing views" value={pricingViews ?? 0} />
         <StatCard label="New this week" value={newUsersWeek ?? 0} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Free unlocks granted" value={freeUnlocks ?? 0} sub="signup_free source" />
         <StatCard label="Referral unlocks" value={referralUnlocks ?? 0} sub="referral source" />
-        <StatCard label="Pending referrals" value={pendingReferrals ?? 0} sub="referred user hasn't paid" />
-        <StatCard label="Rewarded referrals" value={rewardedReferrals ?? 0} sub="referrer got their unlock" />
+        <StatCard label="Purchased unlocks" value={purchaseUnlocks ?? 0} sub="purchase source" />
+        <StatCard label="Referral status" value={`${rewardedReferrals ?? 0}/${pendingReferrals ?? 0}`} sub="rewarded / pending" />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Questions seen before pay" value={distinctQuestionCount('question_viewed', 'free')} />
+        <StatCard label="Questions seen after pay" value={distinctQuestionCount('question_viewed', 'paid')} />
+        <StatCard label="Answers opened before pay" value={distinctQuestionCount('answer_viewed', 'free')} />
+        <StatCard label="Answers opened after pay" value={distinctQuestionCount('answer_viewed', 'paid')} />
       </div>
 
       {/* Recent signups */}
@@ -128,11 +185,10 @@ export default async function AdminPage() {
                   </td>
                   <td className="px-5 py-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
-                      u.plan_tier === 'pro' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                        : u.plan_tier === 'pass' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                      u.plan_tier === 'pass' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                         : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
                     }`}>
-                      {u.plan_tier}
+                      {u.plan_tier === 'pro' ? 'legacy' : u.plan_tier}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-zinc-500">{u.onboarding_complete ? '✅' : '⏳'}</td>
@@ -161,6 +217,10 @@ export default async function AdminPage() {
             className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
             Supabase ↗
           </a>
+          <Link href={ROUTES.adminRequests}
+            className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+            Support Inbox
+          </Link>
           <a href="https://vercel.com/gunjan1982" target="_blank" rel="noopener noreferrer"
             className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
             Vercel Deployments ↗

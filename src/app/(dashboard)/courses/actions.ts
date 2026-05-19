@@ -10,6 +10,63 @@ type AnswerResult =
   | { status: 'paywall'; trigger: 'subject_locked' | 'credit_limit' }
   | { status: 'missing_answer' };
 
+async function recordQuestionEvent({
+  supabase,
+  userId,
+  questionId,
+  courseCode,
+  eventType,
+  accessState,
+  planTier,
+}: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+  questionId: string;
+  courseCode: string;
+  eventType: 'question_viewed' | 'answer_viewed';
+  accessState: 'free' | 'paid';
+  planTier: string | null;
+}) {
+  await supabase.from('user_question_events').upsert({
+    user_id: userId,
+    question_id: questionId,
+    course_code: courseCode,
+    event_type: eventType,
+    access_state: accessState,
+    plan_tier: planTier,
+  }, { onConflict: 'user_id,question_id,event_type,access_state' });
+}
+
+export async function trackQuestionViewed(questionId: string, courseCode: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('plan_tier')
+    .eq('id', user.id)
+    .single();
+
+  const entitlements = await fetchSubjectEntitlements(supabase, user.id);
+  const hasAccess = canAccessCourse({
+    planTier: userData?.plan_tier,
+    courseCode,
+    entitlements,
+  });
+
+  await recordQuestionEvent({
+    supabase,
+    userId: user.id,
+    questionId,
+    courseCode,
+    eventType: 'question_viewed',
+    accessState: hasAccess ? 'paid' : 'free',
+    planTier: userData?.plan_tier ?? null,
+  });
+}
+
 export async function getAnswer(questionId: string): Promise<AnswerResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -61,7 +118,15 @@ export async function getAnswer(questionId: string): Promise<AnswerResult> {
     return { status: 'paywall', trigger: 'subject_locked' };
   }
 
-  // Business Logic: Check Access
+  await recordQuestionEvent({
+    supabase,
+    userId: user.id,
+    questionId,
+    courseCode,
+    eventType: 'answer_viewed',
+    accessState: hasAccess ? 'paid' : 'free',
+    planTier: userData.plan_tier,
+  });
   
   revalidatePath('/dashboard', 'layout');
   return { answer, status: 'success' };

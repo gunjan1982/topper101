@@ -5,6 +5,7 @@ export const ROUTES = {
   resetPassword: '/reset-password',
   dashboard: '/dashboard',
   pricing: '/pricing',
+  support: '/support',
   settings: '/settings',
   onboardingYear: '/onboarding/year',
   onboardingStream: '/onboarding/stream',
@@ -13,6 +14,7 @@ export const ROUTES = {
   authCallback: '/auth/callback',
   admin: '/admin',
   adminUsers: '/admin/users',
+  adminRequests: '/admin/requests',
 } as const;
 
 export const AUTH_ROUTE_PREFIXES = [
@@ -26,11 +28,13 @@ export const PROTECTED_ROUTE_PREFIXES = [
   '/onboarding',
   '/courses',
   ROUTES.pricing,
+  ROUTES.support,
   ROUTES.settings,
 ] as const;
 
 export const DASHBOARD_NAV_LINKS = [
   { href: ROUTES.dashboard, label: 'Dashboard' },
   { href: ROUTES.pricing, label: 'Pricing' },
+  { href: ROUTES.support, label: 'Help' },
   { href: ROUTES.settings, label: 'Settings' },
 ] as const;

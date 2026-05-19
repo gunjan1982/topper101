@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   // Fetch current user settings
   const { data: userData } = await supabase
     .from('users')
-    .select('year, stream, selected_papers')
+    .select('year, stream, selected_papers, phone')
     .eq('id', user.id)
     .single();
 
@@ -41,6 +41,7 @@ export default async function SettingsPage() {
       <SettingsForm
         initialYear={userData.year ?? 1}
         initialStream={userData.stream ?? null}
+        initialPhone={userData.phone ?? ''}
         initialPapers={(userData.selected_papers as string[]) ?? []}
         allCourses={(allCourses as CourseCatalogItem[] | null) ?? COURSE_CATALOG}
       />

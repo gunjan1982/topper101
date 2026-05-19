@@ -2,6 +2,7 @@ import { nextScheduledExam } from './examSchedule';
 
 export const FREE_SUBJECT_UNLOCK_SOURCE = 'signup_free';
 export const REFERRAL_SUBJECT_UNLOCK_SOURCE = 'referral';
+export const PURCHASE_SUBJECT_UNLOCK_SOURCE = 'purchase';
 export const REFERRAL_REWARD_LIMIT = 3;
 
 export type PlanTier = 'free' | 'pass' | 'pro';
@@ -47,7 +48,7 @@ export function unlockedCourseCodes(entitlements: EntitlementRow[] | null | unde
 }
 
 export function hasFullQuestionBankAccess(planTier: string | null | undefined) {
-  return planTier === 'pass' || planTier === 'pro';
+  return planTier === 'pro';
 }
 
 export function canAccessCourse({
@@ -72,6 +73,7 @@ export async function grantSubjectEntitlement({
   courseCode,
   source,
   sourceRef,
+  expiresAt,
   metadata = {},
 }: {
   supabase: unknown;
@@ -79,6 +81,7 @@ export async function grantSubjectEntitlement({
   courseCode: string;
   source: 'signup_free' | 'referral' | 'purchase' | 'admin';
   sourceRef?: string | null;
+  expiresAt?: string | null;
   metadata?: Record<string, unknown>;
 }) {
   const { error } = await table(supabase, 'user_entitlements')
@@ -88,6 +91,7 @@ export async function grantSubjectEntitlement({
       course_code: courseCode,
       source,
       source_ref: sourceRef ?? null,
+      expires_at: expiresAt ?? null,
       metadata,
     }, { onConflict: 'user_id,entitlement_type,course_code,source' });
 

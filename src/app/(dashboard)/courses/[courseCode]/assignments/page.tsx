@@ -43,7 +43,7 @@ export default async function AssignmentsListPage({
       <div>
         <h1 className="text-3xl font-bold tracking-tight dark:text-white">Assignments</h1>
         <p className="mt-2 text-xl text-zinc-600 dark:text-zinc-400">
-          Model answers for your {course.code} submissions.
+          Textbook references for your {course.code} submissions.
         </p>
       </div>
 
@@ -69,7 +69,7 @@ export default async function AssignmentsListPage({
                   {assignment.year}–{assignment.year + 1}
                 </h3>
                 <p className="text-zinc-500 text-sm mt-2 dark:text-zinc-400">
-                  Full reference map and generated model answers
+                  Reference map for assignment questions
                 </p>
               </Link>
             ))}

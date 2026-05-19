@@ -1,7 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { captureServerEvent } from '@/lib/posthog-server';
-import { grantSubjectEntitlement, REFERRAL_REWARD_LIMIT, firstFreeSubject } from '@/lib/entitlements';
+import {
+  activeSubjectEntitlements,
+  firstFreeSubject,
+  grantSubjectEntitlement,
+  REFERRAL_REWARD_LIMIT,
+} from '@/lib/entitlements';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
@@ -14,8 +18,11 @@ type RazorpayOrderPaidEvent = {
         amount_paid?: number;
         notes: {
           userId: string;
-          planId: 'pass' | 'pro';
+          planId: 'pass';
           billingCycle: 'monthly' | 'semester';
+          offerId?: string;
+          subjectLimit?: string;
+          offerLabel?: string;
         };
       };
     };
@@ -96,6 +103,65 @@ async function grantReferralRewardForPayment(payingUserId: string) {
     .eq('id', referral.id);
 }
 
+async function grantPurchasedSubjectUnlocks({
+  userId,
+  orderId,
+  subjectLimit,
+  offerId,
+  billingCycle,
+}: {
+  userId: string;
+  orderId: string;
+  subjectLimit: number;
+  offerId?: string;
+  billingCycle: 'monthly' | 'semester';
+}) {
+  const admin = createAdminClient();
+  // Fixed TEE expiry dates — not rolling from purchase date
+  const expiresAt = billingCycle === 'semester'
+    ? new Date('2026-12-31T18:29:59.000Z').toISOString() // 31 Dec 2026 23:59 IST
+    : new Date('2026-06-30T18:29:59.000Z').toISOString(); // 30 Jun 2026 23:59 IST
+
+  const { data: userData } = await admin
+    .from('users')
+    .select('selected_papers')
+    .eq('id', userId)
+    .single();
+
+  const selectedPapers = (userData?.selected_papers as string[] | null) ?? [];
+  if (selectedPapers.length === 0) return [];
+
+  const { data: entitlementRows } = await admin
+    .from('user_entitlements')
+    .select('course_code, entitlement_type, source, expires_at')
+    .eq('user_id', userId)
+    .eq('entitlement_type', 'subject_unlock');
+
+  const activeUnlocks = activeSubjectEntitlements(entitlementRows);
+  const alreadyUnlocked = new Set(activeUnlocks.map((row) => row.course_code as string));
+  const coursesToUnlock = selectedPapers
+    .filter((courseCode) => !alreadyUnlocked.has(courseCode))
+    .slice(0, subjectLimit);
+
+  for (const courseCode of coursesToUnlock) {
+    await grantSubjectEntitlement({
+      supabase: admin,
+      userId,
+      courseCode,
+      source: 'purchase',
+      sourceRef: orderId,
+      expiresAt,
+      metadata: {
+        reason: 'Topper Pass subject purchase',
+        offer_id: offerId ?? null,
+        subject_limit: subjectLimit,
+      },
+    });
+  }
+
+  return coursesToUnlock;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.text();
@@ -113,15 +179,23 @@ export async function POST(request: Request) {
     }
 
     const event = JSON.parse(body) as RazorpayOrderPaidEvent;
-    const supabase = await createClient();
+    const admin = createAdminClient();
 
     if (event.event === 'order.paid') {
       const { notes, id: orderId } = event.payload.order.entity;
       const { userId, planId, billingCycle } = notes;
       const amountPaid = event.payload.order.entity.amount_paid;
+      const subjectLimit = Number.parseInt(notes.subjectLimit ?? '1', 10);
+      const purchasedSubjects = await grantPurchasedSubjectUnlocks({
+        userId,
+        orderId,
+        subjectLimit: Number.isFinite(subjectLimit) ? subjectLimit : 1,
+        offerId: notes.offerId,
+        billingCycle,
+      });
 
       // 1. Update user plan
-      const { error: userError } = await supabase
+      const { error: userError } = await admin
         .from('users')
         .update({ plan_tier: planId })
         .eq('id', userId);
@@ -129,7 +203,7 @@ export async function POST(request: Request) {
       if (userError) throw userError;
 
       // 2. Insert subscription record
-      const { error: subError } = await supabase
+      const { error: subError } = await admin
         .from('subscriptions')
         .insert({
           user_id: userId,
@@ -138,9 +212,16 @@ export async function POST(request: Request) {
           status: 'active',
           razorpay_payment_id: orderId,
           start_date: new Date().toISOString(),
-          end_date: billingCycle === 'semester' 
-            ? new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString() 
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: billingCycle === 'semester'
+            ? new Date('2026-12-31T18:29:59.000Z').toISOString()
+            : new Date('2026-06-30T18:29:59.000Z').toISOString(),
+          payment_history: [{
+            offer_id: notes.offerId ?? null,
+            offer_label: notes.offerLabel ?? null,
+            subject_limit: Number.isFinite(subjectLimit) ? subjectLimit : 1,
+            unlocked_subjects: purchasedSubjects,
+            amount_paid: amountPaid ? amountPaid / 100 : null,
+          }],
         });
 
       if (subError) throw subError;
@@ -150,6 +231,9 @@ export async function POST(request: Request) {
         plan_tier: planId,
         amount: amountPaid ? amountPaid / 100 : null, // convert paise → INR
         billing_cycle: billingCycle,
+        offer_id: notes.offerId ?? null,
+        subject_limit: Number.isFinite(subjectLimit) ? subjectLimit : 1,
+        unlocked_subjects: purchasedSubjects,
       });
 
       // 4. Referral reward: if paying user was referred, grant referrer +1 subject

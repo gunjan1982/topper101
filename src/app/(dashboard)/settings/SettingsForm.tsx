@@ -17,6 +17,7 @@ interface Course {
 interface SettingsFormProps {
   initialYear: number;
   initialStream: string | null;
+  initialPhone: string;
   initialPapers: string[];
   allCourses: Course[];
 }
@@ -26,11 +27,13 @@ const paperFilters = ['All', 'Year 1', 'Clinical', 'Counselling', 'Organisationa
 export default function SettingsForm({
   initialYear,
   initialStream,
+  initialPhone,
   initialPapers,
   allCourses,
 }: SettingsFormProps) {
   const [year, setYear] = useState<number>(initialYear);
   const [stream, setStream] = useState<string | null>(initialStream);
+  const [phone, setPhone] = useState(initialPhone);
   const [paperFilter, setPaperFilter] = useState<(typeof paperFilters)[number]>('All');
   const [selectedPapers, setSelectedPapers] = useState<string[]>(initialPapers);
   const [saving, setSaving] = useState(false);
@@ -64,7 +67,7 @@ export default function SettingsForm({
     }
     setSaving(true);
     try {
-      await updateSettings({ year, stream, papers: selectedPapers });
+      await updateSettings({ year, stream, phone, papers: selectedPapers });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setSaving(false);
@@ -81,6 +84,16 @@ export default function SettingsForm({
             This helps us default your stream, but it no longer restricts which exam papers you can add.
           </p>
         </div>
+        <label className="block">
+          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Phone number</span>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="Optional, useful for payment/support issues"
+            className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 focus:border-teal-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+          />
+        </label>
         <div className="flex gap-4">
           {[1, 2].map((y) => (
             <button

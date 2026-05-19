@@ -3,11 +3,36 @@ import { createClient } from '@/lib/supabase/server';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { NextResponse } from 'next/server';
 
-const PLAN_PRICES: Record<string, number> = {
-  'pass-monthly': 29900, // in paise
-  'pass-semester': 79900,
-  'pro-monthly': 49900,
-  'pro-semester': 129900,
+const PASS_OFFERS: Record<string, {
+  amount: number;
+  subjectLimit: number;
+  billingCycle: 'monthly' | 'semester';
+  label: string;
+}> = {
+  'pass-1-subject-monthly': {
+    amount: 9900,
+    subjectLimit: 1,
+    billingCycle: 'monthly',
+    label: 'Topper Pass - 1 subject (TEE Jun 2026)',
+  },
+  'pass-1-subject-semester': {
+    amount: 19900,
+    subjectLimit: 1,
+    billingCycle: 'semester',
+    label: 'Topper Pass - 1 subject (Semester Dec 2026)',
+  },
+  'pass-5-subjects-monthly': {
+    amount: 29900,
+    subjectLimit: 5,
+    billingCycle: 'monthly',
+    label: 'Topper Pass - 5 subjects (TEE Jun 2026)',
+  },
+  'pass-5-subjects-semester': {
+    amount: 49900,
+    subjectLimit: 5,
+    billingCycle: 'semester',
+    label: 'Topper Pass - 5 subjects (Semester Dec 2026)',
+  },
 };
 
 export async function POST(request: Request) {
@@ -19,31 +44,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { planId, billingCycle } = await request.json();
-    const priceKey = `${planId}-${billingCycle}`;
-    const amount = PLAN_PRICES[priceKey];
+    const { offerId } = await request.json();
+    const offer = PASS_OFFERS[offerId as string];
 
-    if (!amount) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    if (!offer) {
+      return NextResponse.json({ error: 'Invalid offer' }, { status: 400 });
     }
 
     const options = {
-      amount: amount,
+      amount: offer.amount,
       currency: 'INR',
       receipt: `receipt_${user.id}_${Date.now()}`,
       notes: {
         userId: user.id,
-        planId,
-        billingCycle,
+        planId: 'pass',
+        billingCycle: offer.billingCycle,
+        offerId,
+        subjectLimit: String(offer.subjectLimit),
+        offerLabel: offer.label,
       },
     };
 
     const order = await getRazorpay().orders.create(options);
 
     await captureServerEvent(user.id, 'payment_initiated', {
-      plan_id: planId,
-      billing_cycle: billingCycle,
-      amount_inr: amount / 100,
+      plan_id: 'pass',
+      billing_cycle: offer.billingCycle,
+      offer_id: offerId,
+      subject_limit: offer.subjectLimit,
+      amount_inr: offer.amount / 100,
       razorpay_order_id: order.id,
     });
 

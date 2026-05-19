@@ -158,7 +158,7 @@ export default async function DashboardPage() {
               href={ROUTES.pricing}
               className="rounded-full bg-white px-6 py-3 text-sm font-bold text-teal-700 hover:bg-zinc-100 transition-all active:scale-95"
             >
-              Upgrade to Topper Pass ₹299
+              Unlock more subjects from ₹99
             </Link>
             {userData.referral_code && (
               <div className="flex flex-col gap-1">

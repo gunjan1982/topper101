@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { ROUTES } from '@/lib/routes';
 import { cleanQuestionText } from '@/lib/questionDisplay';
 import AnswerRenderer from '@/components/AnswerRenderer';
-import { getAnswer, updateProgress, submitFlag } from '../../actions';
+import { getAnswer, updateProgress, submitFlag, trackQuestionViewed } from '../../actions';
 
 interface Question {
   id: string;
@@ -75,15 +75,18 @@ export default function QuestionCard({
   const [flagSubmitting, setFlagSubmitting] = useState(false);
   const [flagDone, setFlagDone] = useState(false);
 
-  const handleSeeAnswer = async () => {
-    // Track question viewed
+  useEffect(() => {
+    if (!courseCode) return;
     posthog?.capture('question_viewed', {
       course_code: courseCode,
       question_id: question.id,
       frequency_tier: frequencyTier,
       is_paid: isPaid,
     });
+    trackQuestionViewed(question.id, courseCode).catch(() => {});
+  }, [courseCode, frequencyTier, isPaid, posthog, question.id]);
 
+  const handleSeeAnswer = async () => {
     setIsOpen(true);
     if (!answerData) {
       setLoading(true);
@@ -324,8 +327,8 @@ export default function QuestionCard({
                   </h3>
                   <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
                     {answerData.trigger === 'subject_locked'
-                      ? 'Your first paper is free. Upgrade to unlock every selected paper for this TEE.'
-                      : 'Upgrade to Topper Pass to get AI study answers for all papers and sessions.'}
+                      ? 'Your first paper is free. Upgrade to unlock this subject, or pick the 5-subject Pass for this TEE.'
+                      : 'Upgrade to Topper Pass to get AI study answers for unlocked subjects.'}
                   </p>
                   <div className="mt-10 flex flex-col gap-4">
                     <button
@@ -334,7 +337,7 @@ export default function QuestionCard({
                       }}
                       className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20"
                     >
-                      Unlock All Answers → ₹299
+                      Unlock This Subject - ₹99
                     </button>
                     <button 
                       className="text-sm font-medium text-zinc-500 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-50"

@@ -15,7 +15,7 @@ export default async function AdminUsersPage({
 
   let query = admin
     .from('users')
-    .select('id, email, name, plan_tier, created_at, onboarding_complete, selected_papers, referral_code, referred_by', { count: 'exact' })
+    .select('id, email, name, phone, plan_tier, created_at, last_seen_at, onboarding_complete, selected_papers, referral_code, referred_by', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
 
@@ -23,14 +23,14 @@ export default async function AdminUsersPage({
     query = query.ilike('email', `%${search}%`);
   }
   if (plan) {
-    query = query.eq('plan_tier', plan as 'free' | 'pass' | 'pro');
+    query = query.eq('plan_tier', plan as 'free' | 'pass');
   }
 
   const { data: users, count } = await query;
 
   // Entitlement counts per user
   const userIds = (users ?? []).map((u: { id: string }) => u.id);
-  let entitlementsByUser: Record<string, number> = {};
+  const entitlementsByUser: Record<string, number> = {};
   if (userIds.length > 0) {
     const { data: ents } = await admin
       .from('user_entitlements')
@@ -42,7 +42,16 @@ export default async function AdminUsersPage({
   }
 
   // Referral reward counts per user (as referrer)
-  let referralsByUser: Record<string, number> = {};
+  const referralsByUser: Record<string, number> = {};
+  const pageViewsByUser: Record<string, number> = {};
+  const supportRequestsByUser: Record<string, number> = {};
+  const questionMetricsByUser: Record<string, {
+    questionsBeforePay: Set<string>;
+    questionsAfterPay: Set<string>;
+    answersBeforePay: Set<string>;
+    answersAfterPay: Set<string>;
+  }> = {};
+
   if (userIds.length > 0) {
     const { data: refs } = await admin
       .from('referrals')
@@ -52,6 +61,47 @@ export default async function AdminUsersPage({
       if (!referralsByUser[row.referrer_user_id]) referralsByUser[row.referrer_user_id] = 0;
       if (row.status === 'rewarded') referralsByUser[row.referrer_user_id]++;
     });
+
+    const { data: pageEvents } = await admin
+      .from('page_events')
+      .select('user_id')
+      .in('user_id', userIds);
+    (pageEvents ?? []).forEach((row: { user_id: string | null }) => {
+      if (!row.user_id) return;
+      pageViewsByUser[row.user_id] = (pageViewsByUser[row.user_id] ?? 0) + 1;
+    });
+
+    const { data: supportRequests } = await admin
+      .from('support_requests')
+      .select('user_id')
+      .in('user_id', userIds);
+    (supportRequests ?? []).forEach((row: { user_id: string | null }) => {
+      if (!row.user_id) return;
+      supportRequestsByUser[row.user_id] = (supportRequestsByUser[row.user_id] ?? 0) + 1;
+    });
+
+    const { data: questionEvents } = await admin
+      .from('user_question_events')
+      .select('user_id, question_id, event_type, access_state')
+      .in('user_id', userIds);
+    (questionEvents ?? []).forEach((row: {
+      user_id: string;
+      question_id: string;
+      event_type: string;
+      access_state: string;
+    }) => {
+      questionMetricsByUser[row.user_id] ??= {
+        questionsBeforePay: new Set<string>(),
+        questionsAfterPay: new Set<string>(),
+        answersBeforePay: new Set<string>(),
+        answersAfterPay: new Set<string>(),
+      };
+      const metrics = questionMetricsByUser[row.user_id];
+      if (row.event_type === 'question_viewed' && row.access_state === 'free') metrics.questionsBeforePay.add(row.question_id);
+      if (row.event_type === 'question_viewed' && row.access_state === 'paid') metrics.questionsAfterPay.add(row.question_id);
+      if (row.event_type === 'answer_viewed' && row.access_state === 'free') metrics.answersBeforePay.add(row.question_id);
+      if (row.event_type === 'answer_viewed' && row.access_state === 'paid') metrics.answersAfterPay.add(row.question_id);
+    });
   }
 
   const totalPages = Math.ceil((count ?? 0) / pageSize);
@@ -60,8 +110,10 @@ export default async function AdminUsersPage({
     id: string;
     email: string;
     name: string | null;
+    phone: string | null;
     plan_tier: string;
     created_at: string;
+    last_seen_at: string | null;
     onboarding_complete: boolean;
     selected_papers: string[] | null;
     referral_code: string | null;
@@ -70,6 +122,12 @@ export default async function AdminUsersPage({
     ...u,
     entitlementCount: entitlementsByUser[u.id] ?? 0,
     referralRewardCount: referralsByUser[u.id] ?? 0,
+    pageViewCount: pageViewsByUser[u.id] ?? 0,
+    supportRequestCount: supportRequestsByUser[u.id] ?? 0,
+    questionsBeforePay: questionMetricsByUser[u.id]?.questionsBeforePay.size ?? 0,
+    questionsAfterPay: questionMetricsByUser[u.id]?.questionsAfterPay.size ?? 0,
+    answersBeforePay: questionMetricsByUser[u.id]?.answersBeforePay.size ?? 0,
+    answersAfterPay: questionMetricsByUser[u.id]?.answersAfterPay.size ?? 0,
   }));
 
   return (

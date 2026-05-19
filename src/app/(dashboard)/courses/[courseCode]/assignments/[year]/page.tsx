@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import AssignmentQuestionCard from './AssignmentQuestionCard';
+import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
 
 type AssignmentQuestion = {
   question_text: string;
@@ -9,11 +10,6 @@ type AssignmentQuestion = {
   block_ref?: string | null;
   chapter_ref?: string | null;
   page_ref?: string | null;
-};
-
-type CachedAssignmentAnswer = {
-  answer_text: string;
-  word_count: number;
 };
 
 export default async function AssignmentYearPage({
@@ -49,6 +45,13 @@ export default async function AssignmentYearPage({
     notFound();
   }
 
+  const entitlements = await fetchSubjectEntitlements(supabase, user.id);
+  const canViewReference = canAccessCourse({
+    planTier: userPlanTier,
+    courseCode: courseData.code,
+    entitlements,
+  });
+
   const { data: assignmentData } = await supabase
     .from('assignments')
     .select('id, questions')
@@ -62,21 +65,6 @@ export default async function AssignmentYearPage({
   }
 
   const questionsArray = (assignmentData.questions as AssignmentQuestion[] | null) || [];
-
-  // Query Assignment cached generation data directly avoiding expensive nested loop calls
-  const { data: cachedAnswersPayload } = await supabase
-    .from('assignment_answers')
-    .select('question_index, content')
-    .eq('user_id', user.id)
-    .eq('assignment_id', assignmentData.id);
-
-  // Map into O(1) format
-  const preFetchedAnswers: Record<number, CachedAssignmentAnswer> = {};
-  if (cachedAnswersPayload) {
-    cachedAnswersPayload.forEach((row) => {
-      preFetchedAnswers[row.question_index] = row.content as CachedAssignmentAnswer;
-    });
-  }
 
   return (
     <div className="space-y-8">
@@ -100,7 +88,7 @@ export default async function AssignmentYearPage({
             </span>
         </div>
         <p className="mt-2 text-xl text-zinc-600 dark:text-zinc-400">
-          Model answers and reference pages for the {courseData.name} assignment.
+          Reference pages for the {courseData.name} assignment.
         </p>
       </div>
 
@@ -111,11 +99,7 @@ export default async function AssignmentYearPage({
             key={index}
             question={q}
             questionIndex={index}
-            assignmentId={assignmentData.id}
-            userPlanTier={userPlanTier}
-            courseCode={courseData.code}
-            assignmentYear={targetYear}
-            existingAnswer={preFetchedAnswers[index] || null}
+            canViewReference={canViewReference}
           />
         ))}
         {questionsArray.length === 0 && (

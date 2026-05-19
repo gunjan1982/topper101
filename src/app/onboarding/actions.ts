@@ -8,12 +8,6 @@ import { ROUTES } from '@/lib/routes';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-function nextUnlockCandidate(papers: readonly string[], alreadyUnlocked: readonly string[]) {
-  const lockedPapers = papers.filter((paper) => !alreadyUnlocked.includes(paper));
-  // Return the first locked paper (caller may use exam-schedule ordering upstream)
-  return lockedPapers[0] ?? null;
-}
-
 /**
  * Creates a pending referral record linking referrer ↔ referred user.
  * No entitlements are granted here — that happens in the payment webhook

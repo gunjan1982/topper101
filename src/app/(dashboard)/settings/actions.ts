@@ -7,10 +7,12 @@ import { redirect } from 'next/navigation';
 export async function updateSettings({
   year,
   stream,
+  phone,
   papers,
 }: {
   year: number;
   stream: string | null;
+  phone: string;
   papers: string[];
 }) {
   const supabase = await createClient();
@@ -22,6 +24,7 @@ export async function updateSettings({
 
   const updateData: Record<string, unknown> = {
     year,
+    phone: phone.trim() || null,
     selected_papers: papers,
   };
 

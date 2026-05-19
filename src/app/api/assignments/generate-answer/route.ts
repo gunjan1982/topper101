@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       .single();
 
     if (!userData || userData.plan_tier !== 'pro') {
-      return NextResponse.json({ error: 'Pro tier required' }, { status: 403 });
+      return NextResponse.json({ error: 'Assignment answer generation is not available yet' }, { status: 403 });
     }
 
     // 1. Check assignment_answers for an existing cached answer

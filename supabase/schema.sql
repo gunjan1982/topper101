@@ -114,6 +114,7 @@ create table users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   name text,
+  phone text,
   auth_provider text,                  -- 'email' or 'google'
   stream text,                         -- 'Counselling'|'Clinical'|'Organisational'|NULL
   year integer,                        -- 1 or 2
@@ -123,6 +124,7 @@ create table users (
   referral_code text unique default substr(md5(random()::text), 1, 8),
   referred_by text,                    -- referral_code of referrer
   onboarding_complete boolean default false,
+  last_seen_at timestamptz,
   created_at timestamptz default now()
 );
 
@@ -153,6 +155,46 @@ create table user_progress (
 
 create index if not exists user_progress_user_question_idx
   on user_progress (user_id, question_id);
+
+-- Page events for first-party funnel visibility across anonymous and signed-in visitors
+create table page_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users(id) on delete set null,
+  anonymous_id text,
+  path text not null,
+  url text,
+  referrer text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists page_events_path_created_idx
+  on page_events (path, created_at desc);
+
+create index if not exists page_events_user_created_idx
+  on page_events (user_id, created_at desc);
+
+create index if not exists page_events_anonymous_created_idx
+  on page_events (anonymous_id, created_at desc);
+
+-- Distinct user question/answer views used by admin conversion reporting
+create table user_question_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  question_id uuid references questions(id) on delete cascade,
+  course_code text references courses(code) on delete set null,
+  event_type text not null check (event_type in ('question_viewed', 'answer_viewed')),
+  access_state text not null check (access_state in ('free', 'paid')),
+  plan_tier text,
+  created_at timestamptz not null default now(),
+  unique (user_id, question_id, event_type, access_state)
+);
+
+create index if not exists user_question_events_user_idx
+  on user_question_events (user_id, event_type, access_state);
+
+create index if not exists user_question_events_course_idx
+  on user_question_events (course_code, event_type, created_at desc);
 
 -- User concept tree progress
 create table concept_progress (
@@ -214,6 +256,28 @@ create table content_flags (
   created_at timestamptz default now()
 );
 
+-- In-app support and admin inbox
+create table support_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users(id) on delete set null,
+  email text not null,
+  phone text,
+  category text not null check (category in ('payment', 'content', 'access', 'account', 'feature', 'other')),
+  subject text not null,
+  message text not null,
+  status text not null default 'open' check (status in ('open', 'in_progress', 'resolved')),
+  priority text not null default 'normal' check (priority in ('low', 'normal', 'high')),
+  admin_notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists support_requests_status_created_idx
+  on support_requests (status, created_at desc);
+
+create index if not exists support_requests_user_created_idx
+  on support_requests (user_id, created_at desc);
+
 -- RLS POLICIES
 
 -- Users can read/write only their own row
@@ -259,6 +323,17 @@ alter table content_flags enable row level security;
 create policy "content_flags_insert" on content_flags for insert with check (auth.role() = 'authenticated');
 create policy "content_flags_own" on content_flags for select using (auth.uid() = user_id);
 
+-- User question events: own rows only
+alter table user_question_events enable row level security;
+create policy "question_events_own_read" on user_question_events for select using (auth.uid() = user_id);
+create policy "question_events_own_insert" on user_question_events for insert with check (auth.uid() = user_id);
+create policy "question_events_own_update" on user_question_events for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Support requests: own rows only
+alter table support_requests enable row level security;
+create policy "support_requests_own_read" on support_requests for select using (auth.uid() = user_id);
+create policy "support_requests_own_insert" on support_requests for insert with check (auth.uid() = user_id);
+
 -- Topic clusters: read-only for authenticated
 alter table topic_clusters enable row level security;
 create policy "topic_clusters_read_all" on topic_clusters for select using (auth.role() = 'authenticated');
@@ -282,10 +357,11 @@ create policy "assignment_answers_own" on assignment_answers using (auth.uid() =
 create or replace function handle_new_user()
 returns trigger as $$
 begin
-  insert into public.users (id, email, auth_provider, referred_by)
+  insert into public.users (id, email, phone, auth_provider, referred_by)
   values (
     new.id,
     new.email,
+    nullif(new.raw_user_meta_data->>'phone', ''),
     new.raw_app_meta_data->>'provider',
     nullif(new.raw_user_meta_data->>'referred_by', '')
   );

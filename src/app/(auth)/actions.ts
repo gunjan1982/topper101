@@ -50,12 +50,14 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient();
   const redirectTo = safeNextPath(formData.get('redirectTo') as string | null);
+  const phone = (formData.get('phone') as string | null)?.trim() || null;
 
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     options: {
       data: {
+        phone,
         referred_by: (formData.get('referral_code') as string | null)?.trim() || null,
       },
     },
@@ -74,6 +76,7 @@ export async function signup(formData: FormData) {
     await captureServerEvent(signupData.user.id, 'user_signed_up', {
       auth_provider: 'email',
       referral_code: referralCode || null,
+      phone_present: Boolean(phone),
     });
   }
 

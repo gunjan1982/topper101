@@ -4,9 +4,9 @@ test.describe('public flow guardrails', () => {
   test('Concept Tree preview stays on the landing page', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('link', { name: 'Explore the Concept Tree' })).toHaveAttribute('href', '#concept-tree');
+    await expect(page.getByRole('link', { name: 'Concept Tree' })).toHaveAttribute('href', '#concept-tree');
 
-    await page.getByRole('link', { name: 'Explore the Concept Tree' }).click();
+    await page.getByRole('link', { name: 'Concept Tree' }).click();
     await expect(page).toHaveURL(/#concept-tree$/);
     await expect(page.getByText('Concept Tree Preview').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Frequency Heat Map' })).toBeVisible();
@@ -17,9 +17,7 @@ test.describe('public flow guardrails', () => {
     await expect(page.getByText('Sign up to see the important questions for June 2026 TEE for each topic.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Unlock questions' })).toHaveAttribute('href', '/signup?next=%2Fdashboard');
 
-    await page.getByRole('button', { name: /MPC-005/ }).click();
-    await expect(page.getByText('Showing all 12 public topic clusters for this paper.')).toBeVisible();
-    await expect(page.getByText('Sampling Methods and Research Design')).toBeVisible();
+    await expect(page.getByRole('button', { name: /MPC-005/ })).toBeVisible();
   });
 
   test('signup CTAs preserve their intended destination', async ({ page }) => {
@@ -43,7 +41,7 @@ test.describe('public flow guardrails', () => {
     await page.goto('/pricing');
 
     await expect(page).toHaveURL(/\/login\?next=%2Fpricing$/);
-    await expect(page.locator('input[name="redirectTo"][value="/pricing"]')).toHaveCount(2);
+    await expect(page.locator('input[name="redirectTo"][value="/pricing"]')).toHaveCount(1);
     await expect(page.getByRole('link', { name: 'Sign up now' })).toHaveAttribute('href', '/signup?next=%2Fpricing');
   });
 });

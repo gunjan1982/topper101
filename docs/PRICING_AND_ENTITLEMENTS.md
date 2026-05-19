@@ -7,7 +7,7 @@ Topper101 should earn trust before asking students to pay.
 - Public users can preview concept maps and heat maps.
 - New signed-in users get one full subject unlocked for free.
 - The free subject is selected from the user's chosen papers by upcoming exam order.
-- Paid users with `pass` or `pro` get full question-bank access.
+- Pass users can buy monthly subject unlocks: Rs 99 for 1 subject or Rs 299 for up to 5 subjects.
 - Referral rewards can unlock additional subjects.
 
 ## Entitlement Model
@@ -43,8 +43,8 @@ Referral rewards are capped by `REFERRAL_REWARD_LIMIT` in `src/lib/entitlements.
 
 ## Access Rules
 
-- `pass` and `pro` can access every paper.
-- `free` users can access papers where they have an active `subject_unlock`.
+- Users can access papers where they have an active `subject_unlock`.
+- Purchase unlocks are monthly and use `source = purchase`.
 - Answer access must call the central entitlement helper.
 - Pages may preview locked papers, but answer access must be enforced server-side.
 
