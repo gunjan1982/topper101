@@ -2,9 +2,10 @@ import Link from 'next/link';
 import Logo from './Logo';
 import { withRedirectTo } from '@/lib/navigation';
 import { ROUTES } from '@/lib/routes';
-import ConceptTreePreview from './ConceptTreePreview';
+import ConceptTreePreview, { type PublicCoursePreview } from './ConceptTreePreview';
 import ExamSchedulePreview from './ExamSchedulePreview';
 import { SUPPORT_EMAIL } from '@/lib/contact';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const metadata = {
   title: 'Topper101 — IGNOU MAPC Exam Prep',
@@ -12,10 +13,65 @@ export const metadata = {
     'See the 20% of topics behind 80% of IGNOU MAPC exam questions. AI-powered exam prep built specifically for IGNOU MAPC students.',
 };
 
+async function fetchConceptPreviewData(): Promise<PublicCoursePreview[]> {
+  try {
+    const supabase = createAdminClient();
+
+    const [coursesRes, clustersRes, questionCoursesRes] = await Promise.all([
+      supabase
+        .from('courses')
+        .select('id, code, name, year, stream')
+        .eq('course_type', 'theory')
+        .order('code'),
+      supabase
+        .from('topic_clusters')
+        .select('course_id, cluster_name, frequency_tier, frequency_count')
+        .order('frequency_count', { ascending: false }),
+      supabase
+        .from('questions')
+        .select('course_id'),
+    ]);
+
+    const courses = coursesRes.data ?? [];
+    const clusters = clustersRes.data ?? [];
+    const questionCourses = questionCoursesRes.data ?? [];
+
+    // Count questions per course
+    const qCountByCourse = new Map<string, number>();
+    for (const q of questionCourses) {
+      qCountByCourse.set(q.course_id, (qCountByCourse.get(q.course_id) ?? 0) + 1);
+    }
+
+    // Group clusters by course_id
+    const clustersByCourse = new Map<string, typeof clusters>();
+    for (const c of clusters) {
+      const list = clustersByCourse.get(c.course_id) ?? [];
+      list.push(c);
+      clustersByCourse.set(c.course_id, list);
+    }
+
+    return courses.map((course) => ({
+      code: course.code,
+      name: course.name,
+      year: course.year,
+      stream: course.stream ?? null,
+      questionCount: qCountByCourse.get(course.id) ?? 0,
+      clusters: (clustersByCourse.get(course.id) ?? []).map((c) => ({
+        name: c.cluster_name,
+        tier: (c.frequency_tier ?? 'LOW') as 'HIGH' | 'MEDIUM' | 'LOW',
+        exams: c.frequency_count ?? 0,
+      })),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 const startFreeHref = withRedirectTo(ROUTES.signup, ROUTES.dashboard);
 const upgradeHref = withRedirectTo(ROUTES.signup, ROUTES.pricing);
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const conceptPreviewCourses = await fetchConceptPreviewData();
   return (
     <div className="flex min-h-screen flex-col bg-white text-zinc-950 dark:bg-black dark:text-zinc-50">
       <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur-md dark:border-zinc-800 dark:bg-black/90">
@@ -80,7 +136,7 @@ export default function LandingPage() {
 
         <ExamSchedulePreview />
 
-        <ConceptTreePreview />
+        <ConceptTreePreview courses={conceptPreviewCourses} />
 
         <section id="features" className="px-5 py-20 sm:px-6 md:py-28">
           <div className="mx-auto max-w-6xl">

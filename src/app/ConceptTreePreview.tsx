@@ -2,10 +2,24 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PUBLIC_CONCEPT_PREVIEWS } from '@/lib/publicConceptPreview';
 import { ROUTES } from '@/lib/routes';
 import { withRedirectTo } from '@/lib/navigation';
 import { formatExamDate, getExamSchedule } from '@/lib/examSchedule';
+
+export type PublicClusterPreview = {
+  name: string;
+  tier: 'HIGH' | 'MEDIUM' | 'LOW';
+  exams: number;
+};
+
+export type PublicCoursePreview = {
+  code: string;
+  name: string;
+  year: number;
+  stream: string | null;
+  questionCount: number;
+  clusters: PublicClusterPreview[];
+};
 
 const filterOptions = ['All', 'Year 1', 'Clinical', 'Counselling', 'Organisational', 'Common'] as const;
 
@@ -21,33 +35,33 @@ function clusterTone(tier: 'HIGH' | 'MEDIUM' | 'LOW') {
   return 'border-zinc-200 bg-white text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900';
 }
 
-export default function ConceptTreePreview() {
+export default function ConceptTreePreview({ courses }: { courses: PublicCoursePreview[] }) {
   const [activeFilter, setActiveFilter] = useState<(typeof filterOptions)[number]>('All');
   const [activeCode, setActiveCode] = useState('MPCE-021');
   const signupHref = withRedirectTo(ROUTES.signup, ROUTES.dashboard);
 
   const visibleCourses = useMemo(() => {
-    return PUBLIC_CONCEPT_PREVIEWS.filter((course) => {
+    return courses.filter((course) => {
       if (activeFilter === 'All') return true;
       if (activeFilter === 'Year 1') return course.year === 1;
       return course.stream === activeFilter;
     });
-  }, [activeFilter]);
+  }, [activeFilter, courses]);
 
   const activeCourse =
     visibleCourses.find((course) => course.code === activeCode) ??
     visibleCourses[0] ??
-    PUBLIC_CONCEPT_PREVIEWS[0];
-  const activeExam = getExamSchedule(activeCourse.code);
+    courses[0];
+  const activeExam = getExamSchedule(activeCourse?.code ?? '');
 
   const selectFilter = (filter: (typeof filterOptions)[number]) => {
     setActiveFilter(filter);
-    const nextCourse = PUBLIC_CONCEPT_PREVIEWS.find((course) => {
+    const nextCourse = courses.find((course) => {
       if (filter === 'All') return course.code === activeCode;
       if (filter === 'Year 1') return course.year === 1;
       return course.stream === filter;
     });
-    setActiveCode(nextCourse?.code ?? PUBLIC_CONCEPT_PREVIEWS[0].code);
+    setActiveCode(nextCourse?.code ?? courses[0]?.code ?? '');
   };
 
   return (
