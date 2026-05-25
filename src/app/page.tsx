@@ -85,6 +85,7 @@ export default async function LandingPage() {
             <a href="#concept-tree" className="hover:text-teal-700">Concept Tree</a>
             <a href="#features" className="hover:text-teal-700">Features</a>
             <a href="#pricing" className="hover:text-teal-700">Pricing</a>
+            <Link href={ROUTES.guide} className="hover:text-teal-700">Study Guide</Link>
           </div>
           <div className="flex items-center gap-4">
             <Link href={ROUTES.login} className="text-sm font-medium hover:text-teal-700">

@@ -5,6 +5,7 @@ export const ROUTES = {
   resetPassword: '/reset-password',
   dashboard: '/dashboard',
   pricing: '/pricing',
+  guide: '/guide',
   support: '/support',
   settings: '/settings',
   onboardingYear: '/onboarding/year',
@@ -34,6 +35,7 @@ export const PROTECTED_ROUTE_PREFIXES = [
 
 export const DASHBOARD_NAV_LINKS = [
   { href: ROUTES.dashboard, label: 'Dashboard' },
+  { href: ROUTES.guide, label: 'Guide' },
   { href: ROUTES.pricing, label: 'Pricing' },
   { href: ROUTES.support, label: 'Help' },
   { href: ROUTES.settings, label: 'Settings' },
