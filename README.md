@@ -2,6 +2,8 @@
 
 Topper101 is a Next.js app for IGNOU MAPC exam prep. The app helps students pick their year, stream, and papers, then study high-yield question banks, AI answers, and assignments.
 
+**Live site: https://topper101.com** (deployed on Vercel, custom domain via Namecheap)
+
 ## Local Development
 
 ```bash

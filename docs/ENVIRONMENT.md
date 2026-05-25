@@ -18,13 +18,35 @@ npm run env:check
 Expected populated project today:
 
 ```text
-Supabase project: gayauvhhgwbbqgrqajak.supabase.co
+Supabase project: gayauvhhgwbbqgrqajak.supabase.co (Singapore)
 courses: 16
-questions: 1614
+questions: 2129  # updated May 2026 after Dec 2025 papers seeded
 topic_clusters: 246
 ```
 
 Counts can increase as the question bank grows, but they should not be zero. If `courses`, `questions`, or `topic_clusters` are zero, the environment is not suitable for audits.
+
+## Live Domain
+
+Production site: **https://topper101.com** (custom domain, DNS via Namecheap, deployed on Vercel under `gunjan1982`).
+
+Vercel also serves the project at `topper101.vercel.app`. The canonical URL for all links and Supabase auth redirects is `https://topper101.com`.
+
+## Supabase Storage
+
+Public bucket: `pdfs` in `gayauvhhgwbbqgrqajak.supabase.co`.
+
+Public URL prefix: `https://gayauvhhgwbbqgrqajak.supabase.co/storage/v1/object/public/pdfs/`
+
+Folder layout:
+
+```text
+pdfs/
+  past-papers/{courseCode}/{courseCode}_{Session}_{Year}.pdf   # 184 files
+  past-papers-dec2025/{courseCode}.pdf                          # 16 files, Dec 2025
+```
+
+The Q-paper API route (`/api/pdf/qpaper/[courseCode]`) redirects to these public URLs in production. Textbooks are NOT uploaded (too large — up to 421 MB); the course page shows inline chunk text instead.
 
 ## Infisical Mapping
 

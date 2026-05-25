@@ -24,6 +24,8 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 
 - `src/app/page.tsx`: public landing page, Concept Tree preview, feature summary, public pricing cards, and public signup CTAs.
 - `src/app/ExamSchedulePreview.tsx`: public June 2026 TEE schedule preview used to help students identify their first paper before signup.
+- `src/app/guide/page.tsx`: public IGNOU MAPC study guide (no auth required). Covers Year 1/2 course cards, TEE exam format (Section A/B/C), stream options, 6 study tips, and a 10-item FAQ accordion. Statically generated (`○`). Linked from dashboard nav as "Guide".
+- `src/app/guide/FaqAccordion.tsx`: client-side accordion for the FAQ section of the guide page.
 - Public preview links should use page anchors like `#concept-tree` when the user is meant to keep exploring before signup.
 - Do not link a preview CTA to `/signup` unless the CTA text clearly says the user is creating an account.
 
@@ -57,8 +59,9 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 
 ## Courses And Assignments
 
-- `src/app/(dashboard)/courses/[courseCode]/page.tsx`: course question bank, filters, heat-map clusters, and question cards.
-- `src/app/(dashboard)/courses/[courseCode]/components/QuestionCard.tsx`: question display, AI answer modal, free-credit/paywall behavior.
+- `src/app/(dashboard)/courses/[courseCode]/page.tsx`: course question bank, filters, heat-map clusters, question cards, and server-side textbook chunk matching. Uses a 2-column layout on `lg` screens (questions left, PDF panels right).
+- `src/app/(dashboard)/courses/[courseCode]/components/QuestionCard.tsx`: question display, AI answer modal, free-credit/paywall behavior. Dispatches a `textbookJump` CustomEvent on click carrying `{ page, excerpt }` for the textbook panel.
+- `src/app/(dashboard)/courses/[courseCode]/components/CoursePdfPanels.tsx`: sticky right-column panels (desktop only, `hidden lg:flex`). Top panel: Q-paper PDF (iframe, session dropdown, redirects to Supabase Storage). Bottom panel: textbook excerpt text inline — shows the best-matching chunk on `textbookJump` event, empty state otherwise.
 - `src/app/(dashboard)/courses/actions.ts`: question progress, answer fetch, and user progress server actions.
 - `src/app/(dashboard)/courses/[courseCode]/assignments/page.tsx`: assignment year list for theory courses.
 - `src/app/(dashboard)/courses/[courseCode]/assignments/[year]/page.tsx`: assignment questions for a year.
@@ -69,6 +72,8 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `src/app/api/payments/create-order/route.ts`: creates Razorpay orders.
 - `src/app/api/payments/webhook/route.ts`: handles Razorpay payment webhooks and plan updates.
 - `src/app/api/assignments/generate-answer/route.ts`: generates/caches assignment answers.
+- `src/app/api/pdf/qpaper/[courseCode]/route.ts`: serves past-paper PDFs. In dev: reads local `data/past_papers/` files with range-request support. In production: 302 redirects to the Supabase Storage public bucket `pdfs`. Dec 2025 papers redirect to `past-papers-dec2025/{code}.pdf`.
+- `src/app/api/pdf/textbook/[courseCode]/route.ts`: local-only textbook PDF server (dev fallback). Not used in production — the course page renders inline chunk text instead.
 - `src/lib/razorpay.ts`: Razorpay client setup.
 - `src/lib/supabase/client.ts`: browser Supabase client.
 - `src/lib/supabase/server.ts`: server Supabase client.
@@ -97,6 +102,26 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `docs/ENVIRONMENT.md`: required reference for Infisical mappings, expected Supabase project, audit setup, and common environment failures.
 - `supabase/schema.sql`: database schema.
 - `scripts/seed.js`: local seed script.
+
+## Data Pipeline
+
+The `scripts/pipeline/` directory contains the full offline pipeline for building the question bank and textbook chunks. Run from the pipeline venv (`scripts/pipeline/venv/`). Steps in order:
+
+| Script | Purpose |
+|---|---|
+| `00b_download_sources.py` | Download past-paper PDFs from IGNOU |
+| `01_extract_questions.py` | OCR/extract questions from PDFs into `data/raw_questions.json` |
+| `02_cluster_topics.py` | Cluster questions into topic groups |
+| `03_calculate_frequency.py` | Calculate per-cluster repeat frequency |
+| `04_generate_answers.py` | Generate AI answers via DeepSeek API |
+| `05_seed_database.py` | Upsert questions, clusters, and answers into Supabase |
+| `06_upload_pdfs.py` | Upload past-paper PDFs to Supabase Storage bucket `pdfs` |
+| `config.py` | Shared paths and config for all pipeline scripts |
+| `run_all.sh` | Runs all steps end to end |
+
+Extracted textbook chunks live in `data/textbooks/{courseCode}/chunks.json` with fields `{course_code, chunk_id, text, page_start, page_end, word_count}`. These are read server-side in `page.tsx` to match questions to textbook passages (no upload needed).
+
+December 2025 papers are stored separately in `data/past_papers_dec2025/{courseCode}.pdf` (downloaded from `ignou.ac.in/viewFile/ldd/qpdec2025/`).
 
 ## Cleanup Checklist For Flow Changes
 
