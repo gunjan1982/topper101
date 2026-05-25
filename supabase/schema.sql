@@ -35,6 +35,7 @@ create table questions (
   ai_answer text,
   ai_model_used text,                  -- e.g. 'gpt-4o'
   answer_status text default 'draft' check (answer_status in ('draft', 'reviewed', 'published')),
+  textbook_grounded boolean default false, -- true when answer was generated with IGNOU textbook chunks as context
   repeat_family_key text,              -- exact/near-exact repeated question family
   repeat_family_label text,            -- display label for repeat_family_key
   study_hook_key text,                 -- broader high-yield preparation hook

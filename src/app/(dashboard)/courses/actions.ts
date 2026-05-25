@@ -6,7 +6,7 @@ import { captureServerEvent } from '@/lib/posthog-server';
 import { revalidatePath } from 'next/cache';
 
 type AnswerResult =
-  | { status: 'success'; answer: string; creditsRemaining?: number }
+  | { status: 'success'; answer: string; creditsRemaining?: number; textbookGrounded?: boolean }
   | { status: 'paywall'; trigger: 'subject_locked' | 'credit_limit' }
   | { status: 'missing_answer' };
 
@@ -129,7 +129,7 @@ export async function getAnswer(questionId: string): Promise<AnswerResult> {
   });
   
   revalidatePath('/dashboard', 'layout');
-  return { answer, status: 'success' };
+  return { answer, status: 'success', textbookGrounded: question.textbook_grounded ?? false };
 }
 
 export async function updateProgress(questionId: string, status: 'reviewed' | 'bookmarked' | 'skipped', active = true) {

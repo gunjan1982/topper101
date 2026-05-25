@@ -19,7 +19,7 @@ interface Question {
 }
 
 type AnswerData =
-  | { status: 'success'; answer: string; creditsRemaining?: number }
+  | { status: 'success'; answer: string; creditsRemaining?: number; textbookGrounded?: boolean }
   | { status: 'paywall'; trigger?: 'subject_locked' | 'credit_limit' }
   | { status: 'missing_answer' };
 
@@ -41,6 +41,7 @@ interface QuestionCardProps {
     reviewed: boolean;
     bookmarked: boolean;
   };
+  textbookPage?: number;
 }
 
 export default function QuestionCard({
@@ -52,6 +53,7 @@ export default function QuestionCard({
   userEmail = null,
   frequencyTier = 'LOW',
   initialProgress = { reviewed: false, bookmarked: false },
+  textbookPage,
 }: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
@@ -141,6 +143,12 @@ export default function QuestionCard({
     }
   };
 
+  const handleCardClick = () => {
+    if (textbookPage && textbookPage > 0) {
+      window.dispatchEvent(new CustomEvent('textbookJump', { detail: { page: textbookPage } }));
+    }
+  };
+
   const handleFlagSubmit = async () => {
     setFlagSubmitting(true);
     try {
@@ -194,7 +202,7 @@ export default function QuestionCard({
 
   return (
     <>
-      <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900">
+      <div onClick={handleCardClick} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900 cursor-pointer lg:cursor-default">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider mb-4">
           {uniqueTeeTags.slice(0, 4).map((tag) => (
             <span key={tag} className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
@@ -298,9 +306,15 @@ export default function QuestionCard({
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-100 p-6 dark:border-zinc-800">
               <div>
-                <h2 className="text-xl font-bold dark:text-white">AI-written Study Answer</h2>
+                <h2 className="text-xl font-bold dark:text-white">
+                  {answerData?.status === 'success' && answerData.textbookGrounded
+                    ? '📚 Textbook-Grounded Answer'
+                    : 'AI-written Study Answer'}
+                </h2>
                 <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Not an official IGNOU textbook extract
+                  {answerData?.status === 'success' && answerData.textbookGrounded
+                    ? 'Grounded in the IGNOU prescribed textbook'
+                    : 'Not an official IGNOU textbook extract'}
                 </p>
               </div>
               <button 
@@ -372,11 +386,15 @@ export default function QuestionCard({
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
                     <div className="font-bold">Source clarity</div>
                     <p className="mt-1">
-                      This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.
+                      {answerData?.status === 'success' && answerData.textbookGrounded
+                        ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
+                        : 'This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                       <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
-                        Main text: AI-composed study answer
+                        {answerData?.status === 'success' && answerData.textbookGrounded
+                          ? 'Main text: textbook-sourced content'
+                          : 'Main text: AI-composed study answer'}
                       </span>
                       <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
                         Blue blocks: extra AI simplification/add-on

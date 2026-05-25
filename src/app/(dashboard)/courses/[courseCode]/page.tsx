@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { readFile } from 'fs/promises';
+import path from 'path';
 import QuestionCard from './components/QuestionCard';
+import CoursePdfPanels, { type PdfSessionItem } from './components/CoursePdfPanels';
 import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
 import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule } from '@/lib/examSchedule';
 import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
@@ -138,6 +141,63 @@ function topicMeanMarks(questions: QuestionRow[]) {
   return questions.reduce((sum, question) => sum + question.marks, 0) / questions.length;
 }
 
+type TextbookChunk = { page_start: number; text: string };
+
+async function computeQuestionPageMap(
+  questions: QuestionRow[],
+  courseCode: string,
+): Promise<Record<string, number>> {
+  try {
+    const chunksPath = path.join(process.cwd(), 'data', 'textbooks', courseCode, 'chunks.json');
+    const raw = await readFile(chunksPath, 'utf-8');
+    const chunks: TextbookChunk[] = JSON.parse(raw);
+    if (chunks.length <= 1) return {};
+
+    const STOP_WORDS = new Set([
+      'about','above','after','again','against','their','there','these','those',
+      'through','under','until','which','while','would','could','should','shall',
+      'also','from','have','that','this','been','being','were','will','them',
+      'then','they','what','when','where','each','more','most','other','some',
+      'such','into','your','than','very','with','describe','explain','discuss',
+      'define','elucidate','delineate','differentiate','elaborate',
+    ]);
+
+    // Build inverted index: word → [chunk indices]
+    const wordIndex = new Map<string, number[]>();
+    chunks.forEach((chunk, idx) => {
+      const seen = new Set<string>();
+      for (const w of chunk.text.toLowerCase().split(/\W+/)) {
+        if (w.length > 4 && !STOP_WORDS.has(w) && !seen.has(w)) {
+          seen.add(w);
+          const list = wordIndex.get(w);
+          if (list) list.push(idx); else wordIndex.set(w, [idx]);
+        }
+      }
+    });
+
+    const map: Record<string, number> = {};
+    for (const q of questions) {
+      const qWords = cleanQuestionText(q).toLowerCase().split(/\W+/)
+        .filter((w) => w.length > 4 && !STOP_WORDS.has(w));
+      if (!qWords.length) continue;
+      const scores = new Map<number, number>();
+      for (const word of qWords) {
+        for (const idx of wordIndex.get(word) ?? []) {
+          scores.set(idx, (scores.get(idx) ?? 0) + 1);
+        }
+      }
+      let bestScore = 0; let bestPage = 1;
+      scores.forEach((score, idx) => {
+        if (score > bestScore) { bestScore = score; bestPage = chunks[idx].page_start; }
+      });
+      map[q.id] = bestPage;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 function answerLength(question: QuestionRow) {
   return (question.ai_answer ?? question.model_answer ?? '').length;
 }
@@ -271,6 +331,7 @@ export default async function CourseDetailPage({
     return question.topic_cluster_id === matchedCluster.id || question.topic === matchedCluster.cluster_name;
   });
   const questionGroups = groupRepeatedQuestions(questions, course.code);
+  const questionPageMap = await computeQuestionPageMap(questions, course.code);
   const topicSessions = new Map<string, TopicSessionStat[]>();
 
   (clusters as TopicCluster[] | null)?.forEach((cluster) => {
@@ -440,34 +501,48 @@ export default async function CourseDetailPage({
           </div>
         </div>
 
-        <div className="space-y-4">
-          {questionGroups.length > 0 ? (
-            questionGroups.map(({ question: q, variations }) => (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                variations={variations}
-                courseCode={course.code}
-                isPaid={canAccessAnswers}
-                referralCode={userData?.referral_code ?? null}
-                userEmail={userEmail}
-                frequencyTier={
-                  (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic)?.frequency_tier ?? 'LOW'
-                }
-                initialProgress={progressByQuestion.get(q.id)}
-              />
-            ))
-          ) : (
-            <div className="rounded-3xl border border-dashed border-zinc-200 p-20 text-center dark:border-zinc-800">
-              <p className="text-zinc-500 font-medium italic">
-                {hasDatabaseCourse
-                  ? 'No questions found matching your filters.'
-                  : 'This paper is in your study map, but question data has not been loaded in the database yet.'}
-                <br/>
-                <Link href={`/courses/${course.code}`} className="mt-2 inline-block text-teal-700 underline">Clear all filters</Link>
-              </p>
-            </div>
-          )}
+        {/* Two-column layout: questions (left) + PDF panels (right, desktop only) */}
+        <div className="grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-6 items-start">
+
+          {/* Left: question cards */}
+          <div className="space-y-4">
+            {questionGroups.length > 0 ? (
+              questionGroups.map(({ question: q, variations }) => (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  variations={variations}
+                  courseCode={course.code}
+                  isPaid={canAccessAnswers}
+                  referralCode={userData?.referral_code ?? null}
+                  userEmail={userEmail}
+                  frequencyTier={
+                    (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic)?.frequency_tier ?? 'LOW'
+                  }
+                  initialProgress={progressByQuestion.get(q.id)}
+                  textbookPage={questionPageMap[q.id]}
+                />
+              ))
+            ) : (
+              <div className="rounded-3xl border border-dashed border-zinc-200 p-20 text-center dark:border-zinc-800">
+                <p className="text-zinc-500 font-medium italic">
+                  {hasDatabaseCourse
+                    ? 'No questions found matching your filters.'
+                    : 'This paper is in your study map, but question data has not been loaded in the database yet.'}
+                  <br/>
+                  <Link href={`/courses/${course.code}`} className="mt-2 inline-block text-teal-700 underline">Clear all filters</Link>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Q Paper + Textbook PDF panels (sticky, desktop only) */}
+          <CoursePdfPanels
+            courseCode={course.code}
+            sessionFilters={sessionFilters as PdfSessionItem[]}
+            initialYear={selectedYear}
+            initialSession={selectedSession}
+          />
         </div>
       </section>
     </div>
