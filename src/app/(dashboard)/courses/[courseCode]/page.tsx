@@ -501,6 +501,26 @@ export default async function CourseDetailPage({
               );
             })}
           </div>
+          {/* Q Paper link — always visible; panel only shows on xl screens */}
+          {sessionFilters.length > 0 && (() => {
+            const s = (selectedYear && selectedSession)
+              ? { year: selectedYear, session: selectedSession }
+              : sessionFilters[0];
+            const href = `/api/pdf/qpaper/${course.code}?year=${s.year}&session=${encodeURIComponent(s.session)}`;
+            const label = selectedYear && selectedSession
+              ? `${selectedSession.slice(0, 3)} ${selectedYear}`
+              : sessionFilters[0]?.label ?? 'Latest';
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto flex items-center gap-1.5 rounded-full border border-teal-700/40 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-100 transition-colors dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-700/30 dark:hover:bg-teal-900/40 flex-shrink-0"
+              >
+                📄 Q Paper · {label}
+              </a>
+            );
+          })()}
         </div>
 
         {/* Two-column layout: questions (left) + PDF panels (right, desktop only) */}
