@@ -42,6 +42,7 @@ interface QuestionCardProps {
     bookmarked: boolean;
   };
   textbookPage?: number;
+  textbookExcerpt?: string;
 }
 
 export default function QuestionCard({
@@ -54,6 +55,7 @@ export default function QuestionCard({
   frequencyTier = 'LOW',
   initialProgress = { reviewed: false, bookmarked: false },
   textbookPage,
+  textbookExcerpt,
 }: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
@@ -145,7 +147,9 @@ export default function QuestionCard({
 
   const handleCardClick = () => {
     if (textbookPage && textbookPage > 0) {
-      window.dispatchEvent(new CustomEvent('textbookJump', { detail: { page: textbookPage } }));
+      window.dispatchEvent(new CustomEvent('textbookJump', {
+        detail: { page: textbookPage, excerpt: textbookExcerpt ?? null },
+      }));
     }
   };
 

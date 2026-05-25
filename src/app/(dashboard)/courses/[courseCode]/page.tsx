@@ -143,10 +143,12 @@ function topicMeanMarks(questions: QuestionRow[]) {
 
 type TextbookChunk = { page_start: number; text: string };
 
+export type QuestionTextbookMatch = { page: number; text: string };
+
 async function computeQuestionPageMap(
   questions: QuestionRow[],
   courseCode: string,
-): Promise<Record<string, number>> {
+): Promise<Record<string, QuestionTextbookMatch>> {
   try {
     const chunksPath = path.join(process.cwd(), 'data', 'textbooks', courseCode, 'chunks.json');
     const raw = await readFile(chunksPath, 'utf-8');
@@ -175,7 +177,7 @@ async function computeQuestionPageMap(
       }
     });
 
-    const map: Record<string, number> = {};
+    const map: Record<string, QuestionTextbookMatch> = {};
     for (const q of questions) {
       const qWords = cleanQuestionText(q).toLowerCase().split(/\W+/)
         .filter((w) => w.length > 4 && !STOP_WORDS.has(w));
@@ -186,11 +188,11 @@ async function computeQuestionPageMap(
           scores.set(idx, (scores.get(idx) ?? 0) + 1);
         }
       }
-      let bestScore = 0; let bestPage = 1;
+      let bestScore = 0; let bestIdx = 0;
       scores.forEach((score, idx) => {
-        if (score > bestScore) { bestScore = score; bestPage = chunks[idx].page_start; }
+        if (score > bestScore) { bestScore = score; bestIdx = idx; }
       });
-      map[q.id] = bestPage;
+      map[q.id] = { page: chunks[bestIdx].page_start, text: chunks[bestIdx].text };
     }
     return map;
   } catch {
@@ -520,7 +522,8 @@ export default async function CourseDetailPage({
                     (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic)?.frequency_tier ?? 'LOW'
                   }
                   initialProgress={progressByQuestion.get(q.id)}
-                  textbookPage={questionPageMap[q.id]}
+                  textbookPage={questionPageMap[q.id]?.page}
+                  textbookExcerpt={questionPageMap[q.id]?.text}
                 />
               ))
             ) : (
@@ -542,6 +545,7 @@ export default async function CourseDetailPage({
             sessionFilters={sessionFilters as PdfSessionItem[]}
             initialYear={selectedYear}
             initialSession={selectedSession}
+            questionPageMap={questionPageMap}
           />
         </div>
       </section>

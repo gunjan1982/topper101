@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createReadStream, statSync, existsSync } from 'fs';
 import path from 'path';
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const BUCKET = 'pdfs';
+
 function safeCourseCode(code: string): string | null {
   const cleaned = code.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
   return /^[A-Z0-9-]{3,12}$/.test(cleaned) ? cleaned : null;
 }
 
-function serveFile(filePath: string, request: NextRequest): NextResponse {
+function supabasePublicUrl(bucketPath: string): string {
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${bucketPath}`;
+}
+
+function serveFileLocally(filePath: string, request: NextRequest): NextResponse {
   let size: number;
   try {
     size = statSync(filePath).size;
@@ -16,7 +23,6 @@ function serveFile(filePath: string, request: NextRequest): NextResponse {
   }
 
   const range = request.headers.get('range');
-
   if (range) {
     const match = range.match(/bytes=(\d*)-(\d*)/);
     if (!match) return new NextResponse('Bad Range', { status: 416 });
@@ -77,16 +83,23 @@ export async function GET(
   if (!year || !session) return new NextResponse('Bad Request', { status: 400 });
 
   const dataDir = path.join(process.cwd(), 'data');
+  const filename = `${safeCode}_${session}_${year}.pdf`;
+  const localPath = path.join(dataDir, 'past_papers', safeCode, filename);
 
-  // Primary: data/past_papers/{code}/{code}_{session}_{year}.pdf
-  const primary = path.join(dataDir, 'past_papers', safeCode, `${safeCode}_${session}_${year}.pdf`);
-  if (existsSync(primary)) return serveFile(primary, request);
+  // Dec 2025 special case
+  const isDec2025 = year === '2025' && session === 'December';
+  const localDec2025 = path.join(dataDir, 'past_papers_dec2025', `${safeCode}.pdf`);
 
-  // Fallback: data/past_papers_dec2025/{code}.pdf
-  if (year === '2025' && session === 'December') {
-    const dec2025 = path.join(dataDir, 'past_papers_dec2025', `${safeCode}.pdf`);
-    if (existsSync(dec2025)) return serveFile(dec2025, request);
+  // In dev: serve from local filesystem if available
+  if (process.env.NODE_ENV === 'development') {
+    if (existsSync(localPath)) return serveFileLocally(localPath, request);
+    if (isDec2025 && existsSync(localDec2025)) return serveFileLocally(localDec2025, request);
   }
 
-  return new NextResponse('Not Found', { status: 404 });
+  // Redirect to Supabase Storage public URL (works in production + dev fallback)
+  const bucketPath = isDec2025
+    ? `past-papers-dec2025/${safeCode}.pdf`
+    : `past-papers/${safeCode}/${filename}`;
+
+  return NextResponse.redirect(supabasePublicUrl(bucketPath), { status: 302 });
 }
