@@ -106,7 +106,7 @@ function SubjectManager({ user, onClose }: { user: User; onClose: () => void }) 
     const isNowUnlocked = unlocked.has(code);
     setUnlocked((prev) => {
       const next = new Set(prev);
-      isNowUnlocked ? next.delete(code) : next.add(code);
+      if (isNowUnlocked) { next.delete(code); } else { next.add(code); }
       return next;
     });
     startTransition(async () => {

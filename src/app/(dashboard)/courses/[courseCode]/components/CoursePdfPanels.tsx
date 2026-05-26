@@ -24,7 +24,6 @@ export default function CoursePdfPanels({
   sessionFilters,
   initialYear,
   initialSession,
-  questionPageMap,
 }: CoursePdfPanelsProps) {
   const defaultSession = sessionFilters.find(
     (s) => s.year === initialYear && s.session === initialSession
