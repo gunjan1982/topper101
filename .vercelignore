@@ -1,0 +1,15 @@
+# Large data files not needed at runtime on Vercel
+data/**/*.pdf
+data/past_papers/
+data/past_papers_dec2025/
+data/assignments/
+data/*.json
+data/*.html
+data/*.json.bak
+data/textbooks/*/_merged_backup/
+
+# Scripts are not needed at runtime
+scripts/
+
+# Local dev / pipeline artifacts
+*.py
