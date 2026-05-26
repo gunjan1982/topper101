@@ -18,6 +18,7 @@
     "env:sync": "node scripts/sync-env-from-infisical.mjs",
     "env:check": "node scripts/check-env.mjs",
     "backup:verify": "node --no-warnings scripts/verify-backup.mjs",
+    "backup:run": "node --no-warnings scripts/backup-pdfs.mjs",
     "test:e2e": "playwright test",
     "verify": "npm run guardrails && npm run study:audit && npx tsc --noEmit && npm run lint && npm run build",
     "verify:e2e": "npm run verify && npm run test:e2e"
