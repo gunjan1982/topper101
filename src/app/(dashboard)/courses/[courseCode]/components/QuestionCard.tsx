@@ -6,6 +6,7 @@ import { ROUTES } from '@/lib/routes';
 import { cleanQuestionText } from '@/lib/questionDisplay';
 import AnswerRenderer from '@/components/AnswerRenderer';
 import { getAnswer, updateProgress, submitFlag, trackQuestionViewed } from '../../actions';
+import ConceptPanel from './ConceptPanel';
 
 interface Question {
   id: string;
@@ -43,6 +44,7 @@ interface QuestionCardProps {
   };
   textbookPage?: number;
   textbookExcerpt?: string;
+  topicClusterId?: string;
 }
 
 export default function QuestionCard({
@@ -56,6 +58,7 @@ export default function QuestionCard({
   initialProgress = { reviewed: false, bookmarked: false },
   textbookPage,
   textbookExcerpt,
+  topicClusterId,
 }: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
@@ -292,6 +295,9 @@ export default function QuestionCard({
               <span aria-hidden="true">☆</span>
               {bookmarked ? 'Saved' : 'Save for later'}
             </button>
+            {topicClusterId && (
+              <ConceptPanel topicClusterId={topicClusterId} isPaid={isPaid} />
+            )}
           </div>
           
           <button 

@@ -107,8 +107,25 @@ create table concept_tree (
   exam_relevance text check (exam_relevance in ('HIGH', 'MEDIUM', 'LOW')),
   mapped_courses jsonb,                -- e.g. ["MPC-001"]
   related_nodes jsonb,                 -- array of concept_tree UUIDs
-  sample_answer_hook text
+  sample_answer_hook text,
+  -- Added v2: pipeline-linked fields
+  course_primary_code text references courses(code) on delete set null,
+  topic_cluster_id uuid,               -- FK to topic_clusters set after pipeline run
+  linked_question_ids jsonb default '[]'::jsonb  -- Supabase question UUIDs linked to this node
 );
+
+create index if not exists concept_tree_course_idx
+  on concept_tree (course_primary_code);
+
+create index if not exists concept_tree_cluster_idx
+  on concept_tree (topic_cluster_id);
+
+-- Migration note (run in Supabase SQL editor if table already exists):
+-- alter table concept_tree add column if not exists course_primary_code text references courses(code) on delete set null;
+-- alter table concept_tree add column if not exists topic_cluster_id uuid;
+-- alter table concept_tree add column if not exists linked_question_ids jsonb default '[]'::jsonb;
+-- create index if not exists concept_tree_course_idx on concept_tree (course_primary_code);
+-- create index if not exists concept_tree_cluster_idx on concept_tree (topic_cluster_id);
 
 -- Users (extends Supabase auth.users)
 create table users (

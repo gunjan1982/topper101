@@ -207,3 +207,40 @@ export async function submitFlag(questionId: string, flagType: string, descripti
     flag_type: flagType,
   });
 }
+
+export type ConceptNode = {
+  id: string;
+  name: string;
+  definition: string | null;
+  key_theorists: string[] | null;
+  clinical_relevance: string | null;
+  exam_relevance: 'HIGH' | 'MEDIUM' | 'LOW' | null;
+  sample_answer_hook: string | null;
+  domain: string;
+  layer: number;
+};
+
+/**
+ * Fetch concept tree nodes linked to a given topic cluster.
+ * Returns an empty array (not an error) when the pipeline hasn't been run yet.
+ */
+export async function getConceptsForCluster(topicClusterId: string): Promise<ConceptNode[]> {
+  if (!topicClusterId) return [];
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('concept_tree')
+    .select('id, name, definition, key_theorists, clinical_relevance, exam_relevance, sample_answer_hook, domain, layer')
+    .eq('topic_cluster_id', topicClusterId)
+    .order('layer');
+
+  if (error) {
+    // Silently return empty — column may not exist on older DB (pre-migration)
+    return [];
+  }
+
+  return (data ?? []) as ConceptNode[];
+}

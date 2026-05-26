@@ -522,6 +522,7 @@ export default async function CourseDetailPage({
                   initialProgress={progressByQuestion.get(q.id)}
                   textbookPage={questionPageMap[q.id]?.page}
                   textbookExcerpt={questionPageMap[q.id]?.text}
+                  topicClusterId={q.topic_cluster_id ?? undefined}
                 />
               ))
             ) : (

@@ -6,6 +6,7 @@ export const ROUTES = {
   dashboard: '/dashboard',
   pricing: '/pricing',
   guide: '/guide',
+  career: '/career',
   support: '/support',
   settings: '/settings',
   onboardingYear: '/onboarding/year',

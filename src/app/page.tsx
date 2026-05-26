@@ -86,6 +86,7 @@ export default async function LandingPage() {
             <a href="#features" className="hover:text-teal-700">Features</a>
             <a href="#pricing" className="hover:text-teal-700">Pricing</a>
             <Link href={ROUTES.guide} className="hover:text-teal-700">Study Guide</Link>
+            <Link href={ROUTES.career} className="hover:text-teal-700">Career Paths</Link>
           </div>
           <div className="flex items-center gap-4">
             <Link href={ROUTES.login} className="text-sm font-medium hover:text-teal-700">
@@ -224,9 +225,11 @@ export default async function LandingPage() {
       <footer className="border-t border-zinc-200 px-5 py-8 text-sm text-zinc-500 dark:border-zinc-800 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Topper101</p>
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium hover:text-teal-700">
-            {SUPPORT_EMAIL}
-          </a>
+          <div className="flex flex-wrap gap-4">
+            <Link href={ROUTES.guide} className="font-medium hover:text-teal-700">Study Guide</Link>
+            <Link href={ROUTES.career} className="font-medium hover:text-teal-700">Career Paths after MAPC</Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium hover:text-teal-700">{SUPPORT_EMAIL}</a>
+          </div>
         </div>
       </footer>
     </div>
