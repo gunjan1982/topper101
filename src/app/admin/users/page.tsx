@@ -28,16 +28,22 @@ export default async function AdminUsersPage({
 
   const { data: users, count } = await query;
 
-  // Entitlement counts per user
+  // Entitlement counts + unlocked course codes per user
   const userIds = (users ?? []).map((u: { id: string }) => u.id);
   const entitlementsByUser: Record<string, number> = {};
+  const adminUnlockedByUser: Record<string, string[]> = {};
   if (userIds.length > 0) {
     const { data: ents } = await admin
       .from('user_entitlements')
-      .select('user_id')
+      .select('user_id, course_code, source')
+      .eq('entitlement_type', 'subject_unlock')
       .in('user_id', userIds);
-    (ents ?? []).forEach((row: { user_id: string }) => {
+    (ents ?? []).forEach((row: { user_id: string; course_code: string | null; source: string }) => {
       entitlementsByUser[row.user_id] = (entitlementsByUser[row.user_id] ?? 0) + 1;
+      if (row.source === 'admin' && row.course_code) {
+        adminUnlockedByUser[row.user_id] = adminUnlockedByUser[row.user_id] ?? [];
+        adminUnlockedByUser[row.user_id].push(row.course_code);
+      }
     });
   }
 
@@ -121,6 +127,7 @@ export default async function AdminUsersPage({
   }) => ({
     ...u,
     entitlementCount: entitlementsByUser[u.id] ?? 0,
+    adminUnlockedCourses: adminUnlockedByUser[u.id] ?? [],
     referralRewardCount: referralsByUser[u.id] ?? 0,
     pageViewCount: pageViewsByUser[u.id] ?? 0,
     supportRequestCount: supportRequestsByUser[u.id] ?? 0,
