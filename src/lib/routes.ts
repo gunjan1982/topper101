@@ -17,6 +17,8 @@ export const ROUTES = {
   admin: '/admin',
   adminUsers: '/admin/users',
   adminRequests: '/admin/requests',
+  planner: '/planner',
+  mockTest: (courseCode: string) => `/courses/${courseCode}/mock-test`,
 } as const;
 
 export const AUTH_ROUTE_PREFIXES = [
@@ -32,10 +34,12 @@ export const PROTECTED_ROUTE_PREFIXES = [
   ROUTES.pricing,
   ROUTES.support,
   ROUTES.settings,
+  ROUTES.planner,
 ] as const;
 
 export const DASHBOARD_NAV_LINKS = [
   { href: ROUTES.dashboard, label: 'Dashboard' },
+  { href: ROUTES.planner, label: 'Study Planner' },
   { href: ROUTES.guide, label: 'Guide' },
   { href: ROUTES.pricing, label: 'Pricing' },
   { href: ROUTES.support, label: 'Help' },

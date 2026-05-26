@@ -127,6 +127,9 @@ create index if not exists concept_tree_cluster_idx
 -- create index if not exists concept_tree_course_idx on concept_tree (course_primary_code);
 -- create index if not exists concept_tree_cluster_idx on concept_tree (topic_cluster_id);
 
+-- Migration note for users table (run in Supabase SQL editor if table already exists):
+-- alter table users add column if not exists urna_opt_in boolean default false;
+
 -- Users (extends Supabase auth.users)
 create table users (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -142,6 +145,7 @@ create table users (
   referral_code text unique default substr(md5(random()::text), 1, 8),
   referred_by text,                    -- referral_code of referrer
   onboarding_complete boolean default false,
+  urna_opt_in boolean default false,  -- user expressed interest in URNA career platform
   last_seen_at timestamptz,
   created_at timestamptz default now()
 );
@@ -390,3 +394,26 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
+
+-- ============================================================
+-- Mock Test Attempts (P4 – Mock Test mode)
+-- ============================================================
+create table if not exists mock_test_attempts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users(id) on delete cascade,
+  course_id uuid references courses(id) on delete cascade,
+  questions jsonb not null,            -- array of {question_id, question_text, section, marks}
+  answers jsonb not null default '[]'::jsonb,  -- array of {question_id, answer_text, self_grade}
+  completed_at timestamptz,
+  time_taken_seconds integer,
+  created_at timestamptz default now()
+);
+alter table mock_test_attempts enable row level security;
+create policy "mock_test_attempts_own" on mock_test_attempts
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists mock_test_attempts_user_idx
+  on mock_test_attempts (user_id);
+create index if not exists mock_test_attempts_course_idx
+  on mock_test_attempts (course_id);

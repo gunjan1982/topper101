@@ -45,6 +45,7 @@ interface QuestionCardProps {
   textbookPage?: number;
   textbookExcerpt?: string;
   topicClusterId?: string;
+  textbookGrounded?: boolean;
 }
 
 export default function QuestionCard({
@@ -59,6 +60,7 @@ export default function QuestionCard({
   textbookPage,
   textbookExcerpt,
   topicClusterId,
+  textbookGrounded = false,
 }: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
@@ -306,6 +308,11 @@ export default function QuestionCard({
           >
             See Answer →
           </button>
+          {textbookGrounded && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">
+              📖 Textbook-verified
+            </span>
+          )}
         </div>
       </div>
 

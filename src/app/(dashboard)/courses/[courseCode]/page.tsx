@@ -46,6 +46,7 @@ type QuestionRow = {
   study_hook_label?: string | null;
   repeat_algo_version?: string | null;
   created_at?: string | null;
+  textbook_grounded?: boolean | null;
 };
 
 type QuestionGroup = {
@@ -382,6 +383,14 @@ export default async function CourseDetailPage({
               Assignments
             </Link>
           )}
+          {course.course_type === 'theory' && hasDatabaseCourse && (
+            <Link
+              href={`/courses/${course.code}/mock-test`}
+              className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 transition-all"
+            >
+              Mock Test
+            </Link>
+          )}
           <div className="text-sm font-medium text-zinc-500">
             {questionGroups.length} Question Patterns · {questions.length} Variations
           </div>
@@ -523,6 +532,7 @@ export default async function CourseDetailPage({
                   textbookPage={questionPageMap[q.id]?.page}
                   textbookExcerpt={questionPageMap[q.id]?.text}
                   topicClusterId={q.topic_cluster_id ?? undefined}
+                  textbookGrounded={q.textbook_grounded ?? false}
                 />
               ))
             ) : (

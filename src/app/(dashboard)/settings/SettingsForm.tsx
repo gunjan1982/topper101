@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateSettings } from './actions';
+import { updateSettings, setUrnaOptIn } from './actions';
 import { MAPC_STREAMS, isTheoryCourse, normalizeStream } from '@/lib/courseCatalog';
 import { formatExamDate, getExamSchedule } from '@/lib/examSchedule';
 
@@ -19,6 +19,7 @@ interface SettingsFormProps {
   initialStream: string | null;
   initialPhone: string;
   initialPapers: string[];
+  initialUrnaOptIn: boolean;
   allCourses: Course[];
 }
 
@@ -29,6 +30,7 @@ export default function SettingsForm({
   initialStream,
   initialPhone,
   initialPapers,
+  initialUrnaOptIn,
   allCourses,
 }: SettingsFormProps) {
   const [year, setYear] = useState<number>(initialYear);
@@ -38,6 +40,8 @@ export default function SettingsForm({
   const [selectedPapers, setSelectedPapers] = useState<string[]>(initialPapers);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urnaOptIn, setUrnaOptInState] = useState(initialUrnaOptIn);
+  const [urnaLoading, setUrnaLoading] = useState(false);
 
   const theoryCourses = allCourses
     .filter((course) => isTheoryCourse(course))
@@ -197,6 +201,43 @@ export default function SettingsForm({
           </div>
         )}
       </section>
+
+      {/* URNA Opt-in */}
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/40">
+        <div className="flex items-start gap-4">
+          <button
+            role="switch"
+            aria-checked={urnaOptIn}
+            disabled={urnaLoading}
+            onClick={async () => {
+              setUrnaLoading(true);
+              const newVal = !urnaOptIn;
+              setUrnaOptInState(newVal);
+              try {
+                await setUrnaOptIn(newVal);
+              } catch {
+                setUrnaOptInState(!newVal);
+              } finally {
+                setUrnaLoading(false);
+              }
+            }}
+            className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors focus:outline-none disabled:opacity-50 ${urnaOptIn ? 'bg-teal-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${urnaOptIn ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </button>
+          <div>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Get early access to URNA career platform
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              We&apos;re building a platform to help MAPC graduates find clinical / counselling roles.
+              Toggle on to join the waitlist.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Error */}
       {error && (

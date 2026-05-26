@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 export async function updateSettings({
   year,
@@ -46,4 +47,23 @@ export async function updateSettings({
 
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard');
+}
+
+export async function setUrnaOptIn(value: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const { error } = await supabase
+    .from('users')
+    .update({ urna_opt_in: value })
+    .eq('id', user.id);
+
+  if (error) throw new Error(error.message);
+
+  if (value) {
+    await captureServerEvent(user.id, 'urna_interest_expressed', { email: user.email });
+  }
+
+  revalidatePath('/settings');
 }
