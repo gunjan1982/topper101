@@ -69,7 +69,7 @@ export default function CoursePdfPanels({
   return (
     <>
       {/* ── Floating toggle buttons (always visible, bottom-right corner) ── */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
+      <div className="fixed bottom-6 right-6 z-[200] flex flex-col gap-3">
         <button
           onClick={() => setOpenDrawer(openDrawer === 'qpaper' ? null : 'qpaper')}
           aria-label="Toggle Question Paper viewer"

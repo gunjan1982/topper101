@@ -320,8 +320,8 @@ export default function QuestionCard({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-100 p-6 dark:border-zinc-800">
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 flex flex-col">
+            <div className="flex-shrink-0 flex items-center justify-between border-b border-zinc-100 p-6 dark:border-zinc-800">
               <div>
                 <h2 className="text-xl font-bold dark:text-white">
                   {answerData?.status === 'success' && answerData.textbookGrounded
@@ -342,7 +342,7 @@ export default function QuestionCard({
               </button>
             </div>
 
-            <div className="overflow-y-auto p-8">
+            <div className="flex-1 min-h-0 overflow-y-auto p-8">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 space-y-4">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
@@ -413,9 +413,11 @@ export default function QuestionCard({
                           ? 'Main text: textbook-sourced content'
                           : 'Main text: AI-composed study answer'}
                       </span>
-                      <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
-                        Blue blocks: extra AI simplification/add-on
-                      </span>
+                      {(answerData?.status === 'success' && (answerData.answer ?? '').includes('[[AI_STUDY_NOTE]]')) && (
+                        <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
+                          Blue blocks: extra AI simplification/add-on
+                        </span>
+                      )}
                     </div>
                   </div>
                   <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
