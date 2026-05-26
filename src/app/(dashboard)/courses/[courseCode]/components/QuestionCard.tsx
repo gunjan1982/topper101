@@ -17,6 +17,7 @@ interface Question {
   marks: number;
   answer_status?: string | null;
   course_id?: string;
+  reviewed_by_human?: boolean | null;
 }
 
 type AnswerData =
@@ -46,6 +47,7 @@ interface QuestionCardProps {
   textbookExcerpt?: string;
   topicClusterId?: string;
   textbookGrounded?: boolean;
+  reviewedByHuman?: boolean;
 }
 
 export default function QuestionCard({
@@ -61,6 +63,7 @@ export default function QuestionCard({
   textbookExcerpt,
   topicClusterId,
   textbookGrounded = false,
+  reviewedByHuman = false,
 }: QuestionCardProps) {
   const posthog = usePostHog();
   const [isOpen, setIsOpen] = useState(false);
@@ -332,6 +335,20 @@ export default function QuestionCard({
                   ? 'Grounded in the IGNOU prescribed textbook'
                   : 'Not an official IGNOU textbook extract'}
               </p>
+              {(textbookGrounded || reviewedByHuman) && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {textbookGrounded && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
+                      📖 Textbook-grounded answer
+                    </span>
+                  )}
+                  {reviewedByHuman && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
+                      ✓ Reviewed by Gunjan
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -454,6 +471,7 @@ export default function QuestionCard({
                       >
                         👎 Not helpful
                       </button>
+                      {/* TODO: Show "X users found this helpful" once a thumbs_up_count or helpful_count column is added to the questions table or a dedicated user_feedback table is created */}
                       {!flagDone && (
                         <button 
                           onClick={() => setShowFlagForm(!showFlagForm)}

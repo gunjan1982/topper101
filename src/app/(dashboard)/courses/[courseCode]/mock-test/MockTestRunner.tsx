@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { saveMockAttempt, type QuestionSlot, type Answer } from './actions';
 
 type MockQuestion = QuestionSlot & {
   ai_answer: string | null;
+  cluster_name: string | null;
 };
 
 type SelfGrade = 'strong' | 'adequate' | 'needs_work';
@@ -60,11 +61,11 @@ export default function MockTestRunner({
   const startedAt = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const allQuestions: MockQuestion[] = [
+  const allQuestions: MockQuestion[] = useMemo(() => [
     ...sections.A,
     ...sections.B,
     ...sections.C,
-  ];
+  ], [sections.A, sections.B, sections.C]);
 
   const handleSubmit = useCallback(async (autoSubmit = false) => {
     if (submitted) return;
@@ -218,6 +219,28 @@ export default function MockTestRunner({
               {saveError && <span className="text-red-600 ml-2">{saveError}</span>}
             </p>
           </div>
+
+          {/* Weak-topic summary */}
+          {(() => {
+            const weakClusters = [...new Set(
+              allQuestions
+                .filter((q) => grades[q.question_id] === 'needs_work' && q.cluster_name)
+                .map((q) => q.cluster_name as string)
+            )];
+            if (weakClusters.length === 0) return null;
+            return (
+              <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10 p-5">
+                <p className="text-sm font-bold text-red-700 dark:text-red-400 mb-3">⚠️ Weak topics — review before your exam</p>
+                <div className="flex flex-wrap gap-2">
+                  {weakClusters.map((name) => (
+                    <span key={name} className="rounded-full bg-red-100 dark:bg-red-900/30 px-3 py-1 text-xs font-semibold text-red-700 dark:text-red-300">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {(['A', 'B', 'C'] as const).map((sec) => (
             <section key={sec} className="space-y-4">

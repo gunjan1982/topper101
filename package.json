@@ -8,7 +8,7 @@
     "build": "next build",
     "vercel-build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint src scripts e2e",
     "guardrails": "node scripts/check-flow-guardrails.mjs && npm run repeat:check",
     "repeat:check": "node --no-warnings scripts/check-repeat-algorithm.mjs",
     "repeat:audit": "node --no-warnings scripts/audit-repeat-groups.mjs",
@@ -17,12 +17,15 @@
     "entitlements:backfill-free": "node --no-warnings scripts/backfill-free-subject-entitlements.mjs",
     "env:sync": "node scripts/sync-env-from-infisical.mjs",
     "env:check": "node scripts/check-env.mjs",
+    "backup:verify": "node --no-warnings scripts/verify-backup.mjs",
     "test:e2e": "playwright test",
-    "verify": "npm run guardrails && npx tsc --noEmit && npm run lint && npm run test:e2e && npm run build"
+    "verify": "npm run guardrails && npx tsc --noEmit && npm run lint && npm run build",
+    "verify:e2e": "npm run verify && npm run test:e2e"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@iconify/react": "^6.0.2",
+    "@sentry/nextjs": "^10.54.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.3",
     "next": "^16.2.6",

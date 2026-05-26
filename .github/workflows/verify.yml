@@ -6,13 +6,14 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
       NEXT_PUBLIC_POSTHOG_KEY: ci-placeholder
       NEXT_PUBLIC_RAZORPAY_KEY_ID: ci-placeholder
+      NEXT_PUBLIC_SENTRY_DSN: ''
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,7 +21,29 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify (guardrails + tsc + lint + build)
+        run: npm run verify
+
+  e2e:
+    runs-on: ubuntu-24.04
+    # Only run e2e against a real Vercel preview deploy when the URL is provided
+    if: vars.PLAYWRIGHT_BASE_URL != ''
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -29,5 +52,5 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Verify
-        run: npm run verify
+      - name: Run e2e tests against preview deploy
+        run: npm run test:e2e

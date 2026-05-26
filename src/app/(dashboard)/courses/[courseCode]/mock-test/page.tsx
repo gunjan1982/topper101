@@ -8,6 +8,7 @@ import MockTestRunner from './MockTestRunner';
 
 type TopicCluster = {
   id: string;
+  cluster_name: string;
   frequency_tier: 'HIGH' | 'MEDIUM' | 'LOW' | null;
 };
 
@@ -29,6 +30,7 @@ type MockQuestion = {
   section: SectionKey;
   marks: number;
   ai_answer: string | null;
+  cluster_name: string | null;
 };
 
 function shuffleSlice<T>(arr: T[], count: number): T[] {
@@ -43,6 +45,7 @@ function shuffleSlice<T>(arr: T[], count: number): T[] {
 function assemblePaper(
   questions: QuestionRow[],
   tierMap: Map<string, 'HIGH' | 'MEDIUM' | 'LOW' | null>,
+  nameMap: Map<string, string>,
 ): { A: MockQuestion[]; B: MockQuestion[]; C: MockQuestion[] } {
   const byTier = (tiers: Array<'HIGH' | 'MEDIUM' | 'LOW' | null>) =>
     questions.filter((q) => tiers.includes(tierMap.get(q.topic_cluster_id ?? '') ?? null));
@@ -71,6 +74,7 @@ function assemblePaper(
     section: sec,
     marks: q.marks,
     ai_answer: q.ai_answer,
+    cluster_name: q.topic_cluster_id ? (nameMap.get(q.topic_cluster_id) ?? null) : null,
   });
 
   return {
@@ -171,15 +175,19 @@ export default async function MockTestPage({
   const { data: clusterRows } = clusterIds.length > 0
     ? await supabase
         .from('topic_clusters')
-        .select('id, frequency_tier')
+        .select('id, cluster_name, frequency_tier')
         .in('id', clusterIds)
     : { data: [] };
 
+  const clusters = (clusterRows as TopicCluster[] | null) ?? [];
   const tierMap = new Map<string, 'HIGH' | 'MEDIUM' | 'LOW' | null>(
-    ((clusterRows as TopicCluster[] | null) ?? []).map((c) => [c.id, c.frequency_tier]),
+    clusters.map((c) => [c.id, c.frequency_tier]),
+  );
+  const nameMap = new Map<string, string>(
+    clusters.map((c) => [c.id, c.cluster_name]),
   );
 
-  const sections = assemblePaper(questions, tierMap);
+  const sections = assemblePaper(questions, tierMap, nameMap);
 
   return (
     <div className="space-y-8">

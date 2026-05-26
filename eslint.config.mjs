@@ -16,6 +16,13 @@ const eslintConfig = defineConfig([
     "scripts/seed.js",
     "node_modules/**",
     ".repeat-build/**",
+    // Generated data files — not source code
+    "data/**",
+    // Local Python virtualenv
+    "venv/**",
+    // Playwright output
+    "test-results/**",
+    "playwright-report/**",
   ]),
 ]);
 

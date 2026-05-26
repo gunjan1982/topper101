@@ -47,6 +47,7 @@ type QuestionRow = {
   repeat_algo_version?: string | null;
   created_at?: string | null;
   textbook_grounded?: boolean | null;
+  reviewed_by_human?: boolean | null;
 };
 
 type QuestionGroup = {
@@ -543,6 +544,7 @@ export default async function CourseDetailPage({
                   textbookExcerpt={questionPageMap[q.id]?.text}
                   topicClusterId={q.topic_cluster_id ?? undefined}
                   textbookGrounded={q.textbook_grounded ?? false}
+                  reviewedByHuman={q.reviewed_by_human ?? false}
                 />
               ))
             ) : (
