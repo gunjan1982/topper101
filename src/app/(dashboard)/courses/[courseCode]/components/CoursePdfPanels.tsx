@@ -68,31 +68,31 @@ export default function CoursePdfPanels({
 
   return (
     <>
-      {/* ── Floating toggle buttons (always visible, right edge) ── */}
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2">
+      {/* ── Floating toggle buttons (always visible, bottom-right corner) ── */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
         <button
           onClick={() => setOpenDrawer(openDrawer === 'qpaper' ? null : 'qpaper')}
           aria-label="Toggle Question Paper viewer"
-          className={`group flex flex-col items-center gap-1 rounded-l-2xl border border-r-0 px-2 py-3 text-[10px] font-bold uppercase tracking-wider shadow-md transition-all ${
+          className={`flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold shadow-xl transition-all hover:scale-105 ${
             openDrawer === 'qpaper'
-              ? 'bg-teal-700 text-white border-teal-700'
-              : 'bg-white text-zinc-600 border-zinc-200 hover:border-teal-700 hover:text-teal-700 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-700'
+              ? 'bg-teal-800 text-white ring-2 ring-teal-300'
+              : 'bg-teal-700 text-white hover:bg-teal-800'
           }`}
         >
-          <span className="text-base">📄</span>
-          <span className="writing-vertical">Q Paper</span>
+          <span className="text-lg">📄</span>
+          <span>Q Paper</span>
         </button>
         <button
           onClick={() => setOpenDrawer(openDrawer === 'textbook' ? null : 'textbook')}
           aria-label="Toggle Textbook section viewer"
-          className={`group flex flex-col items-center gap-1 rounded-l-2xl border border-r-0 px-2 py-3 text-[10px] font-bold uppercase tracking-wider shadow-md transition-all ${
+          className={`flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold shadow-xl transition-all hover:scale-105 ${
             openDrawer === 'textbook'
-              ? 'bg-teal-700 text-white border-teal-700'
-              : 'bg-white text-zinc-600 border-zinc-200 hover:border-teal-700 hover:text-teal-700 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-700'
+              ? 'bg-amber-700 text-white ring-2 ring-amber-300'
+              : 'bg-amber-600 text-white hover:bg-amber-700'
           }`}
         >
-          <span className="text-base">📚</span>
-          <span className="writing-vertical">Textbook</span>
+          <span className="text-lg">📚</span>
+          <span>Textbook</span>
         </button>
       </div>
 
@@ -209,15 +209,6 @@ export default function CoursePdfPanels({
           </div>
         )}
       </aside>
-
-      {/* Vertical text utility for the toggle buttons */}
-      <style jsx>{`
-        .writing-vertical {
-          writing-mode: vertical-rl;
-          text-orientation: mixed;
-          transform: rotate(180deg);
-        }
-      `}</style>
     </>
   );
 }
