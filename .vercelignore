@@ -8,8 +8,6 @@ data/*.html
 data/*.json.bak
 data/textbooks/*/_merged_backup/
 
-# Scripts are not needed at runtime
-scripts/
-
-# Local dev / pipeline artifacts
-*.py
+# Pipeline-only scripts not needed for build or runtime
+scripts/upload_pdfs_to_supabase.py
+scripts/pipeline/
