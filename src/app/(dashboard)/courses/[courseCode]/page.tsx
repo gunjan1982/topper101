@@ -501,33 +501,11 @@ export default async function CourseDetailPage({
               );
             })}
           </div>
-          {/* Q Paper link — always visible; panel only shows on xl screens */}
-          {sessionFilters.length > 0 && (() => {
-            const s = (selectedYear && selectedSession)
-              ? { year: selectedYear, session: selectedSession }
-              : sessionFilters[0];
-            const href = `/api/pdf/qpaper/${course.code}?year=${s.year}&session=${encodeURIComponent(s.session)}`;
-            const label = selectedYear && selectedSession
-              ? `${selectedSession.slice(0, 3)} ${selectedYear}`
-              : sessionFilters[0]?.label ?? 'Latest';
-            return (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1.5 rounded-full border border-teal-700/40 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-100 transition-colors dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-700/30 dark:hover:bg-teal-900/40 flex-shrink-0"
-              >
-                📄 Q Paper · {label}
-              </a>
-            );
-          })()}
+          {/* Q Paper link — redundant; replaced by floating drawer toggle in CoursePdfPanels */}
         </div>
 
-        {/* Two-column layout: questions (left) + PDF panels (right, desktop only) */}
-        <div className="grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-6 items-start">
-
-          {/* Left: question cards */}
-          <div className="space-y-4">
+        {/* Single-column layout — PDF panels float as a drawer (see CoursePdfPanels) */}
+        <div className="space-y-4">
             {questionGroups.length > 0 ? (
               questionGroups.map(({ question: q, variations }) => (
                 <QuestionCard
@@ -559,7 +537,7 @@ export default async function CourseDetailPage({
             )}
           </div>
 
-          {/* Right: Q Paper + Textbook PDF panels (sticky, desktop only) */}
+          {/* Floating drawer with Q Paper + Textbook excerpt — toggleable from right edge */}
           <CoursePdfPanels
             courseCode={course.code}
             sessionFilters={sessionFilters as PdfSessionItem[]}
@@ -567,7 +545,6 @@ export default async function CourseDetailPage({
             initialSession={selectedSession}
             questionPageMap={questionPageMap}
           />
-        </div>
       </section>
     </div>
   );
