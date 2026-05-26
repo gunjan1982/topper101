@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { saveMockAttempt, type QuestionSlot, type Answer } from './actions';
+import { saveMockAttempt, updateMockAttemptGrades, type QuestionSlot, type Answer } from './actions';
 
 type MockQuestion = QuestionSlot & {
   ai_answer: string | null;
@@ -58,6 +58,7 @@ export default function MockTestRunner({
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
   const startedAt = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -86,8 +87,10 @@ export default function MockTestRunner({
     }));
 
     setSaving(true);
+    setSaveError(null);
     try {
-      await saveMockAttempt(courseId, slots, answerPayload, timeTaken);
+      const id = await saveMockAttempt(courseId, slots, answerPayload, timeTaken);
+      setAttemptId(id);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save attempt');
     } finally {
@@ -100,11 +103,16 @@ export default function MockTestRunner({
     }
   }, [submitted, allQuestions, answers, grades, courseId]);
 
+  const handleSubmitRef = useRef(handleSubmit);
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
+
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSubmit(true);
+          handleSubmitRef.current(true);
           return 0;
         }
         return prev - 1;
@@ -113,7 +121,30 @@ export default function MockTestRunner({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [handleSubmit]);
+  }, []);
+
+  const handleGrade = async (questionId: string, grade: SelfGrade) => {
+    const newGrades = { ...grades, [questionId]: grade };
+    setGrades(newGrades);
+
+    if (!attemptId) return;
+
+    const updatedAnswers: Answer[] = allQuestions.map((q) => ({
+      question_id: q.question_id,
+      answer_text: answers[q.question_id] ?? '',
+      self_grade: (newGrades[q.question_id] as SelfGrade) ?? null,
+    }));
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await updateMockAttemptGrades(attemptId, updatedAnswers);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to update grades');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const isLow = timeLeft < 30 * 60;
 
@@ -215,7 +246,7 @@ export default function MockTestRunner({
             <h2 className="text-xl font-bold text-teal-800 dark:text-teal-200">Test Submitted</h2>
             <p className="text-sm text-teal-700 dark:text-teal-300 mt-1">
               Review your answers against the model answers and self-grade each question.
-              {saving && ' Saving your attempt…'}
+              {saving && (attemptId ? ' Saving grades…' : ' Saving your attempt…')}
               {saveError && <span className="text-red-600 ml-2">{saveError}</span>}
             </p>
           </div>
@@ -283,14 +314,13 @@ export default function MockTestRunner({
                       {(['strong', 'adequate', 'needs_work'] as SelfGrade[]).map((g) => (
                         <button
                           key={g}
-                          onClick={() =>
-                            setGrades((prev) => ({ ...prev, [q.question_id]: g }))
-                          }
+                          disabled={saving}
+                          onClick={() => handleGrade(q.question_id, g)}
                           className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                             grade === g
                               ? gradeClasses(g)
                               : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                          }`}
+                          } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           {gradeLabel(g)}
                         </button>

@@ -47,3 +47,5 @@ scripts/pipeline/
 next-env.d.ts
 .env*.local
 .repeat-build/
+venv/
+

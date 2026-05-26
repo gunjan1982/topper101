@@ -17,6 +17,9 @@ interface PlannerFormProps {
   topicClusters: TopicCluster[];
   existingPlan: PlanDay[] | null;
   defaultExamDate: string;
+  savedExamDate?: string;
+  savedHoursPerDay?: number;
+  savedCourses?: string[];
 }
 
 const phaseConfig = {
@@ -52,23 +55,59 @@ const tierDotColor: Record<string, string> = {
   LOW: 'bg-green-500',
 };
 
+function arraysEqual(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, index) => val === sortedB[index]);
+}
+
 export default function PlannerForm({
   selectedPapers,
   topicClusters,
   existingPlan,
   defaultExamDate,
+  savedExamDate,
+  savedHoursPerDay,
+  savedCourses,
 }: PlannerFormProps) {
-  const [examDate, setExamDate] = useState(defaultExamDate);
-  const [hoursPerDay, setHoursPerDay] = useState(2);
-  const [selectedCourses, setSelectedCourses] = useState<string[]>(selectedPapers);
+  const [examDate, setExamDate] = useState(savedExamDate || defaultExamDate);
+  const [hoursPerDay, setHoursPerDay] = useState(savedHoursPerDay || 2);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>(savedCourses || selectedPapers);
   const [plan, setPlan] = useState<PlanDay[] | null>(existingPlan);
+  const [generatedParams, setGeneratedParams] = useState<{
+    coursesCodes: string[];
+    hoursPerDay: number;
+    examDate: string;
+  } | null>(existingPlan ? {
+    coursesCodes: savedCourses || selectedPapers,
+    hoursPerDay: savedHoursPerDay || 2,
+    examDate: savedExamDate || defaultExamDate,
+  } : null);
+
   const [isGenerating, startGenerating] = useTransition();
   const [isSaving, startSaving] = useTransition();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isStale = useMemo(() => {
+    if (!plan || !generatedParams) return false;
+    return (
+      generatedParams.hoursPerDay !== hoursPerDay ||
+      generatedParams.examDate !== examDate ||
+      !arraysEqual(generatedParams.coursesCodes, selectedCourses)
+    );
+  }, [plan, generatedParams, hoursPerDay, examDate, selectedCourses]);
+
   const today = useMemo(() => {
-    const d = new Date();
+    const kolkataDateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const [ty, tm, td] = kolkataDateStr.split('-').map(Number);
+    const d = new Date(ty, tm - 1, td);
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
@@ -104,6 +143,16 @@ export default function PlannerForm({
       setError('Enter an exam start date.');
       return;
     }
+
+    const [ey, em, ed] = examDate.split('-').map(Number);
+    const examDateObj = new Date(ey, em - 1, ed);
+    examDateObj.setHours(0, 0, 0, 0);
+
+    if (examDateObj <= today) {
+      setError('The exam date must be in the future.');
+      return;
+    }
+
     startGenerating(async () => {
       try {
         const result = await generateStudyPlan({
@@ -112,6 +161,11 @@ export default function PlannerForm({
           examDate,
         });
         setPlan(result);
+        setGeneratedParams({
+          coursesCodes: selectedCourses,
+          hoursPerDay,
+          examDate,
+        });
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to generate plan. Please try again.');
       }
@@ -119,14 +173,14 @@ export default function PlannerForm({
   };
 
   const handleSave = () => {
-    if (!plan) return;
+    if (!plan || !generatedParams) return;
     setError(null);
     startSaving(async () => {
       try {
         await saveStudyPlan({
-          coursesCodes: selectedCourses,
-          hoursPerDay,
-          examDate,
+          coursesCodes: generatedParams.coursesCodes,
+          hoursPerDay: generatedParams.hoursPerDay,
+          examDate: generatedParams.examDate,
           planData: plan,
         });
         setSaveSuccess(true);
@@ -266,17 +320,24 @@ export default function PlannerForm({
                   {totalTopics - topicsRemaining} of {totalTopics} topics covered so far
                 </p>
               </div>
-              <button
-                onClick={handleSave}
-                disabled={isSaving || plan.length === 0}
-                className={`rounded-full border px-6 py-2.5 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 ${
-                  saveSuccess
-                    ? 'border-teal-700 bg-teal-700 text-white'
-                    : 'border-teal-700 text-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20'
-                }`}
-              >
-                {isSaving ? 'Saving…' : saveSuccess ? '✓ Plan Saved' : 'Save Plan'}
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving || plan.length === 0 || isStale}
+                  className={`rounded-full border px-6 py-2.5 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                    saveSuccess && !isStale
+                      ? 'border-teal-700 bg-teal-700 text-white'
+                      : 'border-teal-700 text-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+                  }`}
+                >
+                  {isSaving ? 'Saving…' : saveSuccess && !isStale ? '✓ Plan Saved' : 'Save Plan'}
+                </button>
+                {isStale && (
+                  <p className="mt-1 text-right text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    ⚠️ Settings changed. Re-generate to save.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -298,7 +359,7 @@ export default function PlannerForm({
             </div>
           </div>
 
-          {plan.length === 0 ? (
+          {plan.length === 0 || !plan.some((d) => d.phase !== 'buffer') ? (
             <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
               <p className="text-zinc-500 dark:text-zinc-400">
                 No study days available between today and your exam date. Move the exam date

@@ -26,6 +26,9 @@ type StudyPlanRow = {
   id: string;
   plan_data: unknown;
   created_at: string;
+  courses: string[];
+  hours_per_day: number;
+  exam_date: string;
 };
 
 export default async function PlannerPage() {
@@ -91,7 +94,7 @@ export default async function PlannerPage() {
   // Fetch most recent study plan
   const planQuery = await supabase
     .from('study_plans')
-    .select('id, plan_data, created_at')
+    .select('id, plan_data, created_at, courses, hours_per_day, exam_date')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -121,6 +124,9 @@ export default async function PlannerPage() {
         topicClusters={topicClusters}
         existingPlan={existingPlan}
         defaultExamDate={defaultExamDate}
+        savedExamDate={planRow?.exam_date}
+        savedHoursPerDay={planRow?.hours_per_day}
+        savedCourses={planRow?.courses}
       />
     </div>
   );

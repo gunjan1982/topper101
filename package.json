@@ -19,7 +19,7 @@
     "env:check": "node scripts/check-env.mjs",
     "backup:verify": "node --no-warnings scripts/verify-backup.mjs",
     "test:e2e": "playwright test",
-    "verify": "npm run guardrails && npx tsc --noEmit && npm run lint && npm run build",
+    "verify": "npm run guardrails && npm run study:audit && npx tsc --noEmit && npm run lint && npm run build",
     "verify:e2e": "npm run verify && npm run test:e2e"
   },
   "dependencies": {

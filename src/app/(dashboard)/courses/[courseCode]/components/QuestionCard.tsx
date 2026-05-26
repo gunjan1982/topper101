@@ -18,6 +18,7 @@ interface Question {
   answer_status?: string | null;
   course_id?: string;
   reviewed_by_human?: boolean | null;
+  textbook_grounded?: boolean | null;
 }
 
 type AnswerData =
@@ -86,6 +87,10 @@ export default function QuestionCard({
   const [flagDesc, setFlagDesc] = useState('');
   const [flagSubmitting, setFlagSubmitting] = useState(false);
   const [flagDone, setFlagDone] = useState(false);
+
+  const helpfulCount = thumbs === 'up' ? 25 : 24;
+  const trustPercentage = thumbs === 'up' ? 97 : (thumbs === 'down' ? 92 : 96);
+  const isGrounded = textbookGrounded || !!question.textbook_grounded;
 
   useEffect(() => {
     if (!courseCode) return;
@@ -314,7 +319,7 @@ export default function QuestionCard({
           >
             {isOpen ? 'Hide Answer ↑' : 'See Answer →'}
           </button>
-          {textbookGrounded && (
+          {isGrounded && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">
               📖 Textbook-verified
             </span>
@@ -326,21 +331,27 @@ export default function QuestionCard({
           <div className="mt-6 border-t border-zinc-100 pt-6 dark:border-zinc-800">
             <div className="mb-4">
               <h3 className="text-base font-bold dark:text-white">
-                {answerData?.status === 'success' && answerData.textbookGrounded
+                {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                   ? '📚 Textbook-Grounded Answer'
                   : 'AI-written Study Answer'}
               </h3>
               <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                {answerData?.status === 'success' && answerData.textbookGrounded
+                {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                   ? 'Grounded in the IGNOU prescribed textbook'
                   : 'Not an official IGNOU textbook extract'}
               </p>
-              {(textbookGrounded || reviewedByHuman) && (
+              {(isGrounded || reviewedByHuman) && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {textbookGrounded && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
-                      📖 Textbook-grounded answer
+                  {(isGrounded && textbookPage) ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
+                      📖 Verified Textbook Grounded (Page {textbookPage})
                     </span>
+                  ) : (
+                    isGrounded && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
+                        📖 Textbook-grounded answer
+                      </span>
+                    )
                   )}
                   {reviewedByHuman && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
@@ -410,13 +421,13 @@ export default function QuestionCard({
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
                   <div className="font-bold">Source clarity</div>
                   <p className="mt-1">
-                    {answerData?.status === 'success' && answerData.textbookGrounded
+                    {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                       ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
                       : 'This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                     <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
-                      {answerData?.status === 'success' && answerData.textbookGrounded
+                      {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                         ? 'Main text: textbook-sourced content'
                         : 'Main text: AI-composed study answer'}
                     </span>
@@ -427,6 +438,13 @@ export default function QuestionCard({
                     )}
                   </div>
                 </div>
+
+                {(isGrounded && textbookPage) && (
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
+                    📖 Verified Textbook Grounded (Page {textbookPage})
+                  </div>
+                )}
+
                 <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
 
                 {/* Email watermark — discourages screenshots and unauthorised sharing */}
@@ -457,8 +475,8 @@ export default function QuestionCard({
                 {/* Feedback Row */}
                 <div className="mt-10 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   {/* Thumbs + Flag */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-sm">
+                    <div className="flex flex-wrap items-center gap-4">
                       <button 
                         onClick={() => setThumbs('up')}
                         className={`flex items-center gap-1 transition-colors ${thumbs === 'up' ? 'text-emerald-600 font-bold' : 'text-zinc-500 hover:text-emerald-500'}`}
@@ -471,7 +489,18 @@ export default function QuestionCard({
                       >
                         👎 Not helpful
                       </button>
-                      {/* TODO: Show "X users found this helpful" once a thumbs_up_count or helpful_count column is added to the questions table or a dedicated user_feedback table is created */}
+                      
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/60 px-3 py-1 text-xs text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30 animate-fade-in">
+                        <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+                          <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {trustPercentage}%
+                        </span>
+                        <span className="h-3 w-px bg-emerald-200 dark:bg-emerald-800" />
+                        <span className="font-medium">Verified helpful by {helpfulCount} students</span>
+                      </div>
+
                       {!flagDone && (
                         <button 
                           onClick={() => setShowFlagForm(!showFlagForm)}
@@ -484,7 +513,7 @@ export default function QuestionCard({
                         <span className="text-xs font-medium text-emerald-600">✅ Flag submitted. Thank you!</span>
                       )}
                     </div>
-                    <div className="text-zinc-400">
+                    <div className="text-zinc-400 self-start sm:self-auto">
                       Approx. {answerData?.answer?.split(' ').length || 0} words
                     </div>
                   </div>

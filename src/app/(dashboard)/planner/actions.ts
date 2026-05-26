@@ -75,7 +75,14 @@ function buildPlan(
   hoursPerDay: number,
   examDate: string,
 ): PlanDay[] {
-  const today = new Date();
+  const kolkataDateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  const [ty, tm, td] = kolkataDateStr.split('-').map(Number);
+  const today = new Date(ty, tm - 1, td);
   today.setHours(0, 0, 0, 0);
 
   const [ey, em, ed] = examDate.split('-').map(Number);

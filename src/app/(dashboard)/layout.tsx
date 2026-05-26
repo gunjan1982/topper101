@@ -7,7 +7,8 @@ import { headers } from 'next/headers';
 import PostHogIdentify from '../PostHogIdentify';
 import ThemeToggle from '../ThemeToggle';
 import Logo from '../Logo';
-import { DASHBOARD_NAV_LINKS, ROUTES } from '@/lib/routes';
+import { ROUTES } from '@/lib/routes';
+import DashboardNav from './DashboardNav';
 
 export default async function DashboardLayout({
   children,
@@ -55,19 +56,7 @@ export default async function DashboardLayout({
               <Logo size={32} />
               <span className="text-xl font-bold tracking-tight dark:text-white">Topper101</span>
             </Link>
-            <nav className="hidden gap-6 text-sm font-medium md:flex">
-              {DASHBOARD_NAV_LINKS.map((link, index) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={index === 0
-                    ? 'text-zinc-950 dark:text-zinc-50'
-                    : 'text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 transition-colors'}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <DashboardNav />
           </div>
 
           <div className="flex items-center gap-4">
