@@ -96,6 +96,10 @@ export default function QuestionCard({
   }, [courseCode, frequencyTier, isPaid, posthog, question.id]);
 
   const handleSeeAnswer = async () => {
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
     setIsOpen(true);
     if (!answerData) {
       setLoading(true);
@@ -210,8 +214,7 @@ export default function QuestionCard({
   }
 
   return (
-    <>
-      <div onClick={handleCardClick} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900 cursor-pointer lg:cursor-default">
+    <div onClick={handleCardClick} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900 cursor-pointer lg:cursor-default">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider mb-4">
           {uniqueTeeTags.slice(0, 4).map((tag) => (
             <span key={tag} className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
@@ -306,7 +309,7 @@ export default function QuestionCard({
             onClick={handleSeeAnswer}
             className="rounded-full bg-teal-700 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-700/20 hover:bg-teal-600 transition-all active:scale-95"
           >
-            See Answer →
+            {isOpen ? 'Hide Answer ↑' : 'See Answer →'}
           </button>
           {textbookGrounded && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">
@@ -314,231 +317,215 @@ export default function QuestionCard({
             </span>
           )}
         </div>
-      </div>
 
-      {/* Answer Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 flex flex-col">
-            <div className="flex-shrink-0 flex items-center justify-between border-b border-zinc-100 p-6 dark:border-zinc-800">
-              <div>
-                <h2 className="text-xl font-bold dark:text-white">
-                  {answerData?.status === 'success' && answerData.textbookGrounded
-                    ? '📚 Textbook-Grounded Answer'
-                    : 'AI-written Study Answer'}
-                </h2>
-                <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  {answerData?.status === 'success' && answerData.textbookGrounded
-                    ? 'Grounded in the IGNOU prescribed textbook'
-                    : 'Not an official IGNOU textbook extract'}
+        {/* Inline Answer */}
+        {isOpen && (
+          <div className="mt-6 border-t border-zinc-100 pt-6 dark:border-zinc-800">
+            <div className="mb-4">
+              <h3 className="text-base font-bold dark:text-white">
+                {answerData?.status === 'success' && answerData.textbookGrounded
+                  ? '📚 Textbook-Grounded Answer'
+                  : 'AI-written Study Answer'}
+              </h3>
+              <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                {answerData?.status === 'success' && answerData.textbookGrounded
+                  ? 'Grounded in the IGNOU prescribed textbook'
+                  : 'Not an official IGNOU textbook extract'}
+              </p>
+            </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
+                <p className="text-zinc-500 font-medium">Generating your answer...</p>
+              </div>
+            ) : answerData?.status === 'paywall' ? (
+              <div className="text-center py-8">
+                <span className="text-6xl mb-6 block">💳</span>
+                <h3 className="text-2xl font-bold dark:text-white">
+                  {answerData.trigger === 'subject_locked'
+                    ? 'This paper is locked'
+                    : 'You have used your free answers'}
+                </h3>
+                <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
+                  {answerData.trigger === 'subject_locked'
+                    ? 'Your first paper is free. Upgrade to unlock this subject, or pick the 5-subject Pass for this TEE.'
+                    : 'Upgrade to Topper Pass to get AI study answers for unlocked subjects.'}
+                </p>
+                <div className="mt-10 flex flex-col gap-4">
+                  <button
+                    onClick={() => {
+                      window.location.href = ROUTES.pricing;
+                    }}
+                    className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20"
+                  >
+                    Unlock This Subject - ₹99
+                  </button>
+                  <button 
+                    className="text-sm font-medium text-zinc-500 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() => {
+                      const link = `${window.location.origin}${ROUTES.signup}?ref=${encodeURIComponent(referralCode ?? '')}`;
+                      navigator.clipboard.writeText(link);
+                      posthog?.capture('referral_link_shared', { channel: 'copy' });
+                    }}
+                    disabled={!referralCode}
+                  >
+                    Or invite a friend to unlock another paper
+                  </button>
+                </div>
+              </div>
+            ) : answerData?.status === 'missing_answer' ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-200">
+                <h3 className="font-bold">Answer coming soon</h3>
+                <p className="mt-2 text-sm">
+                  This question is available in the bank, but the model answer has not been reviewed or loaded yet. Your free credits were not used.
                 </p>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+            ) : (
+              <div
+                className="relative space-y-6 select-none"
+                onContextMenu={(e) => e.preventDefault()}
               >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto p-8">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-                  <p className="text-zinc-500 font-medium">Generating your answer...</p>
-                </div>
-              ) : answerData?.status === 'paywall' ? (
-                <div className="text-center py-12">
-                  <span className="text-6xl mb-6 block">💳</span>
-                  <h3 className="text-2xl font-bold dark:text-white">
-                    {answerData.trigger === 'subject_locked'
-                      ? 'This paper is locked'
-                      : 'You have used your free answers'}
-                  </h3>
-                  <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-                    {answerData.trigger === 'subject_locked'
-                      ? 'Your first paper is free. Upgrade to unlock this subject, or pick the 5-subject Pass for this TEE.'
-                      : 'Upgrade to Topper Pass to get AI study answers for unlocked subjects.'}
-                  </p>
-                  <div className="mt-10 flex flex-col gap-4">
-                    <button
-                      onClick={() => {
-                        window.location.href = ROUTES.pricing;
-                      }}
-                      className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20"
-                    >
-                      Unlock This Subject - ₹99
-                    </button>
-                    <button 
-                      className="text-sm font-medium text-zinc-500 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => {
-                        const link = `${window.location.origin}${ROUTES.signup}?ref=${encodeURIComponent(referralCode ?? '')}`;
-                        navigator.clipboard.writeText(link);
-                        posthog?.capture('referral_link_shared', { channel: 'copy' });
-                      }}
-                      disabled={!referralCode}
-                    >
-                      Or invite a friend to unlock another paper
-                    </button>
+                {answerData?.creditsRemaining !== undefined && (
+                  <div className="rounded-xl bg-teal-50 p-4 text-xs font-bold text-teal-700 dark:bg-teal-900/30">
+                    💡 {answerData.creditsRemaining} free answers left this month
                   </div>
-                </div>
-              ) : answerData?.status === 'missing_answer' ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-200">
-                  <h3 className="font-bold">Answer coming soon</h3>
-                  <p className="mt-2 text-sm">
-                    This question is available in the bank, but the model answer has not been reviewed or loaded yet. Your free credits were not used.
+                )}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
+                  <div className="font-bold">Source clarity</div>
+                  <p className="mt-1">
+                    {answerData?.status === 'success' && answerData.textbookGrounded
+                      ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
+                      : 'This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
                   </p>
-                </div>
-              ) : (
-                <div
-                  className="relative space-y-6 select-none"
-                  onContextMenu={(e) => e.preventDefault()}
-                >
-                  {answerData?.creditsRemaining !== undefined && (
-                    <div className="rounded-xl bg-teal-50 p-4 text-xs font-bold text-teal-700 dark:bg-teal-900/30">
-                      💡 {answerData.creditsRemaining} free answers left this month
-                    </div>
-                  )}
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
-                    <div className="font-bold">Source clarity</div>
-                    <p className="mt-1">
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+                    <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
                       {answerData?.status === 'success' && answerData.textbookGrounded
-                        ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
-                        : 'This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
-                      <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
-                        {answerData?.status === 'success' && answerData.textbookGrounded
-                          ? 'Main text: textbook-sourced content'
-                          : 'Main text: AI-composed study answer'}
-                      </span>
-                      {(answerData?.status === 'success' && (answerData.answer ?? '').includes('[[AI_STUDY_NOTE]]')) && (
-                        <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
-                          Blue blocks: extra AI simplification/add-on
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
-
-                  {/* Email watermark — discourages screenshots and unauthorised sharing */}
-                  {userEmail && (
-                    <div
-                      className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.04]"
-                      aria-hidden="true"
-                    >
-                      <span
-                        className="select-none whitespace-nowrap text-xl font-bold text-zinc-950 dark:text-white"
-                        style={{ transform: 'rotate(-30deg)', letterSpacing: '0.05em' }}
-                      >
-                        {userEmail} · topper101.com
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Source attribution */}
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
-                    <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-                    </svg>
-                    <span>
-                      Use this as a revision aid. For final exam preparation, cross-check facts, definitions, and theorists with your IGNOU course books.
+                        ? 'Main text: textbook-sourced content'
+                        : 'Main text: AI-composed study answer'}
                     </span>
-                  </div>
-                  
-                  {/* Feedback Row */}
-                  <div className="mt-10 border-t border-zinc-100 pt-6 dark:border-zinc-800">
-                    
-                    {/* Thumbs + Flag */}
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4">
-                        <button 
-                          onClick={() => setThumbs('up')}
-                          className={`flex items-center gap-1 transition-colors ${thumbs === 'up' ? 'text-emerald-600 font-bold' : 'text-zinc-500 hover:text-emerald-500'}`}
-                        >
-                          👍 Helpful
-                        </button>
-                        <button 
-                          onClick={() => setThumbs('down')}
-                          className={`flex items-center gap-1 transition-colors ${thumbs === 'down' ? 'text-red-600 font-bold' : 'text-zinc-500 hover:text-red-500'}`}
-                        >
-                          👎 Not helpful
-                        </button>
-                        {!flagDone && (
-                          <button 
-                            onClick={() => setShowFlagForm(!showFlagForm)}
-                            className="flex items-center gap-1 text-zinc-400 hover:text-red-500 transition-colors text-xs"
-                          >
-                            🚩 Flag an error
-                          </button>
-                        )}
-                        {flagDone && (
-                          <span className="text-xs font-medium text-emerald-600">✅ Flag submitted. Thank you!</span>
-                        )}
-                      </div>
-                      <div className="text-zinc-400">
-                        Approx. {answerData?.answer?.split(' ').length || 0} words
-                      </div>
-                    </div>
-
-                    {/* Inline Flag Form */}
-                    {showFlagForm && !flagDone && (
-                      <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-                        <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Report an issue with this answer</h4>
-                        
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                            Issue type
-                          </label>
-                          <select
-                            value={flagType}
-                            onChange={(e) => setFlagType(e.target.value)}
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                          >
-                            <option value="error">Factual error</option>
-                            <option value="unclear">Unclear</option>
-                            <option value="incomplete">Incomplete</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                            Description <span className="font-normal normal-case">(optional)</span>
-                          </label>
-                          <textarea
-                            value={flagDesc}
-                            onChange={(e) => setFlagDesc(e.target.value)}
-                            rows={3}
-                            placeholder="Briefly describe what's wrong..."
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={handleFlagSubmit}
-                            disabled={flagSubmitting}
-                            className="rounded-full bg-red-600 px-6 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50 transition-all active:scale-95"
-                          >
-                            {flagSubmitting ? 'Submitting...' : 'Submit Flag'}
-                          </button>
-                          <button
-                            onClick={() => setShowFlagForm(false)}
-                            className="text-sm text-zinc-400 hover:text-zinc-600"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
+                    {(answerData?.status === 'success' && (answerData.answer ?? '').includes('[[AI_STUDY_NOTE]]')) && (
+                      <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
+                        Blue blocks: extra AI simplification/add-on
+                      </span>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
+                <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
+
+                {/* Email watermark — discourages screenshots and unauthorised sharing */}
+                {userEmail && (
+                  <div
+                    className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.04]"
+                    aria-hidden="true"
+                  >
+                    <span
+                      className="select-none whitespace-nowrap text-xl font-bold text-zinc-950 dark:text-white"
+                      style={{ transform: 'rotate(-30deg)', letterSpacing: '0.05em' }}
+                    >
+                      {userEmail} · topper101.com
+                    </span>
+                  </div>
+                )}
+
+                {/* Source attribution */}
+                <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
+                  <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+                  </svg>
+                  <span>
+                    Use this as a revision aid. For final exam preparation, cross-check facts, definitions, and theorists with your IGNOU course books.
+                  </span>
+                </div>
+                
+                {/* Feedback Row */}
+                <div className="mt-10 border-t border-zinc-100 pt-6 dark:border-zinc-800">
+                  {/* Thumbs + Flag */}
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => setThumbs('up')}
+                        className={`flex items-center gap-1 transition-colors ${thumbs === 'up' ? 'text-emerald-600 font-bold' : 'text-zinc-500 hover:text-emerald-500'}`}
+                      >
+                        👍 Helpful
+                      </button>
+                      <button 
+                        onClick={() => setThumbs('down')}
+                        className={`flex items-center gap-1 transition-colors ${thumbs === 'down' ? 'text-red-600 font-bold' : 'text-zinc-500 hover:text-red-500'}`}
+                      >
+                        👎 Not helpful
+                      </button>
+                      {!flagDone && (
+                        <button 
+                          onClick={() => setShowFlagForm(!showFlagForm)}
+                          className="flex items-center gap-1 text-zinc-400 hover:text-red-500 transition-colors text-xs"
+                        >
+                          🚩 Flag an error
+                        </button>
+                      )}
+                      {flagDone && (
+                        <span className="text-xs font-medium text-emerald-600">✅ Flag submitted. Thank you!</span>
+                      )}
+                    </div>
+                    <div className="text-zinc-400">
+                      Approx. {answerData?.answer?.split(' ').length || 0} words
+                    </div>
+                  </div>
+
+                  {/* Inline Flag Form */}
+                  {showFlagForm && !flagDone && (
+                    <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                      <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Report an issue with this answer</h4>
+                      
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                          Issue type
+                        </label>
+                        <select
+                          value={flagType}
+                          onChange={(e) => setFlagType(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                        >
+                          <option value="error">Factual error</option>
+                          <option value="unclear">Unclear</option>
+                          <option value="incomplete">Incomplete</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                          Description <span className="font-normal normal-case">(optional)</span>
+                        </label>
+                        <textarea
+                          value={flagDesc}
+                          onChange={(e) => setFlagDesc(e.target.value)}
+                          rows={3}
+                          placeholder="Briefly describe what's wrong..."
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={handleFlagSubmit}
+                          disabled={flagSubmitting}
+                          className="rounded-full bg-red-600 px-6 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50 transition-all active:scale-95"
+                        >
+                          {flagSubmitting ? 'Submitting...' : 'Submit Flag'}
+                        </button>
+                        <button
+                          onClick={() => setShowFlagForm(false)}
+                          className="text-sm text-zinc-400 hover:text-zinc-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </>
-  );
+        )}
+      </div>
+    );
 }

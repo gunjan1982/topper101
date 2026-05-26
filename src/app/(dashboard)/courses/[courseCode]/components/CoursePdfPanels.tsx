@@ -32,18 +32,11 @@ export default function CoursePdfPanels({
 
   const [qpYear, setQpYear] = useState<number>(defaultSession?.year ?? 2024);
   const [qpSession, setQpSession] = useState<string>(defaultSession?.session ?? 'December');
-  const [excerpt, setExcerpt] = useState<{ page: number; text: string } | null>(null);
   const [openDrawer, setOpenDrawer] = useState<DrawerView>(null);
 
-  // Listen for textbookJump events dispatched by QuestionCard
+  // Auto-open textbook drawer when a question card is clicked
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ page: number; excerpt: string | null }>).detail;
-      if (detail?.page > 0) {
-        setExcerpt({ page: detail.page, text: detail.excerpt ?? '' });
-        setOpenDrawer('textbook'); // auto-open textbook drawer on question click
-      }
-    };
+    const handler = () => setOpenDrawer('textbook');
     window.addEventListener('textbookJump', handler);
     return () => window.removeEventListener('textbookJump', handler);
   }, []);
@@ -58,13 +51,6 @@ export default function CoursePdfPanels({
   }, []);
 
   const qpSrc = `/api/pdf/qpaper/${courseCode}?year=${qpYear}&session=${encodeURIComponent(qpSession)}`;
-
-  // Trim excerpt to a readable length (~800 chars) without cutting mid-word
-  const displayText = excerpt?.text
-    ? (excerpt.text.length > 800
-        ? excerpt.text.slice(0, 800).replace(/\s\S*$/, '') + ' …'
-        : excerpt.text)
-    : null;
 
   return (
     <>
@@ -170,43 +156,11 @@ export default function CoursePdfPanels({
 
         {/* ── Textbook drawer content ── */}
         {openDrawer === 'textbook' && (
-          <div className="flex-1 overflow-y-auto min-h-0 p-6">
-            {displayText ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-teal-700 dark:text-teal-400">
-                    Page {excerpt?.page}
-                  </span>
-                  <span className="text-[11px] text-zinc-400">{courseCode}</span>
-                </div>
-                <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
-                  {displayText}
-                </p>
-                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                  <a
-                    href="https://egyankosh.ac.in/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline"
-                  >
-                    Read full textbook on eGyanKosh →
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-                <span className="text-4xl opacity-30">📖</span>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xs">
-                  Click any question card to see the matching IGNOU textbook section here.
-                </p>
-                {Object.keys(questionPageMap).length > 0 && (
-                  <p className="text-xs text-zinc-400">
-                    {Object.keys(questionPageMap).length} questions mapped to textbook
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          <iframe
+            src={`/api/pdf/textbook/${courseCode}`}
+            className="flex-1 w-full border-0 min-h-0"
+            title={`${courseCode} Textbook`}
+          />
         )}
       </aside>
     </>
