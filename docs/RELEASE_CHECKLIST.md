@@ -41,6 +41,40 @@ Do not deploy if any step fails.
 - No duplicate year/stream/course lists are introduced.
 - Temporary fallback logic includes a comment explaining why it exists and when it can be removed.
 
+## Vercel Deployment
+
+**Always deploy via GitHub push** (`git push origin main`). Do NOT run `vercel --prod` from the local machine — the `data/` directory (1.2 GB of PDFs and JSON) will be uploaded and hit Vercel's 100 MB file size limit, corrupting the deployment.
+
+Vercel project: `topper101` under team `gunjan-aggarwals-projects-f7b4752d`.
+
+### `.vercelignore` rules
+
+The `.vercelignore` at the workspace root excludes large data files. **Do not add `scripts/` to `.vercelignore`** — the `prebuild` npm script runs `scripts/check-flow-guardrails.mjs` and `scripts/check-repeat-algorithm.mjs`. Excluding `scripts/` causes a pre-build crash (`Cannot find module '/vercel/path0/scripts/check-flow-guardrails.mjs'`) that fails the deployment in under 10 seconds with `[0ms]` build time.
+
+Only these script paths are safe to ignore:
+```
+scripts/upload_pdfs_to_supabase.py
+scripts/pipeline/
+```
+
+### Feature flags via env vars
+
+| Feature | Env var | Current value |
+|---------|---------|---------------|
+| Google OAuth on login | `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH` | `true` (Production) |
+
+Feature flags are set in Vercel Dashboard → Project → Settings → Environment Variables.
+
+### Diagnosing a failed deploy
+
+If GitHub-triggered deploys fail fast (< 30s), get the actual error:
+```bash
+# Get deployment ID from GitHub status
+curl -s "https://api.github.com/repos/gunjan1982/topper101/deployments?per_page=1" | python3 -m json.tool
+# Then inspect logs:
+npx vercel inspect <dpl_id> --logs 2>&1 | head -60
+```
+
 ## Production Smoke Check
 
 After deployment, verify:

@@ -28,9 +28,39 @@ Counts can increase as the question bank grows, but they should not be zero. If 
 
 ## Live Domain
 
-Production site: **https://topper101.com** (custom domain, DNS via Namecheap, deployed on Vercel under `gunjan1982`).
+Production site: **https://topper101.com** (custom domain, DNS via Namecheap, deployed on Vercel under team `gunjan-aggarwals-projects-f7b4752d`).
 
 Vercel also serves the project at `topper101.vercel.app`. The canonical URL for all links and Supabase auth redirects is `https://topper101.com`.
+
+## DNS Configuration (Namecheap)
+
+Nameservers: `dns1.registrar-servers.com`, `dns2.registrar-servers.com`
+
+Required records in Namecheap → Advanced DNS for `topper101.com`:
+
+| Type | Host | Value |
+|------|------|-------|
+| A Record | `@` | `76.76.21.21` |
+| CNAME Record | `www` | `cname.vercel-dns.com.` |
+| TXT Record | `_vercel` | `vc-domain-verify=topper101.com,364daf345dc33ef72775` |
+| TXT Record | `_vercel` | `vc-domain-verify=www.topper101.com,8842f04e06d03d54aff1` |
+
+**Two TXT records at the same `_vercel` host are required** — one to verify the apex domain and one to verify `www`. Namecheap supports multiple TXT values at the same host.
+
+### DNS Pitfalls Learned (May 2026 — cost 1 day)
+
+1. **Wrong TXT token**: The `_vercel` TXT record must use the token Vercel shows in Settings → Domains → Learn more for **this specific project/team**. Tokens are unique per (project × domain). An old token from a prior deployment will silently fail verification even if the format looks correct.
+
+2. **Space in TXT value**: Namecheap's UI can introduce a space after the comma, e.g. `vc-domain-verify=topper101.com, 364daf…` instead of `vc-domain-verify=topper101.com,364daf…`. This causes Vercel verification to fail. Always verify the raw DNS value with:
+   ```bash
+   dig @dns1.registrar-servers.com _vercel.topper101.com TXT +noall +answer
+   ```
+
+3. **Domain linked to another Vercel account**: `topper101.com` was previously linked to a personal Vercel account. When used on the team project it shows "This domain is linked to another Vercel account" and requires the TXT record to prove cross-account ownership. After verification succeeds once, the TXT record can be removed — but keeping it is harmless.
+
+4. **Vercel caches old DNS**: After fixing DNS, click **Refresh** in Vercel Settings → Domains. Vercel queries authoritative nameservers directly, so propagation to your local resolver is not required first. If Refresh keeps failing, query the authoritative nameserver to confirm the record is correct before assuming propagation delay.
+
+5. **Old Vercel A-record IP**: Vercel may show `216.198.79.1` as the recommended A record (legacy infrastructure). The current correct IP is `76.76.21.21`. Both work — prefer `76.76.21.21`.
 
 ## Supabase Storage
 
@@ -97,3 +127,5 @@ The final dry run must report `Rows needing update: 0`. The backfill writes only
 | `courses=0, questions=0, topic_clusters=0` | Supabase is reachable but empty/wrong | Run `npm run env:sync`; check Infisical values |
 | Empty strings after `vercel env pull` | Vercel did not materialize sensitive/encrypted values | Use Infisical sync instead |
 | Only 1000 question rows returned | Supabase range default was not paginated | Use paginated `.range(from, to)` audit queries |
+| `topper101.com` Verification Needed after clicking Refresh | Wrong TXT token or space in value | See DNS Pitfalls section above; check raw value with `dig @dns1.registrar-servers.com _vercel.topper101.com TXT` |
+| Vercel build fails in 7–11s with `[0ms]` build time | `.vercelignore` excluded `scripts/` — prebuild can't find `check-flow-guardrails.mjs` | Never exclude `scripts/` in `.vercelignore`; only exclude `scripts/upload_pdfs_to_supabase.py` and `scripts/pipeline/` |
