@@ -83,7 +83,41 @@ export async function GET(
     });
   }
 
-  // Production: redirect to Supabase Storage
+  // Production: query Supabase bucket to find the exact filename dynamically, or fallback
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const listUrl = `${supabaseUrl}/storage/v1/object/list/pdfs`;
+    
+    // We can use the service role key or anon key to query public listings. Since anon key is available:
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    const res = await fetch(listUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${anonKey}`
+      },
+      body: JSON.stringify({ prefix: `textbooks/${safeCode}` })
+    });
+    
+    if (res.ok) {
+      const files = await res.json();
+      if (Array.isArray(files) && files.length > 0) {
+        // Find a pdf that ends with .pdf
+        const pdfFile = files.find(f => f.name.toLowerCase().endsWith('.pdf'));
+        if (pdfFile) {
+          return NextResponse.redirect(
+            supabasePublicUrl(`textbooks/${safeCode}/${pdfFile.name}`),
+            { status: 302 }
+          );
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to list storage directory for textbook', err);
+  }
+
+  // Fallback to default expected path
   return NextResponse.redirect(
     supabasePublicUrl(`textbooks/${safeCode}/${safeCode}_textbook.pdf`),
     { status: 302 }
