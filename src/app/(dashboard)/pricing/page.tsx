@@ -50,12 +50,14 @@ const OFFERS: Record<BillingCycle, {
 export default function PricingPage() {
   const posthog = usePostHog();
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const router = useRouter();
   const offer = OFFERS[billing];
 
   const handleUpgrade = async (offerId: string) => {
     setLoading(offerId);
+    setError(null);
     try {
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
@@ -93,20 +95,24 @@ export default function PricingPage() {
         theme: { color: '#0f766e' },
       };
 
-      if (!window.Razorpay) throw new Error('Razorpay checkout failed to load');
+      if (!window.Razorpay) throw new Error('Razorpay checkout failed to load. Please verify your internet connection or disable ad-blockers.');
 
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', function (response: RazorpayFailureResponse) {
+        const failCode = response?.error?.code || 'unknown';
+        setError(`Payment failed: ${failCode}`);
         posthog?.capture('payment_failed', {
-          error_type: response?.error?.code || 'unknown',
+          error_type: failCode,
           plan_tier: 'pass',
           offer_id: offerId,
           billing_cycle: billing,
         });
       });
       rzp.open();
-    } catch (error) {
-      console.error(error);
+    } catch (err: unknown) {
+      console.error(err);
+      const errMsg = err instanceof Error ? err.message : 'Payment order creation failed';
+      setError(errMsg);
       posthog?.capture('payment_failed', {
         error_type: 'order_creation_failed',
         plan_tier: 'pass',
@@ -119,8 +125,27 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="py-16">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+    <div className="py-16 relative">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
+          <div className="relative flex flex-col items-center p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+            <div className="absolute -inset-4 rounded-full bg-teal-500/10 blur-xl animate-pulse" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-700 shadow-lg mb-4">
+              <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Secure Checkout</h3>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 animate-pulse text-center">
+              Initializing payment gateway...
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         {/* Header */}
@@ -132,6 +157,23 @@ export default function PricingPage() {
           <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
             Unlock more subjects when you&apos;re ready. Access expires at the TEE — not a rolling subscription.
           </p>
+
+          {/* Error Banner */}
+          {error && (
+            <div className="mt-6 mx-auto max-w-xl rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-950/20 text-center animate-fade-in">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm font-bold text-red-800 dark:text-red-300 text-left">
+                  ⚠️ Checkout Error: {error}
+                </p>
+                <button 
+                  onClick={() => setError(null)}
+                  className="rounded-full bg-red-100 dark:bg-red-950 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-200 dark:text-red-300 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Billing toggle */}
