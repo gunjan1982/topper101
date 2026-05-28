@@ -36,6 +36,7 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `src/app/(auth)/reset-password/page.tsx`: password reset request UI.
 - `src/app/(auth)/actions.ts`: email login/signup, feature-gated Google OAuth start, auth callback URL construction, and logout server actions.
 - `src/app/auth/callback/route.ts`: OAuth callback, user row creation for Google users, analytics capture, and final redirect to `next`.
+- `src/app/api/auth/reset-password/route.ts`: API route handler to exchange reset codes for a session and redirect to the password update page.
 - `src/lib/authConfig.ts`: auth feature flags shared by auth pages and server actions.
 - Google auth must stay hidden unless `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` and Supabase Google provider is enabled.
 

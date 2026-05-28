@@ -113,3 +113,39 @@ export async function logout() {
   revalidatePath('/', 'layout');
   redirect(ROUTES.login);
 }
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = formData.get('email') as string;
+  if (!email) {
+    redirect(`${ROUTES.resetPassword}?error=${encodeURIComponent('Email is required')}`);
+  }
+
+  const supabase = await createClient();
+  const redirectTo = await authCallbackUrl('/reset-password/update');
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    redirect(`${ROUTES.resetPassword}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect(`${ROUTES.resetPassword}?message=${encodeURIComponent('Password reset link sent! Check your email.')}`);
+}
+
+export async function updatePassword(formData: FormData) {
+  const password = formData.get('password') as string;
+  if (!password) {
+    redirect(`/reset-password/update?error=${encodeURIComponent('Password is required')}`);
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    redirect(`/reset-password/update?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect(`${ROUTES.login}?message=${encodeURIComponent('Password updated successfully. Please log in.')}`);
+}

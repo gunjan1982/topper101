@@ -1,10 +1,9 @@
-import Link from 'next/link';
-import { requestPasswordReset } from '../actions';
+import { updatePassword } from '../../actions';
 
-export default async function ResetPasswordPage({
+export default async function UpdatePasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
 
@@ -13,27 +12,26 @@ export default async function ResetPasswordPage({
       <div className="w-full max-w-md space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Reset your password
+            Set your new password
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Enter your email and we will send you a link to reset your password.
+            Please enter your new password below.
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" action={requestPasswordReset}>
+        <form className="mt-8 space-y-6" action={updatePassword}>
           <div className="rounded-md shadow-sm">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
+              <label htmlFor="new-password" className="sr-only">
+                New Password
               </label>
               <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="new-password"
+                name="password"
+                type="password"
                 required
                 className="relative block w-full rounded-xl border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
-                placeholder="Email address"
+                placeholder="New Password"
               />
             </div>
           </div>
@@ -44,31 +42,15 @@ export default async function ResetPasswordPage({
             </div>
           )}
 
-          {resolvedSearchParams.message && (
-            <div className="rounded-md bg-emerald-50 p-4 dark:bg-emerald-900/30">
-              <p className="text-sm text-emerald-800 dark:text-emerald-200">{resolvedSearchParams.message}</p>
-            </div>
-          )}
-
           <div>
             <button
               type="submit"
               className="flex w-full justify-center rounded-xl bg-teal-700 px-3 py-3 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-teal-600 transition-all active:scale-95"
             >
-              Send reset link
+              Update Password
             </button>
           </div>
         </form>
-
-        <p className="mt-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Remembered your password?{' '}
-          <Link
-            href="/login"
-            className="font-semibold leading-6 text-teal-700 hover:text-teal-600"
-          >
-            Log in
-          </Link>
-        </p>
       </div>
     </div>
   );
