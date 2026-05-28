@@ -93,6 +93,10 @@ export default function QuestionCard({
   const [flagDesc, setFlagDesc] = useState('');
   const [flagSubmitting, setFlagSubmitting] = useState(false);
   const [flagDone, setFlagDone] = useState(false);
+  const [flagError, setFlagError] = useState<string | null>(null);
+
+  // Answer error state
+  const [answerError, setAnswerError] = useState<string | null>(null);
 
   const helpfulCount = thumbs === 'up' ? 25 : 24;
   const trustPercentage = thumbs === 'up' ? 97 : (thumbs === 'down' ? 92 : 96);
@@ -115,6 +119,7 @@ export default function QuestionCard({
       return;
     }
     setIsOpen(true);
+    setAnswerError(null);
     if (!answerData) {
       setLoading(true);
       try {
@@ -133,8 +138,9 @@ export default function QuestionCard({
             plan_tier: isPaid ? 'paid' : 'free',
           });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(error);
+        setAnswerError(error instanceof Error ? error.message : 'Failed to load answer. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -178,6 +184,7 @@ export default function QuestionCard({
 
   const handleFlagSubmit = async () => {
     setFlagSubmitting(true);
+    setFlagError(null);
     try {
       await submitFlag(question.id, flagType, flagDesc);
       posthog?.capture('content_flagged', {
@@ -186,8 +193,9 @@ export default function QuestionCard({
       });
       setFlagDone(true);
       setShowFlagForm(false);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
+      setFlagError(err instanceof Error ? err.message : 'Failed to submit flag. Please try again.');
     } finally {
       setFlagSubmitting(false);
     }
@@ -377,6 +385,19 @@ export default function QuestionCard({
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
                 <p className="text-zinc-500 font-medium">Generating your answer...</p>
               </div>
+            ) : answerError ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-200 text-center space-y-4">
+                <h3 className="font-bold">⚠️ Failed to load answer</h3>
+                <p className="text-sm">
+                  {answerError}
+                </p>
+                <button
+                  onClick={handleSeeAnswer}
+                  className="rounded-full bg-red-600 px-6 py-2 text-xs font-bold text-white hover:bg-red-500 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
             ) : answerData?.status === 'paywall' ? (
               <div className="text-center py-8">
                 <span className="text-6xl mb-6 block">💳</span>
@@ -561,6 +582,12 @@ export default function QuestionCard({
                           className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-600 resize-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                         />
                       </div>
+
+                      {flagError && (
+                        <p className="text-xs font-bold text-red-500">
+                          ⚠️ Error: {flagError}
+                        </p>
+                      )}
 
                       <div className="flex items-center gap-3">
                         <button

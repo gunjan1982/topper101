@@ -22,6 +22,7 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
     initialSelected.filter((code) => visibleCodes.has(code))
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [startedAt] = useState(() => Date.now());
 
   const togglePaper = (code: string) => {
@@ -33,14 +34,16 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
   const handleSubmit = async () => {
     if (selected.length === 0) return;
     setIsSubmitting(true);
+    setError(null);
     try {
       await completeOnboarding(selected, {
         year,
         stream,
         startedAt,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to finalize paper selection. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -76,7 +79,14 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
       </div>
       )}
 
-      <div className="flex justify-center pt-8">
+      <div className="flex flex-col items-center justify-center pt-8 gap-4">
+        {error && (
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-950/20 text-center animate-fade-in">
+            <p className="text-sm font-bold text-red-800 dark:text-red-300">
+              ⚠️ Error: {error}
+            </p>
+          </div>
+        )}
         <button
           onClick={handleSubmit}
           disabled={selected.length === 0 || isSubmitting}
