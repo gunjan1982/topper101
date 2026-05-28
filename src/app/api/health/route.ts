@@ -33,46 +33,45 @@ export async function GET() {
   const fsDiag: any = {
     cwd: process.cwd(),
     cwdFiles: [],
-    searchedPaths: {},
-    chunksFileExists: false,
+    foundChunksPaths: [],
     chunksFileError: null,
-    chunksFileSize: null,
   };
 
   try {
     fsDiag.cwdFiles = fs.readdirSync(process.cwd());
-    
-    // Check various possible locations where 'data' or 'workspace' might reside
-    const potentialPaths = [
-      path.join(process.cwd(), 'data'),
-      path.join(process.cwd(), 'workspace', 'topper101', 'data'),
-      path.join(process.cwd(), '.next', 'server', 'data'),
-    ];
 
-    for (const p of potentialPaths) {
-      fsDiag.searchedPaths[p] = {
-        exists: fs.existsSync(p),
-        isDir: fs.existsSync(p) ? fs.statSync(p).isDirectory() : false,
-      };
+    // Recursively find chunks.json files
+    function findFileRecursive(dir: string, depth = 0) {
+      if (depth > 6) return;
+      let files: string[] = [];
+      try {
+        files = fs.readdirSync(dir);
+      } catch {
+        return;
+      }
 
-      if (fsDiag.searchedPaths[p].exists) {
-        const mpc001Path = path.join(p, 'textbooks', 'MPC-001');
-        const mpc001Exists = fs.existsSync(mpc001Path);
-        fsDiag.searchedPaths[p].mpc001Exists = mpc001Exists;
+      for (const file of files) {
+        if (file === 'node_modules' || file === '.git' || file === 'cache' || file === '.next_cache') continue;
+        const fullPath = path.join(dir, file);
+        let stat;
+        try {
+          stat = fs.statSync(fullPath);
+        } catch {
+          continue;
+        }
 
-        if (mpc001Exists) {
-          const chunksPath = path.join(mpc001Path, 'chunks.json');
-          const chunksExists = fs.existsSync(chunksPath);
-          fsDiag.searchedPaths[p].chunksExists = chunksExists;
-
-          if (chunksExists) {
-            fsDiag.chunksFileExists = true;
-            fsDiag.chunksFileSize = fs.statSync(chunksPath).size;
-            fsDiag.foundInPath = chunksPath;
-          }
+        if (stat.isDirectory()) {
+          findFileRecursive(fullPath, depth + 1);
+        } else if (file === 'chunks.json') {
+          fsDiag.foundChunksPaths.push({
+            path: fullPath,
+            size: stat.size,
+          });
         }
       }
     }
+
+    findFileRecursive(process.cwd());
   } catch (err: any) {
     fsDiag.chunksFileError = err.message;
   }
