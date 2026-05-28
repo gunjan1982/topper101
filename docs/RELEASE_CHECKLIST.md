@@ -57,13 +57,17 @@ scripts/upload_pdfs_to_supabase.py
 scripts/pipeline/
 ```
 
-### Feature flags via env vars
+### Feature flags & payments configuration via env vars
 
-| Feature | Env var | Current value |
-|---------|---------|---------------|
+Ensure the following variables are correctly configured in Vercel Dashboard → Project Settings → Environment Variables:
+
+| Feature/Service | Env var | Expected Value / Format |
+|---|---|---|
 | Google OAuth on login | `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH` | `true` (Production) |
-
-Feature flags are set in Vercel Dashboard → Project → Settings → Environment Variables.
+| Razorpay Key ID (Client) | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | `rzp_live_*` |
+| Razorpay Key ID (Server) | `RAZORPAY_KEY_ID` | `rzp_live_*` |
+| Razorpay Secret (Server) | `RAZORPAY_KEY_SECRET` | Active live API secret key |
+| Razorpay Webhook Secret | `RAZORPAY_WEBHOOK_SECRET` | Active webhook secret |
 
 ### Diagnosing a failed deploy
 

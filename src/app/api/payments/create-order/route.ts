@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     const options = {
       amount: offer.amount,
       currency: 'INR',
-      receipt: `receipt_${user.id}_${Date.now()}`,
+      receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
       notes: {
         userId: user.id,
         planId: 'pass',
