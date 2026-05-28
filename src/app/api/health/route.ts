@@ -32,32 +32,44 @@ export async function GET() {
   // Filesystem check for traced textbooks
   const fsDiag: any = {
     cwd: process.cwd(),
-    dataExists: false,
-    textbooksDirExists: false,
-    mpc001DirExists: false,
+    cwdFiles: [],
+    searchedPaths: {},
     chunksFileExists: false,
     chunksFileError: null,
     chunksFileSize: null,
   };
 
   try {
-    const dataPath = path.join(process.cwd(), 'data');
-    fsDiag.dataExists = fs.existsSync(dataPath);
+    fsDiag.cwdFiles = fs.readdirSync(process.cwd());
+    
+    // Check various possible locations where 'data' or 'workspace' might reside
+    const potentialPaths = [
+      path.join(process.cwd(), 'data'),
+      path.join(process.cwd(), 'workspace', 'topper101', 'data'),
+      path.join(process.cwd(), '.next', 'server', 'data'),
+    ];
 
-    const textbooksPath = path.join(dataPath, 'textbooks');
-    fsDiag.textbooksDirExists = fs.existsSync(textbooksPath);
+    for (const p of potentialPaths) {
+      fsDiag.searchedPaths[p] = {
+        exists: fs.existsSync(p),
+        isDir: fs.existsSync(p) ? fs.statSync(p).isDirectory() : false,
+      };
 
-    if (fsDiag.textbooksDirExists) {
-      const mpc001Path = path.join(textbooksPath, 'MPC-001');
-      fsDiag.mpc001DirExists = fs.existsSync(mpc001Path);
+      if (fsDiag.searchedPaths[p].exists) {
+        const mpc001Path = path.join(p, 'textbooks', 'MPC-001');
+        const mpc001Exists = fs.existsSync(mpc001Path);
+        fsDiag.searchedPaths[p].mpc001Exists = mpc001Exists;
 
-      if (fsDiag.mpc001DirExists) {
-        const chunksPath = path.join(mpc001Path, 'chunks.json');
-        fsDiag.chunksFileExists = fs.existsSync(chunksPath);
+        if (mpc001Exists) {
+          const chunksPath = path.join(mpc001Path, 'chunks.json');
+          const chunksExists = fs.existsSync(chunksPath);
+          fsDiag.searchedPaths[p].chunksExists = chunksExists;
 
-        if (fsDiag.chunksFileExists) {
-          const stats = fs.statSync(chunksPath);
-          fsDiag.chunksFileSize = stats.size;
+          if (chunksExists) {
+            fsDiag.chunksFileExists = true;
+            fsDiag.chunksFileSize = fs.statSync(chunksPath).size;
+            fsDiag.foundInPath = chunksPath;
+          }
         }
       }
     }
