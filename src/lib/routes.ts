@@ -17,6 +17,7 @@ export const ROUTES = {
   admin: '/admin',
   adminUsers: '/admin/users',
   adminRequests: '/admin/requests',
+  adminPayments: '/admin/payments',
   planner: '/planner',
   concepts: '/concepts',
   mockTest: (courseCode: string) => `/courses/${courseCode}/mock-test`,
