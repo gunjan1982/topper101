@@ -383,7 +383,7 @@ export default function QuestionCard({
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-                <p className="text-zinc-500 font-medium">Generating your answer...</p>
+                <p className="text-zinc-500 font-medium">Retrieving curated answer...</p>
               </div>
             ) : answerError ? (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-200 text-center space-y-4">

@@ -4,8 +4,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   /* config options here */
   outputFileTracingIncludes: {
-    '/courses/[courseCode]': ['./data/textbooks/**/*.json'],
-    '/api/health': ['./data/textbooks/**/*.json'],
+    '/*': ['./data/textbooks/**/*.json'],
   },
 };
 
