@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 // No caching — UptimeRobot hits this every 5 minutes
@@ -27,6 +29,42 @@ export async function GET() {
     dbOk = false;
   }
 
+  // Filesystem check for traced textbooks
+  const fsDiag: any = {
+    cwd: process.cwd(),
+    dataExists: false,
+    textbooksDirExists: false,
+    mpc001DirExists: false,
+    chunksFileExists: false,
+    chunksFileError: null,
+    chunksFileSize: null,
+  };
+
+  try {
+    const dataPath = path.join(process.cwd(), 'data');
+    fsDiag.dataExists = fs.existsSync(dataPath);
+
+    const textbooksPath = path.join(dataPath, 'textbooks');
+    fsDiag.textbooksDirExists = fs.existsSync(textbooksPath);
+
+    if (fsDiag.textbooksDirExists) {
+      const mpc001Path = path.join(textbooksPath, 'MPC-001');
+      fsDiag.mpc001DirExists = fs.existsSync(mpc001Path);
+
+      if (fsDiag.mpc001DirExists) {
+        const chunksPath = path.join(mpc001Path, 'chunks.json');
+        fsDiag.chunksFileExists = fs.existsSync(chunksPath);
+
+        if (fsDiag.chunksFileExists) {
+          const stats = fs.statSync(chunksPath);
+          fsDiag.chunksFileSize = stats.size;
+        }
+      }
+    }
+  } catch (err: any) {
+    fsDiag.chunksFileError = err.message;
+  }
+
   const overallOk = dbOk;
   const totalMs = Date.now() - startMs;
 
@@ -34,9 +72,11 @@ export async function GET() {
     {
       ok: overallOk,
       db: { ok: dbOk, latencyMs: dbMs },
+      fs: fsDiag,
       version: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? 'dev',
       uptimeMs: totalMs,
     },
     { status: overallOk ? 200 : 503 }
   );
 }
+
