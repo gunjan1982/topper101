@@ -98,8 +98,6 @@ export default function QuestionCard({
   // Answer error state
   const [answerError, setAnswerError] = useState<string | null>(null);
 
-  const helpfulCount = thumbs === 'up' ? 25 : 24;
-  const trustPercentage = thumbs === 'up' ? 97 : (thumbs === 'down' ? 92 : 96);
   const isGrounded = textbookGrounded || !!question.textbook_grounded;
 
   useEffect(() => {
@@ -175,11 +173,12 @@ export default function QuestionCard({
   };
 
   const handleCardClick = () => {
-    if (textbookPage && textbookPage > 0) {
-      window.dispatchEvent(new CustomEvent('textbookJump', {
-        detail: { page: textbookPage, excerpt: textbookExcerpt ?? null },
-      }));
-    }
+    window.dispatchEvent(new CustomEvent('textbookJump', {
+      detail: {
+        page: (textbookPage && textbookPage > 0) ? textbookPage : null,
+        excerpt: textbookExcerpt ?? null,
+      },
+    }));
   };
 
   const handleFlagSubmit = async () => {
@@ -236,7 +235,7 @@ export default function QuestionCard({
   }
 
   return (
-    <div onClick={handleCardClick} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900 cursor-pointer lg:cursor-default">
+    <div onClick={handleCardClick} className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-teal-700/50 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider mb-4">
           {uniqueTeeTags.slice(0, 4).map((tag) => (
             <span key={tag} className="rounded bg-zinc-100 px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
@@ -338,6 +337,11 @@ export default function QuestionCard({
               📖 Textbook-verified
             </span>
           )}
+          {textbookPage && textbookPage > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
+              📚 Textbook excerpt available
+            </span>
+          )}
         </div>
 
         {/* Inline Answer */}
@@ -346,13 +350,13 @@ export default function QuestionCard({
             <div className="mb-4">
               <h3 className="text-base font-bold dark:text-white">
                 {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
-                  ? '📚 Textbook-Grounded Curated Answer'
-                  : 'Textbook word count specific curated answer powered by AI'}
+                  ? '📚 Textbook-Grounded Answer'
+                  : 'Curated Exam Answer'}
               </h3>
               <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
-                  ? 'Grounded in the IGNOU prescribed textbook'
-                  : 'Textbook syllabus context curated answer'}
+                  ? 'Sourced from the IGNOU prescribed textbook for this course'
+                  : 'Curated from MAPC syllabus context and past-paper analysis'}
               </p>
               <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
                 <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
@@ -451,24 +455,12 @@ export default function QuestionCard({
                   </div>
                 )}
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
-                  <div className="font-bold">Source clarity</div>
+                  <div className="font-bold">Source</div>
                   <p className="mt-1">
                     {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
-                      ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
-                      : 'This is a Textbook word count specific curated answer powered by AI built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
+                      ? '✅ This answer is sourced from the IGNOU prescribed textbook for this course, structured for exam clarity.'
+                      : '📝 This answer was curated using MAPC syllabus context and past-paper analysis. It has not been verified against the IGNOU textbook.'}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
-                    <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
-                      {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
-                        ? 'Main text: textbook-sourced content'
-                        : 'Main text: curated study answer powered by AI'}
-                    </span>
-                    {(answerData?.status === 'success' && (answerData.answer ?? '').includes('[[AI_STUDY_NOTE]]')) && (
-                      <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">
-                        Blue blocks: extra AI simplification/add-on
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {(isGrounded && textbookPage) && (
@@ -522,16 +514,7 @@ export default function QuestionCard({
                         👎 Not helpful
                       </button>
                       
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/60 px-3 py-1 text-xs text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30 animate-fade-in">
-                        <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
-                          <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {trustPercentage}%
-                        </span>
-                        <span className="h-3 w-px bg-emerald-200 dark:bg-emerald-800" />
-                        <span className="font-medium">Verified helpful by {helpfulCount} students</span>
-                      </div>
+
 
                       {!flagDone && (
                         <button 

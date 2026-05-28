@@ -11,7 +11,13 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const paymentSuccess = resolvedSearchParams.payment === 'success';
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -103,6 +109,8 @@ export default async function DashboardPage() {
 
   // Overall stats
   const totalReviewed = Object.values(progressByCourse).reduce((s, p) => s + p.reviewed, 0);
+  const totalBookmarked = Object.values(progressByCourse).reduce((s, p) => s + p.bookmarked, 0);
+  const papersUnlocked = unlockedCourses.size;
 
   const nextExam = nextScheduledExam(selectedPapers);
   const nextExamCourse = nextExam ? courseByCode(courses, nextExam.courseCode) : null;
@@ -110,6 +118,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      {/* Payment Success Banner */}
+      {paymentSuccess && (
+        <div className="rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 shadow-sm dark:border-emerald-900/50 dark:from-emerald-950/30 dark:to-teal-950/30 animate-fade-in">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">🎉</span>
+            <div>
+              <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-300">Payment successful!</h2>
+              <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+                Your Topper Pass is active. All unlocked subjects now show full curated answers.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Greeting */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight dark:text-white">
@@ -179,8 +202,8 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           { label: 'Questions Reviewed', value: String(totalReviewed), icon: '✅' },
-          { label: 'AI Answers Read', value: '0', icon: '🤖' },
-          { label: 'Study Streak', value: '0 days', icon: '🔥' },
+          { label: 'Bookmarked', value: String(totalBookmarked), icon: '🔖' },
+          { label: 'Papers Unlocked', value: String(papersUnlocked), icon: '🔓' },
         ].map((stat, i) => (
           <div key={i} className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="text-3xl">{stat.icon}</div>

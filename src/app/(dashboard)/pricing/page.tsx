@@ -48,6 +48,7 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const [userYear, setUserYear] = useState<number | null>(null);
+  const [userPlanTier, setUserPlanTier] = useState<string | null>(null);
   const router = useRouter();
   const isDev = process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
@@ -59,15 +60,18 @@ export default function PricingPage() {
         if (user) {
           const { data } = await supabase
             .from('users')
-            .select('year')
+            .select('year, plan_tier')
             .eq('id', user.id)
             .single();
           if (data?.year) {
             setUserYear(data.year);
           }
+          if (data?.plan_tier) {
+            setUserPlanTier(data.plan_tier);
+          }
         }
       } catch (err) {
-        console.error('Failed to load user year details:', err);
+        console.error('Failed to load user details:', err);
       }
     }
     loadUserYear();
@@ -118,6 +122,7 @@ export default function PricingPage() {
               const errData = await verifyRes.json();
               throw new Error(errData.error || 'Verification failed');
             }
+            router.refresh();
             router.push('/dashboard?payment=success');
           } catch (err: unknown) {
             console.error('Payment verification failed:', err);
@@ -204,6 +209,15 @@ export default function PricingPage() {
           <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
             Unlock more subjects when you&apos;re ready. Access expires at the TEE — not a rolling subscription.
           </p>
+
+          {/* Already Upgraded Banner */}
+          {userPlanTier === 'pass' && (
+            <div className="mt-6 mx-auto max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20 text-center">
+              <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                ✅ You&apos;re on the Topper Pass. Your unlocked subjects are fully active.
+              </p>
+            </div>
+          )}
 
           {/* Error Banner */}
           {error && (

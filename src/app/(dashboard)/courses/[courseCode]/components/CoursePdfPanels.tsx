@@ -32,12 +32,12 @@ export default function CoursePdfPanels({
   const [qpYear, setQpYear] = useState<number>(defaultSession?.year ?? 2024);
   const [qpSession, setQpSession] = useState<string>(defaultSession?.session ?? 'December');
   const [openDrawer, setOpenDrawer] = useState<DrawerView>(null);
-  const [activeExcerpt, setActiveExcerpt] = useState<{ page: number; text: string } | null>(null);
+  const [activeExcerpt, setActiveExcerpt] = useState<{ page: number | null; text: string } | null>(null);
 
   // Auto-open textbook drawer when a question card is clicked
   useEffect(() => {
     const handler = (e: Event) => {
-      const customEvent = e as CustomEvent<{ page: number; excerpt: string | null }>;
+      const customEvent = e as CustomEvent<{ page: number | null; excerpt: string | null }>;
       if (customEvent.detail) {
         setActiveExcerpt({
           page: customEvent.detail.page,
@@ -167,19 +167,29 @@ export default function CoursePdfPanels({
         {openDrawer === 'textbook' && (
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
             {activeExcerpt ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
-                    Page {activeExcerpt.page} Excerpt
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-700 ring-1 ring-inset ring-teal-600/10 dark:bg-teal-950/30 dark:text-teal-400">
-                    📖 Grounded
-                  </span>
+              activeExcerpt.page ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
+                      Page {activeExcerpt.page} Excerpt
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-700 ring-1 ring-inset ring-teal-600/10 dark:bg-teal-950/30 dark:text-teal-400">
+                      📖 Grounded
+                    </span>
+                  </div>
+                  <blockquote className="border-l-4 border-teal-600 pl-4 text-sm text-zinc-700 dark:text-zinc-300 italic leading-relaxed whitespace-pre-wrap">
+                    {activeExcerpt.text}
+                  </blockquote>
                 </div>
-                <blockquote className="border-l-4 border-teal-600 pl-4 text-sm text-zinc-700 dark:text-zinc-300 italic leading-relaxed whitespace-pre-wrap">
-                  {activeExcerpt.text}
-                </blockquote>
-              </div>
+              ) : (
+                <div className="flex h-64 flex-col items-center justify-center text-center">
+                  <span className="text-3xl mb-2">📚</span>
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-white">No Textbook Excerpt Available</h4>
+                  <p className="mt-1 text-xs text-zinc-500 max-w-[260px]">
+                    This question doesn&apos;t have a matched textbook excerpt yet. The curated answer is still available when you click &ldquo;See Answer&rdquo;.
+                  </p>
+                </div>
+              )
             ) : (
               <div className="flex h-64 flex-col items-center justify-center text-center">
                 <span className="text-3xl mb-2">💡</span>
