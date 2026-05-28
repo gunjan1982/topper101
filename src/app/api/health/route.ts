@@ -32,48 +32,21 @@ export async function GET() {
   // Filesystem check for traced textbooks
   const fsDiag: any = {
     cwd: process.cwd(),
-    cwdFiles: [],
-    foundChunksPaths: [],
-    chunksFileError: null,
+    directFileExists: false,
+    directFileError: null,
+    directFileSnippet: null,
   };
 
   try {
-    fsDiag.cwdFiles = fs.readdirSync(process.cwd());
+    const chunksPath = path.join(process.cwd(), 'data', 'textbooks', 'MPC-001', 'chunks.json');
+    fsDiag.directFileExists = fs.existsSync(chunksPath);
 
-    // Recursively find chunks.json files
-    function findFileRecursive(dir: string, depth = 0) {
-      if (depth > 6) return;
-      let files: string[] = [];
-      try {
-        files = fs.readdirSync(dir);
-      } catch {
-        return;
-      }
-
-      for (const file of files) {
-        if (file === 'node_modules' || file === '.git' || file === 'cache' || file === '.next_cache') continue;
-        const fullPath = path.join(dir, file);
-        let stat;
-        try {
-          stat = fs.statSync(fullPath);
-        } catch {
-          continue;
-        }
-
-        if (stat.isDirectory()) {
-          findFileRecursive(fullPath, depth + 1);
-        } else if (file === 'chunks.json') {
-          fsDiag.foundChunksPaths.push({
-            path: fullPath,
-            size: stat.size,
-          });
-        }
-      }
+    if (fsDiag.directFileExists) {
+      const raw = fs.readFileSync(chunksPath, 'utf8');
+      fsDiag.directFileSnippet = raw.slice(0, 100);
     }
-
-    findFileRecursive(process.cwd());
   } catch (err: any) {
-    fsDiag.chunksFileError = err.message;
+    fsDiag.directFileError = err.message;
   }
 
   const overallOk = dbOk;
