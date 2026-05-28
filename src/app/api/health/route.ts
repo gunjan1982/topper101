@@ -32,21 +32,35 @@ export async function GET() {
   // Filesystem check for traced textbooks
   const fsDiag: any = {
     cwd: process.cwd(),
-    directFileExists: false,
-    directFileError: null,
-    directFileSnippet: null,
+    dirname: __dirname,
+    searchedRelativePaths: {},
+    foundPath: null,
   };
 
   try {
-    const chunksPath = path.join(process.cwd(), 'data', 'textbooks', 'MPC-001', 'chunks.json');
-    fsDiag.directFileExists = fs.existsSync(chunksPath);
+    // Resolve relative paths from __dirname (up to 7 levels)
+    let currentDir = __dirname;
+    for (let i = 0; i <= 7; i++) {
+      const targetPath = path.join(currentDir, 'data', 'textbooks', 'MPC-001', 'chunks.json');
+      const targetDir = path.join(currentDir, 'data');
+      
+      fsDiag.searchedRelativePaths[i] = {
+        dirPath: targetDir,
+        dirExists: fs.existsSync(targetDir),
+        filePath: targetPath,
+        fileExists: fs.existsSync(targetPath),
+      };
 
-    if (fsDiag.directFileExists) {
-      const raw = fs.readFileSync(chunksPath, 'utf8');
-      fsDiag.directFileSnippet = raw.slice(0, 100);
+      if (fsDiag.searchedRelativePaths[i].fileExists) {
+        fsDiag.foundPath = targetPath;
+        fsDiag.foundLevel = i;
+        break;
+      }
+      
+      currentDir = path.dirname(currentDir);
     }
   } catch (err: any) {
-    fsDiag.directFileError = err.message;
+    fsDiag.error = err.message;
   }
 
   const overallOk = dbOk;
