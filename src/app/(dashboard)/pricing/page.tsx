@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
+import { createClient } from '@/lib/supabase/client';
 
 type BillingCycle = 'monthly' | 'semester';
 
@@ -24,36 +25,55 @@ declare global {
   }
 }
 
-const OFFERS: Record<BillingCycle, {
-  label: string;
-  sublabel: string;
-  expiryNote: string;
-  subject1: { id: string; price: number };
-  subject5: { id: string; price: number };
-}> = {
+const getOffers = (isYear1: boolean) => ({
   monthly: {
     label: 'TEE Jun 2026',
-    sublabel: 'Access until 30 June 2026',
-    expiryNote: 'Covers the upcoming June TEE sitting',
+    sublabel: `Access until ${isYear1 ? '31 July 2026' : '30 June 2026'}`,
+    expiryNote: isYear1 ? 'Covers the upcoming July TEE sitting' : 'Covers the upcoming June TEE sitting',
     subject1: { id: 'pass-1-subject-monthly', price: 99 },
     subject5: { id: 'pass-5-subjects-monthly', price: 299 },
   },
   semester: {
     label: 'Full Semester',
-    sublabel: 'Access until 31 December 2026',
-    expiryNote: 'Covers both June and December TEE sittings',
+    sublabel: `Access until ${isYear1 ? '31 January 2027' : '31 December 2026'}`,
+    expiryNote: isYear1 ? 'Covers both July and January TEE sittings' : 'Covers both June and December TEE sittings',
     subject1: { id: 'pass-1-subject-semester', price: 199 },
     subject5: { id: 'pass-5-subjects-semester', price: 499 },
   },
-};
+});
 
 export default function PricingPage() {
   const posthog = usePostHog();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [billing, setBilling] = useState<BillingCycle>('monthly');
+  const [userYear, setUserYear] = useState<number | null>(null);
   const router = useRouter();
-  const offer = OFFERS[billing];
+
+  useEffect(() => {
+    async function loadUserYear() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('users')
+            .select('year')
+            .eq('id', user.id)
+            .single();
+          if (data?.year) {
+            setUserYear(data.year);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load user year details:', err);
+      }
+    }
+    loadUserYear();
+  }, []);
+
+  const isYear1 = userYear === 1;
+  const offer = getOffers(isYear1)[billing];
 
   const handleUpgrade = async (offerId: string) => {
     setLoading(offerId);
@@ -188,7 +208,7 @@ export default function PricingPage() {
               }`}
             >
               TEE Jun 2026
-              <span className="ml-1.5 text-xs font-normal opacity-70">until 30 Jun</span>
+              <span className="ml-1.5 text-xs font-normal opacity-70">until {isYear1 ? '31 Jul' : '30 Jun'}</span>
             </button>
             <button
               onClick={() => setBilling('semester')}
@@ -199,7 +219,7 @@ export default function PricingPage() {
               }`}
             >
               Full Semester
-              <span className="ml-1.5 text-xs font-normal opacity-70">until 31 Dec</span>
+              <span className="ml-1.5 text-xs font-normal opacity-70">until {isYear1 ? '31 Jan 2027' : '31 Dec'}</span>
             </button>
           </div>
         </div>
