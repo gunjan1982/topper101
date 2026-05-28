@@ -197,7 +197,8 @@ async function computeQuestionPageMap(
       map[q.id] = { page: chunks[bestIdx].page_start, text: chunks[bestIdx].text };
     }
     return map;
-  } catch {
+  } catch (err: unknown) {
+    console.error(`[textbooks] Failed to compute page map for ${courseCode}:`, err);
     return {};
   }
 }
