@@ -75,6 +75,50 @@ curl -s "https://api.github.com/repos/gunjan1982/topper101/deployments?per_page=
 npx vercel inspect <dpl_id> --logs 2>&1 | head -60
 ```
 
+## Local Testing & Staging Workflow
+
+Use this workflow to test changes locally and on staging preview URLs before shipping them to production:
+
+### 1. Local Testing
+1. **Sync Local Secrets:** Pull down the latest config values:
+   ```bash
+   npm run env:sync
+   ```
+2. **Run Dev Server:** Start development mode:
+   ```bash
+   npm run dev
+   ```
+3. **Verify Locally:** Test code functionality at `http://localhost:3000`.
+
+### 2. Pre-Commit Safety Check
+Before committing any changes, run the automated verification checks to ensure everything builds:
+```bash
+npm run verify
+```
+
+### 3. Vercel Staging & Preview URL Testing
+To test under real server environments without updating the live `topper101.com` URL:
+1. **Create a Feature Branch:** Avoid pushing directly to `main`:
+   ```bash
+   git checkout -b feature/your-feature-name
+   git add .
+   git commit -m "feat: your change summary"
+   git push origin feature/your-feature-name
+   ```
+2. **Retrieve Vercel Preview Link:** Vercel automatically detects the new branch and generates a **Preview Deployment URL** (visible in GitHub Commit status or Vercel dashboard).
+3. **Smoke Test:** Open the preview link in your browser to verify performance, styling, and flow.
+
+### 4. Shipping to Production
+Once staging is verified:
+1. Merge the branch into `main` (via GitHub Pull Request or locally).
+2. Push to main:
+   ```bash
+   git checkout main
+   git merge feature/your-feature-name
+   git push origin main
+   ```
+3. Vercel will build and push the changes live.
+
 ## Production Smoke Check
 
 After deployment, verify:
