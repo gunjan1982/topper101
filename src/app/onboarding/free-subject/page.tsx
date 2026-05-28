@@ -75,7 +75,7 @@ export default async function FreeSubjectPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight dark:text-white">Pick your free subject</h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Choose one paper to unlock fully — all questions and AI answers, free forever.
+          Choose one paper to unlock fully — all questions and Textbook word count specific curated answers powered by AI, free forever.
         </p>
         <p className="mt-1 text-sm text-zinc-500">
           You can unlock more papers by referring a friend once they make a purchase.

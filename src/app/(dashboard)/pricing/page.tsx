@@ -182,7 +182,7 @@ export default function PricingPage() {
             </div>
             <ul className="mt-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
               <li>✓ Full 10-year question bank</li>
-              <li>✓ Unlimited AI answer views</li>
+              <li>✓ Unlimited Textbook word count specific curated answers powered by AI</li>
               <li>✓ Frequency heat map</li>
               <li>✓ Progress tracking</li>
             </ul>
@@ -215,7 +215,7 @@ export default function PricingPage() {
             </p>
             <ul className="mt-6 space-y-2 text-sm text-teal-50">
               <li>✓ Full 10-year question bank</li>
-              <li>✓ Unlimited AI answer views</li>
+              <li>✓ Unlimited Textbook word count specific curated answers powered by AI</li>
               <li>✓ Frequency heat map</li>
               <li>✓ Progress tracking</li>
             </ul>

@@ -113,7 +113,7 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
             <div className="space-y-1.5">
               <h3 className="font-bold text-amber-800 dark:text-amber-300">Free Tier Preview Mode</h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Key theorists list and clinical relevance details are locked. Upgrade to Topper101 Pass or Pro to unlock comprehensive concept data, repeating question families, and detailed AI answers.
+                Key theorists list and clinical relevance details are locked. Upgrade to Topper101 Pass or Pro to unlock comprehensive concept data, repeating question families, and detailed Textbook word count specific curated answers powered by AI.
               </p>
               <div className="pt-2">
                 <Link

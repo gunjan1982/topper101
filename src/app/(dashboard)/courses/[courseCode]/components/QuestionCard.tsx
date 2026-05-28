@@ -51,6 +51,12 @@ interface QuestionCardProps {
   reviewedByHuman?: boolean;
 }
 
+function getWordCountLimitForMarks(marks: number) {
+  if (marks >= 10) return '450-500 words (curated for 10-mark essay type questions)';
+  if (marks >= 5) return '250 words (curated for 5/6-mark short-answer type questions)';
+  return '50-80 words (curated for 2/3-mark very short-answer type questions)';
+}
+
 export default function QuestionCard({
   question,
   variations = [],
@@ -332,34 +338,39 @@ export default function QuestionCard({
             <div className="mb-4">
               <h3 className="text-base font-bold dark:text-white">
                 {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
-                  ? '📚 Textbook-Grounded Answer'
-                  : 'AI-written Study Answer'}
+                  ? '📚 Textbook-Grounded Curated Answer'
+                  : 'Textbook word count specific curated answer powered by AI'}
               </h3>
               <p className="mt-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                   ? 'Grounded in the IGNOU prescribed textbook'
-                  : 'Not an official IGNOU textbook extract'}
+                  : 'Textbook syllabus context curated answer'}
               </p>
-              {(isGrounded || reviewedByHuman) && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(isGrounded && textbookPage) ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
-                      📖 Verified Textbook Grounded (Page {textbookPage})
-                    </span>
-                  ) : (
-                    isGrounded && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
-                        📖 Textbook-grounded answer
+              <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
+                <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
+                  📝 Target Word Count: {getWordCountLimitForMarks(question.marks)}
+                </span>
+                {(isGrounded || reviewedByHuman) && (
+                  <>
+                    {(isGrounded && textbookPage) ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
+                        📖 Verified Textbook Grounded (Page {textbookPage})
                       </span>
-                    )
-                  )}
-                  {reviewedByHuman && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
-                      ✓ Reviewed by Gunjan
-                    </span>
-                  )}
-                </div>
-              )}
+                    ) : (
+                      isGrounded && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
+                          📖 Textbook-grounded answer
+                        </span>
+                      )
+                    )}
+                    {reviewedByHuman && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
+                        ✓ Reviewed by Gunjan
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -377,7 +388,7 @@ export default function QuestionCard({
                 <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
                   {answerData.trigger === 'subject_locked'
                     ? 'Your first paper is free. Upgrade to unlock this subject, or pick the 5-subject Pass for this TEE.'
-                    : 'Upgrade to Topper Pass to get AI study answers for unlocked subjects.'}
+                    : 'Upgrade to Topper Pass to get Textbook word count specific curated answers powered by AI for unlocked subjects.'}
                 </p>
                 <div className="mt-10 flex flex-col gap-4">
                   <button
@@ -423,13 +434,13 @@ export default function QuestionCard({
                   <p className="mt-1">
                     {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                       ? 'Answer is grounded in the IGNOU prescribed textbook for this course, structured with AI assistance for exam clarity.'
-                      : 'This is an AI-written study answer built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
+                      : 'This is a Textbook word count specific curated answer powered by AI built from MAPC syllabus context, past-paper patterns, and psychology curriculum knowledge. It is not copied from, nor officially verified against, an IGNOU textbook.'}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                     <span className="rounded-full bg-white px-3 py-1 text-zinc-700 ring-1 ring-inset ring-amber-200 dark:bg-black/20 dark:text-amber-100 dark:ring-amber-900/50">
                       {answerData?.status === 'success' && (answerData.textbookGrounded || isGrounded)
                         ? 'Main text: textbook-sourced content'
-                        : 'Main text: AI-composed study answer'}
+                        : 'Main text: curated study answer powered by AI'}
                     </span>
                     {(answerData?.status === 'success' && (answerData.answer ?? '').includes('[[AI_STUDY_NOTE]]')) && (
                       <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800 ring-1 ring-inset ring-sky-200 dark:bg-sky-950/50 dark:text-sky-100 dark:ring-sky-900/50">

@@ -39,7 +39,7 @@ const tracks = [
   },
 ] as const;
 
-export default function ExamSchedulePreview() {
+export default function ExamSchedulePreview({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [activeTrackId, setActiveTrackId] = useState<(typeof tracks)[number]['id']>('counselling');
   const activeTrack = tracks.find((track) => track.id === activeTrackId) ?? tracks[0];
   const schedule = useMemo(() => scheduleWithCourseDetails(activeTrack.codes), [activeTrack.codes]);
@@ -73,10 +73,10 @@ export default function ExamSchedulePreview() {
               See high-yield topics
             </a>
             <Link
-              href={withRedirectTo(ROUTES.signup, ROUTES.dashboard)}
+              href={isLoggedIn ? ROUTES.dashboard : withRedirectTo(ROUTES.signup, ROUTES.dashboard)}
               className="rounded-full border border-zinc-300 px-6 py-3 text-center text-sm font-bold text-zinc-800 transition-all hover:border-teal-700 hover:text-teal-700 dark:border-zinc-700 dark:text-zinc-100"
             >
-              Build my study map
+              {isLoggedIn ? 'Go to Dashboard' : 'Build my study map'}
             </Link>
           </div>
           <a

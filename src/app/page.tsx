@@ -6,6 +6,7 @@ import ConceptTreePreview, { type PublicCoursePreview } from './ConceptTreePrevi
 import ExamSchedulePreview from './ExamSchedulePreview';
 import { SUPPORT_EMAIL } from '@/lib/contact';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
   title: 'Topper101 — IGNOU MAPC Exam Prep',
@@ -67,11 +68,15 @@ async function fetchConceptPreviewData(): Promise<PublicCoursePreview[]> {
   }
 }
 
-const startFreeHref = withRedirectTo(ROUTES.signup, ROUTES.dashboard);
-const upgradeHref = withRedirectTo(ROUTES.signup, ROUTES.pricing);
-
 export default async function LandingPage() {
   const conceptPreviewCourses = await fetchConceptPreviewData();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
+
+  const startFreeHref = isLoggedIn ? ROUTES.dashboard : withRedirectTo(ROUTES.signup, ROUTES.dashboard);
+  const upgradeHref = isLoggedIn ? ROUTES.pricing : withRedirectTo(ROUTES.signup, ROUTES.pricing);
+
   return (
     <div className="flex min-h-screen flex-col bg-white text-zinc-950 dark:bg-black dark:text-zinc-50">
       <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur-md dark:border-zinc-800 dark:bg-black/90">
@@ -89,15 +94,26 @@ export default async function LandingPage() {
             <Link href={ROUTES.career} className="hover:text-teal-700">Career Paths</Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href={ROUTES.login} className="text-sm font-medium hover:text-teal-700">
-              Log in
-            </Link>
-            <Link
-              href={startFreeHref}
-              className="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
-            >
-              Start Free
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href={ROUTES.dashboard}
+                className="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href={ROUTES.login} className="text-sm font-medium hover:text-teal-700">
+                  Log in
+                </Link>
+                <Link
+                  href={startFreeHref}
+                  className="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
+                >
+                  Start Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -136,7 +152,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <ExamSchedulePreview />
+        <ExamSchedulePreview isLoggedIn={isLoggedIn} />
 
         <ConceptTreePreview courses={conceptPreviewCourses} />
 
@@ -170,8 +186,8 @@ export default async function LandingPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 { name: 'Free', price: '₹0', features: ['1 full subject unlocked', 'Paper selection', 'Basic progress tracking'] },
-                { name: 'Pass: 1 Subject', price: '₹99', period: '/mo', features: ['1 subject unlocked', 'AI answer views', 'Frequency heat map'] },
-                { name: 'Pass: 5 Subjects', price: '₹299', period: '/mo', highlight: true, features: ['Up to 5 subjects unlocked', 'AI answer views', 'Frequency heat map'] },
+                { name: 'Pass: 1 Subject', price: '₹99', period: '/mo', features: ['1 subject unlocked', 'Textbook word count specific curated answers powered by AI', 'Frequency heat map'] },
+                { name: 'Pass: 5 Subjects', price: '₹299', period: '/mo', highlight: true, features: ['Up to 5 subjects unlocked', 'Textbook word count specific curated answers powered by AI', 'Frequency heat map'] },
               ].map((plan) => (
                 <div key={plan.name} className={`rounded-lg border p-6 ${
                   plan.highlight

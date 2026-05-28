@@ -74,7 +74,7 @@ export default function ConceptTreePreview({ courses }: { courses: PublicCourseP
               See the heat map before you sign up.
             </h2>
             <p className="mt-5 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-              Pick a paper to see its complete public topic-cluster map. Questions and AI answers unlock after signup.
+              Pick a paper to see its complete public topic-cluster map. Questions and Textbook word count specific curated answers powered by AI unlock after signup.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-2">
@@ -186,7 +186,7 @@ export default function ConceptTreePreview({ courses }: { courses: PublicCourseP
               <div>
                 <p className="font-bold">Sign up to see the important questions for June 2026 TEE for each topic.</p>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  Topic clusters stay public; question-level priority, filters, AI answers, and progress tracking unlock inside your account.
+                  Topic clusters stay public; question-level priority, filters, Textbook word count specific curated answers powered by AI, and progress tracking unlock inside your account.
                 </p>
               </div>
               <Link
