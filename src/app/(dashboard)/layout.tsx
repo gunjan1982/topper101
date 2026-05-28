@@ -60,6 +60,14 @@ export default async function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            {user.email && (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()) && (
+              <Link
+                href={ROUTES.admin}
+                className="rounded-full bg-teal-100 px-3.5 py-1.5 text-xs font-bold text-teal-800 hover:bg-teal-200 dark:bg-teal-900/30 dark:text-teal-300 transition-colors"
+              >
+                Admin Panel 🛡️
+              </Link>
+            )}
             <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-800" />
             <ThemeToggle />
             <form action={logout}>
