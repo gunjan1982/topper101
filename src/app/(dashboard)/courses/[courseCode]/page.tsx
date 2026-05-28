@@ -541,7 +541,6 @@ export default async function CourseDetailPage({
             sessionFilters={sessionFilters as PdfSessionItem[]}
             initialYear={selectedYear}
             initialSession={selectedSession}
-            questionPageMap={questionPageMap}
           />
       </section>
     </div>

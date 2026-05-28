@@ -111,6 +111,18 @@ export default function QuestionCard({
     trackQuestionViewed(question.id, courseCode).catch(() => {});
   }, [courseCode, frequencyTier, isPaid, posthog, question.id]);
 
+  // Block print and save keyboard shortcuts globally
+  useEffect(() => {
+    const blockShortcuts = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', blockShortcuts, true);
+    return () => window.removeEventListener('keydown', blockShortcuts, true);
+  }, []);
+
   const handleSeeAnswer = async () => {
     if (isOpen) {
       setIsOpen(false);
@@ -339,7 +351,7 @@ export default function QuestionCard({
           )}
           {textbookPage && textbookPage > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
-              📚 Textbook excerpt available
+              📚 Jump to textbook page {textbookPage}
             </span>
           )}
         </div>
@@ -448,6 +460,13 @@ export default function QuestionCard({
               <div
                 className="relative space-y-6 select-none"
                 onContextMenu={(e) => e.preventDefault()}
+                onCopy={(e) => e.preventDefault()}
+                onCut={(e) => e.preventDefault()}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && ['c', 'a', 'x', 's', 'p'].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
               >
                 {answerData?.creditsRemaining !== undefined && (
                   <div className="rounded-xl bg-teal-50 p-4 text-xs font-bold text-teal-700 dark:bg-teal-900/30">

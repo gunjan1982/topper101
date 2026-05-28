@@ -78,7 +78,9 @@ export async function GET(
         'Content-Length': String(size),
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'inline',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Content-Security-Policy': "frame-ancestors 'self'",
       },
     });
   }
