@@ -32,33 +32,45 @@ export async function GET() {
   // Filesystem check for traced textbooks
   const fsDiag: any = {
     cwd: process.cwd(),
-    dirname: __dirname,
-    searchedRelativePaths: {},
-    foundPath: null,
+    tree: {},
+    foundPaths: [],
+    error: null,
   };
 
   try {
-    // Resolve relative paths from __dirname (up to 7 levels)
-    let currentDir = __dirname;
-    for (let i = 0; i <= 7; i++) {
-      const targetPath = path.join(currentDir, 'data', 'textbooks', 'MPC-001', 'chunks.json');
-      const targetDir = path.join(currentDir, 'data');
-      
-      fsDiag.searchedRelativePaths[i] = {
-        dirPath: targetDir,
-        dirExists: fs.existsSync(targetDir),
-        filePath: targetPath,
-        fileExists: fs.existsSync(targetPath),
-      };
-
-      if (fsDiag.searchedRelativePaths[i].fileExists) {
-        fsDiag.foundPath = targetPath;
-        fsDiag.foundLevel = i;
-        break;
+    function buildTree(dir: string, currentBranch: any, depth = 0) {
+      if (depth > 10) return;
+      let files: string[] = [];
+      try {
+        files = fs.readdirSync(dir);
+      } catch (err: any) {
+        currentBranch['$error'] = err.message;
+        return;
       }
-      
-      currentDir = path.dirname(currentDir);
+
+      for (const file of files) {
+        if (file === 'node_modules' || file === '.git' || file === 'cache' || file === '.next_cache' || file === '.v8-cache') continue;
+        const fullPath = path.join(dir, file);
+        let stat;
+        try {
+          stat = fs.statSync(fullPath);
+        } catch {
+          continue;
+        }
+
+        if (stat.isDirectory()) {
+          currentBranch[file] = {};
+          buildTree(fullPath, currentBranch[file], depth + 1);
+        } else {
+          currentBranch[file] = stat.size;
+          if (file === 'chunks.json' || file.endsWith('.json')) {
+            fsDiag.foundPaths.push(fullPath);
+          }
+        }
+      }
     }
+
+    buildTree(process.cwd(), fsDiag.tree);
   } catch (err: any) {
     fsDiag.error = err.message;
   }
