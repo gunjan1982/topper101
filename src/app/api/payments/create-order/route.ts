@@ -33,6 +33,12 @@ const PASS_OFFERS: Record<string, {
     billingCycle: 'semester',
     label: 'Topper Pass - 5 subjects (Semester Dec 2026)',
   },
+  'pass-testing': {
+    amount: 100, // Re 1 in paise
+    subjectLimit: 1,
+    billingCycle: 'monthly',
+    label: 'Topper Pass - Testing (Re 1)',
+  },
 };
 
 export async function POST(request: Request) {

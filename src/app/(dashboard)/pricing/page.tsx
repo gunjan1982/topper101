@@ -49,6 +49,7 @@ export default function PricingPage() {
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const [userYear, setUserYear] = useState<number | null>(null);
   const router = useRouter();
+  const isDev = process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
   useEffect(() => {
     async function loadUserYear() {
@@ -316,6 +317,23 @@ export default function PricingPage() {
             </button>
           </div>
         </div>
+
+        {/* Dev Testing Card */}
+        {isDev && (
+          <div className="mt-8 rounded-2xl border border-dashed border-teal-500/40 bg-teal-500/5 p-6 text-center animate-fade-in">
+            <h4 className="text-sm font-bold text-teal-800 dark:text-teal-400">🛠️ Developer Payment Testing</h4>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Run a live integration check with a Re 1 charge. This card is only visible in local development.
+            </p>
+            <button
+              onClick={() => handleUpgrade('pass-testing')}
+              disabled={!!loading}
+              className="mt-4 inline-flex items-center justify-center rounded-xl bg-teal-700 px-5 py-2.5 text-xs font-bold text-white hover:bg-teal-600 disabled:opacity-50"
+            >
+              {loading === 'pass-testing' ? 'Initialising…' : 'Unlock Testing Plan — ₹1'}
+            </button>
+          </div>
+        )}
 
         {/* Footer note */}
         <p className="mt-8 text-center text-xs text-zinc-400">
