@@ -376,32 +376,6 @@ export default async function CourseDetailPage({
           )}
         </div>
         <div className="flex items-center gap-4">
-          {course.course_type === 'theory' && hasDatabaseCourse && (
-            <Link
-              href={`/courses/${course.code}/assignments`}
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm ring-1 ring-inset ring-zinc-200 hover:ring-teal-600/50 hover:text-teal-700 transition-all dark:bg-zinc-900 dark:ring-zinc-700 dark:text-zinc-400"
-            >
-              Assignments
-            </Link>
-          )}
-          {hasDatabaseCourse && sessionFilters.length > 0 && (
-            <a
-              href={`/api/pdf/qpaper/${course.code}?year=${sessionFilters[0].year}&session=${encodeURIComponent(sessionFilters[0].session)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm ring-1 ring-inset ring-zinc-200 hover:ring-teal-600/50 hover:text-teal-700 transition-all dark:bg-zinc-900 dark:ring-zinc-700 dark:text-zinc-400"
-            >
-              📄 Q Paper
-            </a>
-          )}
-          {course.course_type === 'theory' && hasDatabaseCourse && (
-            <Link
-              href={`/courses/${course.code}/mock-test`}
-              className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 transition-all"
-            >
-              Mock Test
-            </Link>
-          )}
           <div className="text-sm font-medium text-zinc-500">
             {questionGroups.length} Question Patterns · {questions.length} Variations
           </div>
