@@ -109,7 +109,7 @@ export default function CoursePdfPanels({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const qpSrc = `/api/pdf/qpaper/${courseCode}?year=${qpYear}&session=${encodeURIComponent(qpSession)}`;
+  const qpSrc = `/api/pdf/qpaper/${courseCode}?year=${qpYear}&session=${encodeURIComponent(qpSession)}#toolbar=0&navpanes=0`;
 
   /**
    * Build the textbook iframe src. We use the resolved direct URL with the
@@ -118,7 +118,11 @@ export default function CoursePdfPanels({
    */
   const buildTbSrc = (page: number | null): string => {
     const base = tbState.resolvedUrl ?? `/api/pdf/textbook/${courseCode}`;
-    return page && page > 0 ? `${base}#page=${page}` : base;
+    const params = 'toolbar=0&navpanes=0';
+    if (page && page > 0) {
+      return `${base}#page=${page}&${params}`;
+    }
+    return `${base}#${params}`;
   };
 
   const tbSrc = buildTbSrc(tbState.page);
@@ -224,7 +228,6 @@ export default function CoursePdfPanels({
                 src={qpSrc}
                 className="w-full h-full border-0"
                 title={`${courseCode} Question Paper ${qpSession} ${qpYear}`}
-                sandbox="allow-scripts allow-same-origin allow-forms"
                 onContextMenu={(e) => e.preventDefault()}
               />
             </div>
@@ -265,7 +268,6 @@ export default function CoursePdfPanels({
                   src={tbSrc}
                   className="w-full h-full border-0"
                   title={`${courseCode} Textbook`}
-                  sandbox="allow-scripts allow-same-origin allow-forms"
                   onContextMenu={(e) => e.preventDefault()}
                 />
                 {/* Excerpt tooltip strip at bottom when page is matched */}

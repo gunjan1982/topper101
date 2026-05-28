@@ -111,6 +111,7 @@ export default async function MockTestPage({
   const { data: userData } = await supabase
     .from('users')
     .select('plan_tier')
+    .eq('id', user.id)
     .single();
   const entitlements = await fetchSubjectEntitlements(supabase, user.id);
   const hasAccess = canAccessCourse({

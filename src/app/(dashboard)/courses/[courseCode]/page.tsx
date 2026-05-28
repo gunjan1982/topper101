@@ -272,10 +272,13 @@ export default async function CourseDetailPage({
   const exam = getExamSchedule(course.code);
   const examDaysLeft = exam ? daysUntilExam(exam.date) : null;
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('plan_tier, referral_code')
-    .single();
+  const { data: userData } = user
+    ? await supabase
+        .from('users')
+        .select('plan_tier, referral_code')
+        .eq('id', user.id)
+        .single()
+    : { data: null };
   const userEmail = user?.email ?? null;
   const entitlements = user ? await fetchSubjectEntitlements(supabase, user.id) : [];
   const canAccessAnswers = canAccessCourse({

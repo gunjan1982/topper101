@@ -27,7 +27,8 @@ export async function captureServerEvent(
   try {
     const ph = getPostHogClient();
     ph.capture({ distinctId, event, properties });
-    await ph.flush();
+    // Flush in the background; never block the request thread
+    ph.flush().catch((err) => console.warn('[PostHog Flush Error]', err));
   } catch (err) {
     // Never let analytics failures crash the app
     console.warn('[PostHog]', event, err);
