@@ -36,7 +36,9 @@ yarn-error.log*
 .env*
 
 # Pipeline data and PDFs — not for version control
-data/
+data/*
+!data/textbooks/
+data/textbooks/**/*.pdf
 scripts/pipeline/
 
 # vercel
