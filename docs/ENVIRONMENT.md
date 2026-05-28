@@ -74,9 +74,12 @@ Folder layout:
 pdfs/
   past-papers/{courseCode}/{courseCode}_{Session}_{Year}.pdf   # 184 files
   past-papers-dec2025/{courseCode}.pdf                          # 16 files, Dec 2025
+  textbooks/{courseCode}/{courseCode}_textbook.pdf              # 16 files (consolidated, compressed)
 ```
 
-The Q-paper API route (`/api/pdf/qpaper/[courseCode]`) redirects to these public URLs in production. Textbooks are NOT uploaded (too large — up to 421 MB); the course page shows inline chunk text instead.
+The Q-paper API route (`/api/pdf/qpaper/[courseCode]`) redirects to past-paper URLs in production, while `/api/pdf/textbook/[courseCode]/url` returns the textbook PDF storage URL. 
+
+To ensure browser PDF viewers load textbooks efficiently on slow connections, large scanned textbooks (like MPCE-012 and MPCE-031) are compressed using Ghostscript down to under 35MB before uploading to Supabase.
 
 ## Infisical Mapping
 

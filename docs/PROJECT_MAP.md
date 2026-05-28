@@ -61,7 +61,7 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 
 - `src/app/(dashboard)/courses/[courseCode]/page.tsx`: course question bank, filters, heat-map clusters, question cards, and server-side textbook chunk matching. Uses a 2-column layout on `lg` screens (questions left, PDF panels right).
 - `src/app/(dashboard)/courses/[courseCode]/components/QuestionCard.tsx`: question display, AI answer modal, free-credit/paywall behavior. Dispatches a `textbookJump` CustomEvent on click carrying `{ page, excerpt }` for the textbook panel.
-- `src/app/(dashboard)/courses/[courseCode]/components/CoursePdfPanels.tsx`: sticky right-column panels (desktop only, `hidden lg:flex`). Top panel: Q-paper PDF (iframe, session dropdown, redirects to Supabase Storage). Bottom panel: textbook excerpt text inline — shows the best-matching chunk on `textbookJump` event, empty state otherwise.
+- `src/app/(dashboard)/courses/[courseCode]/components/CoursePdfPanels.tsx`: sticky right-column panels (desktop only, `hidden lg:flex`). Top panel: Q-paper PDF (iframe, session dropdown, redirects to Supabase Storage). Bottom panel: textbook PDF viewer (iframe) — displays the textbook PDF from Supabase Storage and jumps to the matched page on question selection, with copy/download/print protections and a bottom context excerpt strip.
 - `src/app/(dashboard)/courses/actions.ts`: question progress, answer fetch, and user progress server actions.
 - `src/app/(dashboard)/courses/[courseCode]/assignments/page.tsx`: assignment year list for theory courses.
 - `src/app/(dashboard)/courses/[courseCode]/assignments/[year]/page.tsx`: assignment questions for a year.
@@ -74,7 +74,8 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `src/app/api/payments/webhook/route.ts`: handles Razorpay payment webhooks asynchronously to upgrade plan tier and entitlements as a failover.
 - `src/app/api/assignments/generate-answer/route.ts`: generates/caches assignment answers.
 - `src/app/api/pdf/qpaper/[courseCode]/route.ts`: serves past-paper PDFs. In dev: reads local `data/past_papers/` files with range-request support. In production: 302 redirects to the Supabase Storage public bucket `pdfs`. Dec 2025 papers redirect to `past-papers-dec2025/{code}.pdf`.
-- `src/app/api/pdf/textbook/[courseCode]/route.ts`: local-only textbook PDF server (dev fallback). Not used in production — the course page renders inline chunk text instead.
+- `src/app/api/pdf/textbook/[courseCode]/route.ts`: local-only textbook PDF server (reads from local `data/textbooks/` with range-request support for development).
+- `src/app/api/pdf/textbook/[courseCode]/url/route.ts`: API endpoint that returns the resolved Supabase Storage textbook URL as JSON, allowing the client-side PDF iframe to load the textbook with `#page=N` fragment preserved.
 - `src/lib/razorpay.ts`: Razorpay client setup.
 - `src/lib/payments-service.ts`: shared database subscription and entitlement granting service.
 - `src/lib/supabase/client.ts`: browser Supabase client.
@@ -121,7 +122,7 @@ The `scripts/pipeline/` directory contains the full offline pipeline for buildin
 | `config.py` | Shared paths and config for all pipeline scripts |
 | `run_all.sh` | Runs all steps end to end |
 
-Extracted textbook chunks live in `data/textbooks/{courseCode}/chunks.json` with fields `{course_code, chunk_id, text, page_start, page_end, word_count}`. These are read server-side in `page.tsx` to match questions to textbook passages (no upload needed).
+Extracted textbook chunks live in `data/textbooks/{courseCode}/chunks.json` with fields `{course_code, chunk_id, text, page_start, page_end, word_count}`. These are read server-side in `page.tsx` to match questions to textbook passages and determine textbook page citations.
 
 December 2025 papers are stored separately in `data/past_papers_dec2025/{courseCode}.pdf` (downloaded from `ignou.ac.in/viewFile/ldd/qpdec2025/`).
 
