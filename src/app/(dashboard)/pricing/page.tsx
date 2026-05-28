@@ -97,8 +97,34 @@ export default function PricingPage() {
         name: 'Topper101',
         description: `Topper Pass — ${offer.sublabel}`,
         order_id: orderId,
-        handler: function () {
-          router.push('/dashboard?payment=success');
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          setLoading(offerId);
+          try {
+            const verifyRes = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            if (!verifyRes.ok) {
+              const errData = await verifyRes.json();
+              throw new Error(errData.error || 'Verification failed');
+            }
+            router.push('/dashboard?payment=success');
+          } catch (err: unknown) {
+            console.error('Payment verification failed:', err);
+            const errMsg = err instanceof Error ? err.message : 'Verification failed';
+            setError(`Payment verification failed: ${errMsg}`);
+          } finally {
+            setLoading(null);
+          }
         },
         modal: {
           ondismiss: function () {

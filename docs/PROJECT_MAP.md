@@ -70,11 +70,13 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 ## APIs And Integrations
 
 - `src/app/api/payments/create-order/route.ts`: creates Razorpay orders.
-- `src/app/api/payments/webhook/route.ts`: handles Razorpay payment webhooks and plan updates.
+- `src/app/api/payments/verify/route.ts`: verifies Razorpay payment signatures client-side and upgrades plan tier and entitlements synchronously.
+- `src/app/api/payments/webhook/route.ts`: handles Razorpay payment webhooks asynchronously to upgrade plan tier and entitlements as a failover.
 - `src/app/api/assignments/generate-answer/route.ts`: generates/caches assignment answers.
 - `src/app/api/pdf/qpaper/[courseCode]/route.ts`: serves past-paper PDFs. In dev: reads local `data/past_papers/` files with range-request support. In production: 302 redirects to the Supabase Storage public bucket `pdfs`. Dec 2025 papers redirect to `past-papers-dec2025/{code}.pdf`.
 - `src/app/api/pdf/textbook/[courseCode]/route.ts`: local-only textbook PDF server (dev fallback). Not used in production — the course page renders inline chunk text instead.
 - `src/lib/razorpay.ts`: Razorpay client setup.
+- `src/lib/payments-service.ts`: shared database subscription and entitlement granting service.
 - `src/lib/supabase/client.ts`: browser Supabase client.
 - `src/lib/supabase/server.ts`: server Supabase client.
 - `src/lib/posthog-server.ts`: server-side PostHog capture helper.
