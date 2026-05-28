@@ -20,6 +20,8 @@ function StatCard({ label, value, sub, href }: StatCardProps) {
   return href ? <Link href={href}>{inner}</Link> : <div>{inner}</div>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
   const admin = createAdminClient();
 
