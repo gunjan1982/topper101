@@ -37,6 +37,15 @@ const PASS_OFFERS: Record<string, {
 
 export async function POST(request: Request) {
   try {
+    // Guard: Validate required env vars are present
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay env vars missing:', {
+        hasKeyId: !!process.env.RAZORPAY_KEY_ID,
+        hasKeySecret: !!process.env.RAZORPAY_KEY_SECRET,
+      });
+      return NextResponse.json({ error: 'Payment gateway not configured. Please contact support.' }, { status: 503 });
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -82,9 +91,12 @@ export async function POST(request: Request) {
       currency: order.currency 
     });
   } catch (error: unknown) {
-    console.error('Razorpay order creation failed:', error);
+    // Log full error details for Vercel function logs
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errDetails = error && typeof error === 'object' ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : String(error);
+    console.error('[payments/create-order] Razorpay order creation failed:', errMsg, errDetails);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Payment order creation failed' },
+      { error: errMsg || 'Payment order creation failed' },
       { status: 500 }
     );
   }
