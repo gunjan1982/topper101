@@ -89,7 +89,7 @@ export function QPaperPanel({
   const qpSrc = buildQpSrc(qpYear, qpSession);
 
   return (
-    <aside className="hidden lg:flex flex-col w-[34%] shrink-0 h-[480px] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden">
+    <aside className="hidden lg:flex flex-col w-[34%] shrink-0 h-[640px] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden">
       {/* Title bar */}
       <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0 bg-zinc-50 dark:bg-zinc-900 px-4 py-3">
         <div className="flex items-center gap-2">
