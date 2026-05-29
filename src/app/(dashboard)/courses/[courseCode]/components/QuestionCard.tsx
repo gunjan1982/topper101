@@ -51,6 +51,7 @@ interface QuestionCardProps {
   topicClusterId?: string;
   textbookGrounded?: boolean;
   reviewedByHuman?: boolean;
+  probabilityPct?: number;
 }
 
 function getWordCountLimitForMarks(marks: number) {
@@ -73,7 +74,9 @@ export default function QuestionCard({
   topicClusterId,
   textbookGrounded = false,
   reviewedByHuman = false,
+  probabilityPct,
 }: QuestionCardProps) {
+
   const posthog = usePostHog();
   const resolvedPage = resolveTextbookPage(courseCode, textbookPage);
 
@@ -248,6 +251,11 @@ export default function QuestionCard({
           <span className="rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
             {question.section ? `Section ${question.section} · ` : ''}{question.marks} Marks
           </span>
+          {probabilityPct !== undefined && (
+            <span className="rounded bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+              🎯 Repeat Prob: {probabilityPct}%
+            </span>
+          )}
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 flex items-center gap-1">
             ⚠️ Under Review
           </span>
@@ -280,11 +288,17 @@ export default function QuestionCard({
           <span className="rounded bg-teal-50 px-2 py-1 text-teal-700 dark:bg-teal-900/30">
             {question.section ? `Section ${question.section} · ` : ''}{question.marks} Marks
           </span>
+          {probabilityPct !== undefined && (
+            <span className="rounded bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+              🎯 Repeat Prob: {probabilityPct}%
+            </span>
+          )}
           {variations.length > 1 && (
             <span className="rounded bg-violet-50 px-2 py-1 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300">
               Repeated {variations.length} times
             </span>
           )}
+
         </div>
         
         <p className="text-lg font-medium leading-snug dark:text-white">

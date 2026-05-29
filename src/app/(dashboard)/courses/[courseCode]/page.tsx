@@ -280,8 +280,23 @@ export default async function CourseDetailPage({
     if (!matchedCluster) return true;
     return question.topic_cluster_id === matchedCluster.id || question.topic === matchedCluster.cluster_name;
   });
+  
+  const getQuestionProbability = (q: QuestionRow) => {
+    const cluster = (clusters as TopicCluster[] | null)?.find(
+      (c) => c.id === q.topic_cluster_id || c.cluster_name === q.topic
+    );
+    const count = cluster?.frequency_count ?? 0;
+    const total = sessionFilters.length || 1;
+    return Math.min(100, Math.round((count / total) * 100));
+  };
+
   const questionGroups = groupRepeatedQuestions(questions, course.code);
+  const sortedQuestionGroups = [...questionGroups].sort((a, b) => {
+    return getQuestionProbability(b.question) - getQuestionProbability(a.question);
+  });
+  
   const topicSessions = new Map<string, TopicSessionStat[]>();
+
 
   (clusters as TopicCluster[] | null)?.forEach((cluster) => {
     const clusterQuestions = allQuestions.filter((question) => (
@@ -443,10 +458,9 @@ export default async function CourseDetailPage({
           {/* Q Paper link — redundant; replaced by floating drawer toggle in CoursePdfPanels */}
         </div>
 
-        {/* Single-column layout — PDF panels float as a drawer (see CoursePdfPanels) */}
         <div className="space-y-4">
-            {questionGroups.length > 0 ? (
-              questionGroups.map(({ question: q, variations }) => (
+            {sortedQuestionGroups.length > 0 ? (
+              sortedQuestionGroups.map(({ question: q, variations }) => (
                 <QuestionCard
                   key={q.id}
                   question={q}
@@ -464,8 +478,10 @@ export default async function CourseDetailPage({
                   topicClusterId={q.topic_cluster_id ?? undefined}
                   textbookGrounded={q.textbook_grounded ?? false}
                   reviewedByHuman={q.reviewed_by_human ?? false}
+                  probabilityPct={getQuestionProbability(q)}
                 />
               ))
+
             ) : (
               <div className="rounded-3xl border border-dashed border-zinc-200 p-20 text-center dark:border-zinc-800">
                 <p className="text-zinc-500 font-medium italic">
