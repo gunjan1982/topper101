@@ -290,6 +290,14 @@ export default async function CourseDetailPage({
     topicSessions.set(cluster.id, topicSessionStats(clusterQuestions));
   });
 
+  const getTopicTier = (clusterId: string): 'HIGH' | 'MEDIUM' | 'LOW' => {
+    const sessions = topicSessions.get(clusterId) ?? [];
+    const count = sessions.length;
+    if (count >= 5) return 'HIGH';
+    if (count >= 3) return 'MEDIUM';
+    return 'LOW';
+  };
+
   const getQuestionProbability = (q: QuestionRow) => {
     const cluster = (clusters as TopicCluster[] | null)?.find(
       (c) => c.id === q.topic_cluster_id || c.cluster_name === q.topic
@@ -375,6 +383,8 @@ export default async function CourseDetailPage({
                   ));
                   const meanMarks = topicMeanMarks(clusterQuestions);
 
+                  const dynamicTier = getTopicTier(cluster.id);
+
                   return (
                     <Link
                       key={cluster.id} 
@@ -382,9 +392,9 @@ export default async function CourseDetailPage({
                       className={`group rounded-xl border p-3.5 transition-all hover:shadow-md hover:border-teal-600/50 ${
                         resolvedSearchParams.cluster === cluster.id ? 'ring-2 ring-teal-700 ring-offset-2' : ''
                       } ${
-                        cluster.frequency_tier === 'HIGH' 
+                        dynamicTier === 'HIGH' 
                           ? 'border-red-100 bg-red-50/30 dark:border-red-900/20 dark:bg-red-900/5' 
-                          : cluster.frequency_tier === 'MEDIUM'
+                          : dynamicTier === 'MEDIUM'
                           ? 'border-amber-100 bg-amber-50/30 dark:border-amber-900/20 dark:bg-amber-900/5'
                           : 'border-zinc-200/80 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/5'
                       }`}
@@ -392,11 +402,11 @@ export default async function CourseDetailPage({
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-1.5">
                           <span className={`text-[9px] font-extrabold uppercase tracking-wider ${
-                            cluster.frequency_tier === 'HIGH' ? 'text-red-600' : cluster.frequency_tier === 'MEDIUM' ? 'text-amber-600' : 'text-zinc-500'
+                            dynamicTier === 'HIGH' ? 'text-red-600' : dynamicTier === 'MEDIUM' ? 'text-amber-600' : 'text-zinc-500'
                           }`}>
-                            {cluster.frequency_tier ?? 'LOW'} Tier
+                            {dynamicTier} Tier
                           </span>
-                          {cluster.frequency_tier === 'HIGH' && <span className="text-xs">🔥</span>}
+                          {dynamicTier === 'HIGH' && <span className="text-xs">🔥</span>}
                         </div>
                         <span className="text-[10px] font-medium text-zinc-500">
                           {sessions.length || cluster.frequency_count} TEEs
@@ -494,7 +504,10 @@ export default async function CourseDetailPage({
                   referralCode={userData?.referral_code ?? null}
                   userEmail={userEmail}
                   frequencyTier={
-                    (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic)?.frequency_tier ?? 'LOW'
+                    (() => {
+                      const cluster = (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic);
+                      return cluster ? getTopicTier(cluster.id) : 'LOW';
+                    })()
                   }
                   initialProgress={progressByQuestion.get(q.id)}
                   textbookPage={q.textbook_page ?? undefined}
