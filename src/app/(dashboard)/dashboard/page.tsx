@@ -120,7 +120,13 @@ export default async function DashboardPage({
   // Fetch referrals for current user
   const { data: referrals } = await supabase
     .from('referrals')
-    .select('status, created_at')
+    .select(`
+      status,
+      created_at,
+      referred_user:referred_user_id (
+        email
+      )
+    `)
     .eq('referrer_user_id', user.id)
     .order('created_at', { ascending: false });
 

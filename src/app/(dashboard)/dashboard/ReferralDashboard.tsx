@@ -5,6 +5,11 @@ import { useState } from 'react';
 interface Referral {
   status: string;
   created_at: string;
+  referred_user?: {
+    email: string;
+  } | {
+    email: string;
+  }[] | null;
 }
 
 interface ReferralDashboardProps {
@@ -17,13 +22,19 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
   const [copied, setCopied] = useState(false);
 
   const referralUrl = `${siteUrl}/signup?ref=${referralCode}`;
-  
-  const rewardedCount = referrals.filter(
-    (r) => r.status === 'rewarded' || r.status === 'qualified'
-  ).length;
 
-  const rewardLimit = 3;
-  const progressPercent = Math.min((rewardedCount / rewardLimit) * 100, 100);
+  const calculateCredits = (status: string) => {
+    if (status === 'rewarded') return 2;
+    return 1; // pending or qualified
+  };
+
+  const totalCredits = referrals.reduce((sum, r) => sum + calculateCredits(r.status), 0);
+  const unlocksEarned = Math.min(Math.floor(totalCredits / 2), 3);
+  const progressToNext = totalCredits % 2; // 0 or 1 credit toward next unlock
+  
+  // Total progress out of 6 credits (3 unlocks max)
+  const maxCredits = 6;
+  const progressPercent = Math.min((totalCredits / maxCredits) * 100, 100);
 
   const shareText = `Hey! I'm using Topper101 to study for my IGNOU MAPC exams. It has topic frequency heatmaps, repeat question families, and textbook-cited answers. Sign up using my link to get a subject unlocked for free! 🚀`;
 
@@ -43,23 +54,41 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
   return (
     <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        {/* Left column: Info & Progress */}
-        <div className="flex-1 space-y-4">
+        {/* Left column: Credits, Info & Progress */}
+        <div className="flex-1 space-y-6">
           <div>
             <h2 className="text-2xl font-bold tracking-tight dark:text-white">Refer & Unlock</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Invite your classmates to Topper101. When they complete onboarding, you get a full subject unlock for free.
+              Classmates get a free subject at signup. You earn subject credits when they join and study!
             </p>
+          </div>
+
+          {/* Credits Summary Grid */}
+          <div className="grid grid-cols-3 gap-4 rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900/40 border border-zinc-100 dark:border-zinc-800/80">
+            <div className="text-center sm:text-left">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Credits</span>
+              <span className="text-2xl font-extrabold text-teal-700 dark:text-teal-400">{totalCredits}</span>
+            </div>
+            <div className="text-center sm:text-left border-l border-zinc-200 dark:border-zinc-800 pl-4">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Unlocks Earned</span>
+              <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200">{unlocksEarned} <span className="text-xs font-normal text-zinc-400">/ 3</span></span>
+            </div>
+            <div className="text-center sm:text-left border-l border-zinc-200 dark:border-zinc-800 pl-4">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Next Unlock</span>
+              <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">
+                {progressToNext === 0 ? 'Ready!' : `${progressToNext}/2`}
+              </span>
+            </div>
           </div>
 
           {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                Rewards earned: {rewardedCount} of {rewardLimit}
+                Reward progress: {totalCredits} of {maxCredits} credits
               </span>
               <span className="text-xs text-zinc-500">
-                {rewardLimit - rewardedCount} slots left
+                {2 - progressToNext} credits to next unlock
               </span>
             </div>
             <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -68,11 +97,11 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <div className="flex justify-between text-[11px] text-zinc-400">
-              <span>0 Unlocks</span>
-              <span>1 Unlock</span>
-              <span>2 Unlocks</span>
-              <span>3 Unlocks (Max)</span>
+            <div className="flex justify-between text-[11px] text-zinc-400 px-1">
+              <span>0 Credits</span>
+              <span>2 Credits (1 Subject)</span>
+              <span>4 Credits (2 Subjects)</span>
+              <span>6 Credits (3 Subjects)</span>
             </div>
           </div>
         </div>
@@ -80,10 +109,10 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
         {/* Right column: Action code copy */}
         <div className="w-full md:w-80 rounded-2xl bg-zinc-50 p-5 dark:bg-zinc-900/80 border border-zinc-100 dark:border-zinc-800">
           <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Your referral code
+            Your referral link
           </label>
           <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
-            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200 pl-2">
+            <span className="font-mono text-xs font-bold text-zinc-800 dark:text-zinc-200 pl-1 truncate max-w-[150px]">
               {referralCode}
             </span>
             <button
@@ -140,7 +169,7 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
       {referrals.length > 0 && (
         <div className="mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800">
           <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Referrals History
+            Referred Classmates ({referrals.length})
           </h3>
           <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20">
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -151,10 +180,12 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                   year: 'numeric',
                 });
                 
-                const isRewarded = referral.status === 'rewarded' || referral.status === 'qualified';
+                const rawUser = referral.referred_user;
+                const referredUser = Array.isArray(rawUser) ? rawUser[0] : rawUser;
+                const email = referredUser?.email ?? `classmate_${referral.status}_${index + 1}@topper101.com`;
                 
                 return (
-                  <div key={index} className="flex items-center justify-between p-4 text-sm">
+                  <div key={index} className="flex items-center justify-between p-4 text-sm flex-wrap gap-2">
                     <div className="flex items-center gap-3">
                       <div className="rounded-full bg-zinc-100 p-2 dark:bg-zinc-800">
                         <svg className="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -162,25 +193,38 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                         </svg>
                       </div>
                       <div>
-                        <div className="font-semibold text-zinc-800 dark:text-zinc-200">
-                          Classmate {index + 1}
+                        <div className="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200 select-all">
+                          {email}
                         </div>
-                        <div className="text-xs text-zinc-500">
-                          Joined on {dateStr}
+                        <div className="text-[11px] text-zinc-400 mt-0.5">
+                          Joined {dateStr}
                         </div>
                       </div>
                     </div>
 
-                    <div>
-                      {isRewarded ? (
+                    <div className="flex items-center gap-3">
+                      {referral.status === 'rewarded' && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          Reward Claimed
+                          🎉 Paid (+2 Credits)
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
-                          Pending Onboarding
+                      )}
+                      {referral.status === 'qualified' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 dark:bg-teal-950/30 dark:text-teal-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
+                          ✅ Joined (+1 Credit)
+                        </span>
+                      )}
+                      {referral.status === 'pending' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          ⏳ Onboarding Pending (+1 Credit)
+                        </span>
+                      )}
+                      {referral.status === 'rejected' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-800 dark:bg-red-950/30 dark:text-red-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                          ✕ Excluded
                         </span>
                       )}
                     </div>
