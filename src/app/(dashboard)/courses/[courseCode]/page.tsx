@@ -350,7 +350,7 @@ export default async function CourseDetailPage({
             <Link href={`/courses/${course.code}`} className="text-xs font-bold text-teal-700">Clear Filter</Link>
           )}
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           {clusters && clusters.length > 0 ? (
             (clusters as TopicCluster[]).map((cluster) => {
               const sessions = topicSessions.get(cluster.id) ?? [];
@@ -423,42 +423,43 @@ export default async function CourseDetailPage({
         </div>
       </section>
 
-      {/* Question List Section */}
-      <section className="space-y-6">
-        <div className="sticky top-[73px] z-30 flex flex-wrap items-center gap-4 bg-zinc-50/80 py-4 backdrop-blur-md dark:bg-black/80">
-          <h2 className="text-lg font-bold dark:text-white">
-            {resolvedSearchParams.cluster ? 'Filtered Questions' : 'Past Paper Questions'}
-          </h2>
-          <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {sessionFilters.length > 0 && (
-              <Link
-                href={clearSessionHref}
-                className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
-                  !selectedYear && !selectedSession ? 'bg-teal-700 text-white' : 'bg-white border border-zinc-200 text-zinc-500 hover:border-teal-700 dark:bg-zinc-900 dark:border-zinc-800'
-                }`}
-              >
-                All sessions
-              </Link>
-            )}
-            {sessionFilters.map((item) => {
-              const active = selectedYear === item.year && selectedSession === item.session;
-              return (
+      {/* Two-column row: questions (left) + PDF panel (right, sticky) */}
+      <div className="flex gap-0 items-start -mx-4 sm:-mx-6 lg:-mx-8">
+        {/* Left: Question List */}
+        <section className="flex-1 min-w-0 space-y-6 px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="sticky top-[73px] z-30 flex flex-wrap items-center gap-4 bg-zinc-50/80 py-4 backdrop-blur-md dark:bg-black/80">
+            <h2 className="text-lg font-bold dark:text-white">
+              {resolvedSearchParams.cluster ? 'Filtered Questions' : 'Past Paper Questions'}
+            </h2>
+            <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {sessionFilters.length > 0 && (
                 <Link
-                  key={`${item.session}-${item.year}`}
-                  href={`${coursePath}?year=${item.year}&session=${encodeURIComponent(item.session)}${clusterParam}`}
+                  href={clearSessionHref}
                   className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
-                    active ? 'bg-teal-700 text-white' : 'bg-white border border-zinc-200 text-zinc-500 hover:border-teal-700 dark:bg-zinc-900 dark:border-zinc-800'
+                    !selectedYear && !selectedSession ? 'bg-teal-700 text-white' : 'bg-white border border-zinc-200 text-zinc-500 hover:border-teal-700 dark:bg-zinc-900 dark:border-zinc-800'
                   }`}
                 >
-                  {item.label}
+                  All sessions
                 </Link>
-              );
-            })}
+              )}
+              {sessionFilters.map((item) => {
+                const active = selectedYear === item.year && selectedSession === item.session;
+                return (
+                  <Link
+                    key={`${item.session}-${item.year}`}
+                    href={`${coursePath}?year=${item.year}&session=${encodeURIComponent(item.session)}${clusterParam}`}
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+                      active ? 'bg-teal-700 text-white' : 'bg-white border border-zinc-200 text-zinc-500 hover:border-teal-700 dark:bg-zinc-900 dark:border-zinc-800'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-          {/* Q Paper link — redundant; replaced by floating drawer toggle in CoursePdfPanels */}
-        </div>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
             {sortedQuestionGroups.length > 0 ? (
               sortedQuestionGroups.map(({ question: q, variations }) => (
                 <QuestionCard
@@ -481,7 +482,6 @@ export default async function CourseDetailPage({
                   probabilityPct={getQuestionProbability(q)}
                 />
               ))
-
             ) : (
               <div className="rounded-3xl border border-dashed border-zinc-200 p-20 text-center dark:border-zinc-800">
                 <p className="text-zinc-500 font-medium italic">
@@ -494,15 +494,16 @@ export default async function CourseDetailPage({
               </div>
             )}
           </div>
+        </section>
 
-          {/* Floating drawer with Q Paper + Textbook excerpt — toggleable from right edge */}
-          <CoursePdfPanels
-            courseCode={course.code}
-            sessionFilters={sessionFilters as PdfSessionItem[]}
-            initialYear={selectedYear}
-            initialSession={selectedSession}
-          />
-      </section>
+        {/* Right: Inline sticky PDF panel (visible on lg+ screens only) */}
+        <CoursePdfPanels
+          courseCode={course.code}
+          sessionFilters={sessionFilters as PdfSessionItem[]}
+          initialYear={selectedYear}
+          initialSession={selectedSession}
+        />
+      </div>
     </div>
   );
 }

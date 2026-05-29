@@ -9,6 +9,7 @@ import ThemeToggle from '../ThemeToggle';
 import Logo from '../Logo';
 import { ROUTES } from '@/lib/routes';
 import DashboardNav from './DashboardNav';
+import SubjectSidebar from './SubjectSidebar';
 
 export default async function DashboardLayout({
   children,
@@ -50,7 +51,7 @@ export default async function DashboardLayout({
       <PostHogIdentify userId={user.id} email={user.email} phone={profile?.phone ?? null} />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-8">
             <Link href={ROUTES.dashboard} className="flex items-center gap-2">
               <Logo size={32} />
@@ -79,9 +80,16 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      {/* 3-column shell: sidebar | content | (pdf panel rendered per-page) */}
+      <div className="mx-auto max-w-[1600px] flex min-h-[calc(100vh-73px)]">
+        {/* Left sidebar — always visible on lg+ */}
+        <SubjectSidebar />
+
+        {/* Main content area */}
+        <main className="flex-1 min-w-0 px-4 py-8 sm:px-6 lg:px-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
