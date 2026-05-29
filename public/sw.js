@@ -41,13 +41,11 @@ async function fetchAndCacheFullPdf(request, cacheKey) {
   const headers = new Headers(request.headers);
   headers.delete('range');
 
-  const isCrossOrigin = !request.url.startsWith(self.location.origin);
-
   const cleanRequest = new Request(request.url, {
     method: 'GET',
     headers: headers,
-    mode: isCrossOrigin ? 'cors' : 'same-origin',
-    credentials: isCrossOrigin ? 'same-origin' : 'include',
+    mode: 'cors',
+    credentials: 'same-origin',
     redirect: 'follow'
   });
 
