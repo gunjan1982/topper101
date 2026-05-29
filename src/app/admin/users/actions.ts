@@ -32,7 +32,7 @@ export async function updateUserPlanTier(targetUserId: string, newPlanTier: 'fre
 export async function grantAdminSubjectEntitlement(targetUserId: string, courseCode: string) {
   await requireAdmin();
   const admin = createAdminClient();
-  const { error } = await admin.from('user_entitlements').upsert({
+  const { error: entError } = await admin.from('user_entitlements').upsert({
     user_id: targetUserId,
     entitlement_type: 'subject_unlock',
     course_code: courseCode,
@@ -41,20 +41,59 @@ export async function grantAdminSubjectEntitlement(targetUserId: string, courseC
     expires_at: null,
     metadata: {},
   }, { onConflict: 'user_id,entitlement_type,course_code,source' });
-  if (error) throw new Error(error.message);
+  if (entError) throw new Error(entError.message);
+
+  // Fetch current selected_papers to append the new course code
+  const { data: userData, error: userError } = await admin
+    .from('users')
+    .select('selected_papers')
+    .eq('id', targetUserId)
+    .single();
+  if (userError) throw new Error(userError.message);
+
+  const selectedPapers = (userData?.selected_papers as string[] | null) ?? [];
+  if (!selectedPapers.includes(courseCode)) {
+    const { error: updateError } = await admin
+      .from('users')
+      .update({ selected_papers: [...selectedPapers, courseCode] })
+      .eq('id', targetUserId);
+    if (updateError) throw new Error(updateError.message);
+  }
+
   revalidatePath(ROUTES.adminUsers);
+  revalidatePath('/dashboard', 'layout');
 }
 
 export async function revokeAdminSubjectEntitlement(targetUserId: string, courseCode: string) {
   await requireAdmin();
   const admin = createAdminClient();
-  const { error } = await admin
+  const { error: entError } = await admin
     .from('user_entitlements')
     .delete()
     .eq('user_id', targetUserId)
     .eq('entitlement_type', 'subject_unlock')
     .eq('course_code', courseCode)
     .eq('source', 'admin');
-  if (error) throw new Error(error.message);
+  if (entError) throw new Error(entError.message);
+
+  // Fetch current selected_papers to remove the course code
+  const { data: userData, error: userError } = await admin
+    .from('users')
+    .select('selected_papers')
+    .eq('id', targetUserId)
+    .single();
+  if (userError) throw new Error(userError.message);
+
+  const selectedPapers = (userData?.selected_papers as string[] | null) ?? [];
+  if (selectedPapers.includes(courseCode)) {
+    const { error: updateError } = await admin
+      .from('users')
+      .update({ selected_papers: selectedPapers.filter(p => p !== courseCode) })
+      .eq('id', targetUserId);
+    if (updateError) throw new Error(updateError.message);
+  }
+
   revalidatePath(ROUTES.adminUsers);
+  revalidatePath('/dashboard', 'layout');
 }
+
