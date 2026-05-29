@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import QuestionCard from './components/QuestionCard';
-import CoursePdfPanels, { type PdfSessionItem } from './components/CoursePdfPanels';
+import { QPaperPanel, TextbookPanel, type PdfSessionItem } from './components/CoursePdfPanels';
 import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
 import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule } from '@/lib/examSchedule';
 import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
@@ -281,28 +281,40 @@ export default async function CourseDetailPage({
     return question.topic_cluster_id === matchedCluster.id || question.topic === matchedCluster.cluster_name;
   });
   
+  // Calculate topic sessions first so we can use them in getQuestionProbability
+  const topicSessions = new Map<string, TopicSessionStat[]>();
+  (clusters as TopicCluster[] | null)?.forEach((cluster) => {
+    const clusterQuestions = allQuestions.filter((question) => (
+      question.topic_cluster_id === cluster.id || question.topic === cluster.cluster_name
+    ));
+    topicSessions.set(cluster.id, topicSessionStats(clusterQuestions));
+  });
+
   const getQuestionProbability = (q: QuestionRow) => {
     const cluster = (clusters as TopicCluster[] | null)?.find(
       (c) => c.id === q.topic_cluster_id || c.cluster_name === q.topic
     );
-    const count = cluster?.frequency_count ?? 0;
+    if (!cluster) return 0;
+    const actualCount = topicSessions.get(cluster.id)?.length ?? 0;
     const total = sessionFilters.length || 1;
-    return Math.min(100, Math.round((count / total) * 100));
+    return Math.min(100, Math.round((actualCount / total) * 100));
   };
 
   const questionGroups = groupRepeatedQuestions(questions, course.code);
   const sortedQuestionGroups = [...questionGroups].sort((a, b) => {
     return getQuestionProbability(b.question) - getQuestionProbability(a.question);
   });
-  
-  const topicSessions = new Map<string, TopicSessionStat[]>();
 
+  // Filter out clusters with 0 questions and sort active clusters by actual session frequency descending
+  const activeClusters = (clusters as TopicCluster[] | null)?.filter((cluster) => {
+    const sessions = topicSessions.get(cluster.id) ?? [];
+    return sessions.length > 0;
+  }) ?? [];
 
-  (clusters as TopicCluster[] | null)?.forEach((cluster) => {
-    const clusterQuestions = allQuestions.filter((question) => (
-      question.topic_cluster_id === cluster.id || question.topic === cluster.cluster_name
-    ));
-    topicSessions.set(cluster.id, topicSessionStats(clusterQuestions));
+  const sortedClusters = [...activeClusters].sort((a, b) => {
+    const aSessions = topicSessions.get(a.id)?.length ?? 0;
+    const bSessions = topicSessions.get(b.id)?.length ?? 0;
+    return bSessions - aSessions || b.frequency_count - a.frequency_count;
   });
 
   const coursePath = `/courses/${course.code}`;
@@ -342,91 +354,102 @@ export default async function CourseDetailPage({
         </div>
       </div>
 
-      {/* Heat Map Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold dark:text-white">Frequency Heat Map</h2>
-          {resolvedSearchParams.cluster && (
-            <Link href={`/courses/${course.code}`} className="text-xs font-bold text-teal-700">Clear Filter</Link>
-          )}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {clusters && clusters.length > 0 ? (
-            (clusters as TopicCluster[]).map((cluster) => {
-              const sessions = topicSessions.get(cluster.id) ?? [];
-              const visibleSessions = sessions.slice(0, 4);
-              const hiddenCount = Math.max(0, sessions.length - visibleSessions.length);
-              const clusterQuestions = allQuestions.filter((question) => (
-                question.topic_cluster_id === cluster.id || question.topic === cluster.cluster_name
-              ));
-              const meanMarks = topicMeanMarks(clusterQuestions);
-
-              return (
-                <Link
-                  key={cluster.id} 
-                  href={`/courses/${course.code}?cluster=${cluster.id}`}
-                  className={`group rounded-2xl border p-5 transition-all hover:shadow-md hover:border-teal-600/50 ${
-                    resolvedSearchParams.cluster === cluster.id ? 'ring-2 ring-teal-700 ring-offset-2' : ''
-                  } ${
-                    cluster.frequency_tier === 'HIGH' 
-                      ? 'border-red-200 bg-red-50/50 dark:border-red-900/30 dark:bg-red-900/10' 
-                      : cluster.frequency_tier === 'MEDIUM'
-                      ? 'border-amber-200 bg-amber-50/50 dark:border-amber-900/30 dark:bg-amber-900/10'
-                      : 'border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${
-                        cluster.frequency_tier === 'HIGH' ? 'text-red-600' : cluster.frequency_tier === 'MEDIUM' ? 'text-amber-600' : 'text-zinc-500'
-                      }`}>
-                        {cluster.frequency_tier ?? 'LOW'} Tier
-                      </span>
-                      {cluster.frequency_tier === 'HIGH' && <span className="text-sm">🔥</span>}
-                    </div>
-                    <span className="text-xs font-medium text-zinc-500">
-                      {sessions.length || cluster.frequency_count} TEEs
-                    </span>
-                  </div>
-                  <h3 className="font-bold group-hover:text-teal-700 transition-colors dark:text-white">{cluster.cluster_name}</h3>
-                  {meanMarks !== null && (
-                    <div className="mt-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                      Mean {formatMeanMarks(meanMarks)} Marks
-                    </div>
-                  )}
-                  {visibleSessions.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {visibleSessions.map((session) => (
-                        <span
-                          key={`${cluster.id}-${session.session}-${session.year}`}
-                          title={`${cluster.cluster_name} appeared in ${session.label}`}
-                          className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-bold text-zinc-600 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-300 dark:ring-zinc-800"
-                        >
-                          {session.label}
-                        </span>
-                      ))}
-                      {hiddenCount > 0 && (
-                        <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-bold text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-950/50 dark:ring-zinc-800">
-                          +{hiddenCount}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </Link>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-2xl border border-dashed border-zinc-200 p-8 text-center text-zinc-500 dark:border-zinc-800">
-              No frequency data available for this course yet.
+      {/* Row 1: Heat Map Section (left) + Q Paper panel (right) */}
+      <div className="flex gap-0 items-stretch -mx-4 sm:-mx-6 lg:-mx-8 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold dark:text-white">Frequency Heat Map</h2>
+              {resolvedSearchParams.cluster && (
+                <Link href={`/courses/${course.code}`} className="text-xs font-bold text-teal-700">Clear Filter</Link>
+              )}
             </div>
-          )}
-        </div>
-      </section>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {sortedClusters.length > 0 ? (
+                sortedClusters.map((cluster) => {
+                  const sessions = topicSessions.get(cluster.id) ?? [];
+                  const visibleSessions = sessions.slice(0, 3);
+                  const hiddenCount = Math.max(0, sessions.length - visibleSessions.length);
+                  const clusterQuestions = allQuestions.filter((question) => (
+                    question.topic_cluster_id === cluster.id || question.topic === cluster.cluster_name
+                  ));
+                  const meanMarks = topicMeanMarks(clusterQuestions);
 
-      {/* Two-column row: questions (left) + PDF panel (right, sticky) */}
+                  return (
+                    <Link
+                      key={cluster.id} 
+                      href={`/courses/${course.code}?cluster=${cluster.id}`}
+                      className={`group rounded-xl border p-3.5 transition-all hover:shadow-md hover:border-teal-600/50 ${
+                        resolvedSearchParams.cluster === cluster.id ? 'ring-2 ring-teal-700 ring-offset-2' : ''
+                      } ${
+                        cluster.frequency_tier === 'HIGH' 
+                          ? 'border-red-100 bg-red-50/30 dark:border-red-900/20 dark:bg-red-900/5' 
+                          : cluster.frequency_tier === 'MEDIUM'
+                          ? 'border-amber-100 bg-amber-50/30 dark:border-amber-900/20 dark:bg-amber-900/5'
+                          : 'border-zinc-200/80 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-extrabold uppercase tracking-wider ${
+                            cluster.frequency_tier === 'HIGH' ? 'text-red-600' : cluster.frequency_tier === 'MEDIUM' ? 'text-amber-600' : 'text-zinc-500'
+                          }`}>
+                            {cluster.frequency_tier ?? 'LOW'} Tier
+                          </span>
+                          {cluster.frequency_tier === 'HIGH' && <span className="text-xs">🔥</span>}
+                        </div>
+                        <span className="text-[10px] font-medium text-zinc-500">
+                          {sessions.length || cluster.frequency_count} TEEs
+                        </span>
+                      </div>
+                      <h3 className="text-xs font-bold leading-snug group-hover:text-teal-700 transition-colors dark:text-white line-clamp-2">{cluster.cluster_name}</h3>
+                      {meanMarks !== null && (
+                        <div className="mt-1 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+                          Mean {formatMeanMarks(meanMarks)} Marks
+                        </div>
+                      )}
+                      {visibleSessions.length > 0 && (
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          {visibleSessions.map((session) => (
+                            <span
+                              key={`${cluster.id}-${session.session}-${session.year}`}
+                              title={`${cluster.cluster_name} appeared in ${session.label}`}
+                              className="rounded px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 bg-white/80 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-950/80 dark:text-zinc-300 dark:ring-zinc-800"
+                            >
+                              {session.label}
+                            </span>
+                          ))}
+                          {hiddenCount > 0 && (
+                            <span className="rounded px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 bg-white/80 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-950/80 dark:ring-zinc-800">
+                              +{hiddenCount}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })
+              ) : (
+                <div className="col-span-full rounded-2xl border border-dashed border-zinc-200 p-8 text-center text-zinc-500 dark:border-zinc-800">
+                  No frequency data available for this course yet.
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <QPaperPanel
+          courseCode={course.code}
+          sessionFilters={sessionFilters as PdfSessionItem[]}
+          initialYear={selectedYear}
+          initialSession={selectedSession}
+        />
+      </div>
+
+      {/* Row 2: Past Questions (left) + Textbook panel (right, sticky) */}
       <div className="flex gap-0 items-start -mx-4 sm:-mx-6 lg:-mx-8">
         {/* Left: Question List */}
-        <section className="flex-1 min-w-0 space-y-6 px-4 sm:px-6 lg:px-8 pb-16">
+        <section className="flex-1 min-w-0 space-y-6 px-4 sm:px-6 lg:px-8 py-6 pb-16">
           <div className="sticky top-[73px] z-30 flex flex-wrap items-center gap-4 bg-zinc-50/80 py-4 backdrop-blur-md dark:bg-black/80">
             <h2 className="text-lg font-bold dark:text-white">
               {resolvedSearchParams.cluster ? 'Filtered Questions' : 'Past Paper Questions'}
@@ -496,12 +519,8 @@ export default async function CourseDetailPage({
           </div>
         </section>
 
-        {/* Right: Inline sticky PDF panel (visible on lg+ screens only) */}
-        <CoursePdfPanels
+        <TextbookPanel
           courseCode={course.code}
-          sessionFilters={sessionFilters as PdfSessionItem[]}
-          initialYear={selectedYear}
-          initialSession={selectedSession}
         />
       </div>
     </div>
