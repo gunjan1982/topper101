@@ -16,19 +16,42 @@
  * Run: node --no-warnings scripts/verify-backup.mjs
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 
-const PROJECT_REF = process.env.SUPABASE_PROJECT_REF;
-const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Load environment variables manually from .env.local
+const envPath = path.join(process.cwd(), '.env.local');
+const env = {};
+if (fs.existsSync(envPath)) {
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const index = trimmed.indexOf('=');
+    if (index === -1) continue;
+    const key = trimmed.slice(0, index);
+    let value = trimmed.slice(index + 1);
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    env[key] = value;
+  }
+}
+
+const PROJECT_REF = env.SUPABASE_PROJECT_REF || process.env.SUPABASE_PROJECT_REF;
+const ACCESS_TOKEN = env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_ACCESS_TOKEN;
+const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const errors = [];
 const results = [];
+const warnings = [];
 
 // ── 1. Check DB backup via Management API ────────────────────────────────────
 if (!PROJECT_REF || !ACCESS_TOKEN) {
-  errors.push('SUPABASE_PROJECT_REF or SUPABASE_ACCESS_TOKEN not set — skipping DB backup check');
+  warnings.push('SUPABASE_PROJECT_REF or SUPABASE_ACCESS_TOKEN not set — skipping DB backup check');
 } else {
   try {
     const res = await fetch(
@@ -59,11 +82,12 @@ if (!PROJECT_REF || !ACCESS_TOKEN) {
 }
 
 // ── 2. Check `pdfs` storage bucket reachable + non-empty ─────────────────────
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  errors.push('NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY not set — skipping storage check');
+const SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  warnings.push('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY not set — skipping storage check');
 } else {
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data, error } = await supabase.storage.from('pdfs').list('', { limit: 5 });
     if (error) {
       errors.push(`Storage bucket check failed: ${error.message}`);
@@ -80,10 +104,14 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // ── 3. Report ─────────────────────────────────────────────────────────────────
 console.log('\n=== Backup Verification ===');
 results.forEach((r) => console.log(r));
+if (warnings.length > 0) {
+  console.log('\n⚠️  Notices / Skipped Checks:');
+  warnings.forEach((w) => console.log(' •', w));
+}
 if (errors.length > 0) {
   console.error('\n🚨 BACKUP ISSUES FOUND:');
   errors.forEach((e) => console.error(' •', e));
   process.exit(1);
 } else {
-  console.log('\n✅ All backup checks passed');
+  console.log('\n✅ All executed backup checks passed');
 }

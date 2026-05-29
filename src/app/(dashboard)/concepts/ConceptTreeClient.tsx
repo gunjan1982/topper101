@@ -20,6 +20,8 @@ interface ConceptItem {
 interface ConceptTreeClientProps {
   initialConcepts: ConceptItem[];
   isPaid: boolean;
+  initialUrnaOptIn?: boolean;
+  userEmail?: string | null;
 }
 
 const FREQ_COLORS: Record<string, string> = {
@@ -41,13 +43,17 @@ function getLayerColor(layer: number): string {
   return colors[(layer - 1) % colors.length];
 }
 
-export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTreeClientProps) {
+export default function ConceptTreeClient({
+  initialConcepts,
+  isPaid,
+  userEmail = null,
+}: ConceptTreeClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<string>('All');
   const [selectedLayer, setSelectedLayer] = useState<string>('All');
   const [selectedFreq, setSelectedFreq] = useState<string>('All');
+  const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({});
 
-  // Extract all unique domains
   const domains = useMemo(() => {
     const set = new Set<string>();
     initialConcepts.forEach((c) => {
@@ -56,7 +62,6 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
     return Array.from(set).sort();
   }, [initialConcepts]);
 
-  // Compute counts per domain
   const domainCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     initialConcepts.forEach((c) => {
@@ -67,7 +72,6 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
     return counts;
   }, [initialConcepts]);
 
-  // Filtered concepts
   const filteredConcepts = useMemo(() => {
     return initialConcepts.filter((concept) => {
       const matchesSearch =
@@ -83,9 +87,82 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
     });
   }, [initialConcepts, searchTerm, selectedDomain, selectedLayer, selectedFreq]);
 
+  const groupedConcepts = useMemo(() => {
+    const groups: Record<string, ConceptItem[]> = {};
+    filteredConcepts.forEach((concept) => {
+      const d = concept.domain || 'Uncategorized';
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(concept);
+    });
+    return groups;
+  }, [filteredConcepts]);
+
+  const sortedDomains = useMemo(() => {
+    return Object.keys(groupedConcepts).sort();
+  }, [groupedConcepts]);
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    if (val !== '') {
+      const next: Record<string, boolean> = {};
+      domains.forEach((d) => {
+        next[d] = true;
+      });
+      setExpandedDomains(next);
+    }
+  };
+
+  const handleLayerChange = (val: string) => {
+    setSelectedLayer(val);
+    if (val !== 'All') {
+      const next: Record<string, boolean> = {};
+      domains.forEach((d) => {
+        next[d] = true;
+      });
+      setExpandedDomains(next);
+    }
+  };
+
+  const handleFreqChange = (val: string) => {
+    setSelectedFreq(val);
+    if (val !== 'All') {
+      const next: Record<string, boolean> = {};
+      domains.forEach((d) => {
+        next[d] = true;
+      });
+      setExpandedDomains(next);
+    }
+  };
+
+  const handleDomainChange = (val: string) => {
+    setSelectedDomain(val);
+    if (val !== 'All') {
+      setExpandedDomains((prev) => ({ ...prev, [val]: true }));
+    }
+  };
+
+  const toggleDomain = (domain: string) => {
+    setExpandedDomains((prev) => ({ ...prev, [domain]: !prev[domain] }));
+  };
+
+  const handleExpandAllDomains = () => {
+    const next: Record<string, boolean> = {};
+    domains.forEach((d) => {
+      next[d] = true;
+    });
+    setExpandedDomains(next);
+  };
+
+  const handleCollapseAllDomains = () => {
+    const next: Record<string, boolean> = {};
+    domains.forEach((d) => {
+      next[d] = false;
+    });
+    setExpandedDomains(next);
+  };
+
   return (
     <div className="space-y-8">
-      {/* Header Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight dark:text-white flex items-center gap-2">
@@ -105,7 +182,6 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
         )}
       </div>
 
-      {/* Free Tier Lock Alert Banner */}
       {!isPaid && (
         <div className="rounded-3xl border border-amber-200 bg-amber-50/50 p-6 dark:border-amber-900/30 dark:bg-amber-950/15">
           <div className="flex gap-4">
@@ -128,9 +204,7 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
         </div>
       )}
 
-      {/* Controls: Search and Quick Filters */}
       <div className="grid gap-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50 sm:grid-cols-1 md:grid-cols-4">
-        {/* Search */}
         <div className="relative md:col-span-2">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
             🔍
@@ -139,16 +213,15 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
             type="text"
             placeholder="Search concepts or definitions..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full rounded-full border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-4 text-sm outline-none focus:border-teal-700 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-teal-700 dark:focus:bg-black transition-colors"
           />
         </div>
 
-        {/* Layer Filter */}
         <div>
           <select
             value={selectedLayer}
-            onChange={(e) => setSelectedLayer(e.target.value)}
+            onChange={(e) => handleLayerChange(e.target.value)}
             className="w-full rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm outline-none focus:border-teal-700 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:focus:border-teal-700 dark:focus:bg-black transition-colors"
           >
             <option value="All">All Layers</option>
@@ -160,11 +233,10 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
           </select>
         </div>
 
-        {/* Frequency Filter */}
         <div>
           <select
             value={selectedFreq}
-            onChange={(e) => setSelectedFreq(e.target.value)}
+            onChange={(e) => handleFreqChange(e.target.value)}
             className="w-full rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm outline-none focus:border-teal-700 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:focus:border-teal-700 dark:focus:bg-black transition-colors"
           >
             <option value="All">All Frequencies</option>
@@ -175,44 +247,14 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
         </div>
       </div>
 
-      {/* Main Content Layout */}
       <div className="grid gap-8 lg:grid-cols-[250px_1fr]">
-        {/* Desktop Sidebar / Mobile Horizontal Tabs for Domains */}
-        <div className="space-y-3">
-          <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 hidden lg:block">
+        <div className="space-y-3 hidden lg:block">
+          <div className="text-xs font-bold uppercase tracking-widest text-zinc-400">
             Filter by Domain
           </div>
-          {/* Mobile Domain Selector */}
-          <div className="flex gap-2 overflow-x-auto pb-2 pr-2 scrollbar-none lg:hidden">
+          <div className="flex flex-col gap-1.5">
             <button
-              onClick={() => setSelectedDomain('All')}
-              className={`flex-none rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                selectedDomain === 'All'
-                  ? 'bg-teal-700 text-white shadow-md shadow-teal-700/10'
-                  : 'border border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300'
-              }`}
-            >
-              All Domains ({initialConcepts.length})
-            </button>
-            {domains.map((domain) => (
-              <button
-                key={domain}
-                onClick={() => setSelectedDomain(domain)}
-                className={`flex-none rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                  selectedDomain === domain
-                    ? 'bg-teal-700 text-white shadow-md shadow-teal-700/10'
-                    : 'border border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300'
-                }`}
-              >
-                {domain} ({domainCounts[domain] || 0})
-              </button>
-            ))}
-          </div>
-
-          {/* Desktop Domain List */}
-          <div className="hidden flex-col gap-1.5 lg:flex">
-            <button
-              onClick={() => setSelectedDomain('All')}
+              onClick={() => handleDomainChange('All')}
               className={`w-full rounded-xl px-4 py-3 text-left text-sm font-bold transition-all ${
                 selectedDomain === 'All'
                   ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-300'
@@ -229,7 +271,7 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
             {domains.map((domain) => (
               <button
                 key={domain}
-                onClick={() => setSelectedDomain(domain)}
+                onClick={() => handleDomainChange(domain)}
                 className={`w-full rounded-xl px-4 py-3 text-left text-sm font-bold transition-all ${
                   selectedDomain === domain
                     ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-300'
@@ -247,137 +289,290 @@ export default function ConceptTreeClient({ initialConcepts, isPaid }: ConceptTr
           </div>
         </div>
 
-        {/* Concept Cards List */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
             <h2 className="text-xl font-bold dark:text-white">
               {selectedDomain === 'All' ? 'All Concepts' : selectedDomain}
             </h2>
-            <span className="text-sm font-medium text-zinc-500">
-              Showing {filteredConcepts.length} of {initialConcepts.length}
-            </span>
+            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-zinc-500">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExpandAllDomains}
+                  className="text-xs text-teal-700 hover:underline dark:text-teal-400 font-bold"
+                >
+                  Expand All Domains
+                </button>
+                <span>·</span>
+                <button
+                  onClick={handleCollapseAllDomains}
+                  className="text-xs text-teal-700 hover:underline dark:text-teal-400 font-bold"
+                >
+                  Collapse All Domains
+                </button>
+              </div>
+              <span>Showing {filteredConcepts.length} of {initialConcepts.length}</span>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-50/70 via-indigo-50/30 to-purple-50/50 p-6 dark:border-teal-900/30 dark:from-teal-950/10 dark:via-indigo-950/5 dark:to-purple-950/10 shadow-sm">
+            <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-md bg-teal-100 dark:bg-teal-900/40 px-2.5 py-0.5 text-xs font-bold text-teal-800 dark:text-teal-300">
+                    URNA Clinical Platform
+                  </span>
+                </div>
+                <h3 className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                  Bridging Academic Theory with Real-World Clinical Practice
+                </h3>
+                <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  We are building <strong>URNA</strong>, a next-generation ecosystem connecting psychological concepts directly to practice.
+                </p>
+              </div>
+            </div>
           </div>
 
           {filteredConcepts.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
               <span className="text-4xl">🔍</span>
               <p className="mt-4 font-bold text-zinc-700 dark:text-zinc-300">No concepts found</p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Try clearing your search query or adjusting your filters.
-              </p>
             </div>
           ) : (
-            <div className="grid gap-6">
-              {filteredConcepts.map((concept) => (
-                <div
-                  key={concept.id}
-                  className="group/card relative space-y-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:shadow-none transition-all duration-300"
-                >
-                  {/* Top Badge Panel */}
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white transition-colors group-hover/card:text-teal-700 dark:group-hover/card:text-teal-400">
-                          {concept.name}
-                        </h3>
-                        {concept.mapped_courses && concept.mapped_courses.map((course) => (
-                          <span
-                            key={course}
-                            className="rounded-md bg-teal-50 border border-teal-100 px-2 py-0.5 text-[10px] font-black text-teal-700 dark:bg-teal-950/40 dark:border-teal-900/30 dark:text-teal-300"
-                          >
-                            {course}
-                          </span>
+            <div className="space-y-6">
+              {sortedDomains.map((domain) => {
+                const domainConcepts = groupedConcepts[domain] || [];
+                const isDomainExpanded = !!expandedDomains[domain];
+
+                return (
+                  <div
+                    key={domain}
+                    className="border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden bg-white dark:bg-zinc-900/10 shadow-sm"
+                  >
+                    <button
+                      onClick={() => toggleDomain(domain)}
+                      className="w-full flex items-center justify-between p-5 font-bold text-left border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">📁</span>
+                        <span className="text-zinc-900 dark:text-white text-base md:text-lg">{domain}</span>
+                        <span className="rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                          {domainConcepts.length}
+                        </span>
+                      </div>
+                      <svg
+                        className={`h-5 w-5 text-zinc-400 transition-transform duration-200 ${isDomainExpanded ? 'rotate-180 text-teal-700' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {isDomainExpanded && (
+                      <div className="p-5 space-y-5 bg-zinc-50/30 dark:bg-zinc-950/10">
+                        {domainConcepts.map((concept) => (
+                          <ConceptTreeCard
+                            key={concept.id}
+                            concept={concept}
+                            isPaid={isPaid}
+                            userEmail={userEmail}
+                          />
                         ))}
                       </div>
-                      <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                        {concept.domain}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${getLayerColor(concept.layer)}`}>
-                        Layer {concept.layer}
-                      </span>
-                      {concept.exam_relevance && (
-                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${FREQ_COLORS[concept.exam_relevance] ?? FREQ_COLORS.LOW}`}>
-                          {concept.exam_relevance} Frequency
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-
-                  {/* Definition */}
-                  {concept.definition && (
-                    <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                      {concept.definition}
-                    </p>
-                  )}
-
-                  {/* Answer Hook */}
-                  {concept.sample_answer_hook && (
-                    <div className="rounded-2xl border border-violet-100 bg-violet-50/20 p-4 transition-colors group-hover/card:border-violet-200 dark:border-violet-900/20 dark:bg-violet-950/5 dark:group-hover/card:border-violet-800/40">
-                      <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                        Answer hook / Essay structure
-                      </div>
-                      <p className="text-sm italic text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                        &ldquo;{concept.sample_answer_hook}&rdquo;
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Theorists & Clinical Relevance Grid */}
-                  <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                    {/* Key Theorists */}
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                        Key Theorists
-                      </span>
-                      {concept.key_theorists && concept.key_theorists.length > 0 && isPaid ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {concept.key_theorists.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      ) : concept.key_theorists && concept.key_theorists.length > 0 ? (
-                        <div className="flex items-center gap-2 rounded-2xl border border-zinc-200/50 bg-zinc-50/50 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-zinc-800/50 dark:bg-zinc-900/50 dark:text-zinc-400">
-                          <span>🔒 Theorists list</span>
-                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">· Upgrade to unlock</span>
-                        </div>
-                      ) : (
-                        <p className="text-xs italic text-zinc-400">None specified</p>
-                      )}
-                    </div>
-
-                    {/* Clinical Relevance */}
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                        Clinical Relevance
-                      </span>
-                      {concept.clinical_relevance && isPaid ? (
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                          {concept.clinical_relevance}
-                        </p>
-                      ) : concept.clinical_relevance ? (
-                        <div className="flex items-center gap-2 rounded-2xl border border-zinc-200/50 bg-zinc-50/50 px-3 py-2 text-xs font-semibold text-zinc-500 dark:border-zinc-800/50 dark:bg-zinc-900/50 dark:text-zinc-400">
-                          <span>🔒 Clinical relevance</span>
-                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">· Upgrade to unlock</span>
-                        </div>
-                      ) : (
-                        <p className="text-xs italic text-zinc-400">None specified</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ConceptTreeCard({
+  concept,
+  isPaid,
+  userEmail,
+}: {
+  concept: ConceptItem;
+  isPaid: boolean;
+  userEmail: string | null;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isLocked = !isPaid && concept.layer >= 3;
+  const isActive = isHovered || isFocused;
+
+  return (
+    <div
+      tabIndex={isLocked ? -1 : 0}
+      onFocus={() => {
+        if (!isLocked) setIsFocused(true);
+      }}
+      onBlur={() => setIsFocused(false)}
+      onMouseEnter={() => {
+        if (!isLocked) setIsHovered(true);
+      }}
+      onMouseLeave={() => setIsHovered(false)}
+      onContextMenu={(e) => e.preventDefault()}
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+      className={`group/card relative rounded-2xl border transition-all duration-300 bg-white dark:bg-zinc-900/30 overflow-hidden outline-none ${
+        isLocked
+          ? 'border-zinc-200 opacity-60 grayscale dark:border-zinc-800'
+          : 'border-zinc-200 dark:border-zinc-800 hover:border-violet-400/80 dark:hover:border-violet-800/80 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500'
+      }`}
+    >
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer select-none"
+        onClick={() => {
+          if (!isLocked) setIsExpanded(!isExpanded);
+        }}
+      >
+        <div className="space-y-1.5 flex-1 min-w-0 pr-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="font-bold text-zinc-900 dark:text-white truncate group-hover/card:text-violet-700 dark:group-hover/card:text-violet-400 transition-colors">
+              {concept.name}
+            </h4>
+            {concept.mapped_courses && concept.mapped_courses.map((course) => (
+              <span
+                key={course}
+                className="rounded-md bg-teal-50 border border-teal-100 px-2 py-0.5 text-[9px] font-black text-teal-700 dark:bg-teal-950/40 dark:border-teal-900/30 dark:text-teal-300"
+              >
+                {course}
+              </span>
+            ))}
+            <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${getLayerColor(concept.layer)}`}>
+              Layer {concept.layer}
+            </span>
+          </div>
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            {concept.domain}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {concept.exam_relevance && (
+            <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${FREQ_COLORS[concept.exam_relevance] ?? FREQ_COLORS.LOW}`}>
+              {concept.exam_relevance} TEE
+            </span>
+          )}
+          {!isLocked ? (
+            <svg
+              className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-violet-500' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          ) : (
+            <span className="text-sm">🔒</span>
+          )}
+        </div>
+      </div>
+
+      {isExpanded && !isLocked && (
+        <div className="border-t border-zinc-100 dark:border-zinc-800 p-4 space-y-4 relative bg-zinc-50/50 dark:bg-zinc-950/20">
+          {isActive ? (
+            <>
+              {userEmail && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.03] select-none z-0">
+                  <span className="text-[11px] font-bold tracking-wider text-zinc-950 dark:text-white uppercase select-none" style={{ transform: 'rotate(-15deg)' }}>
+                    {userEmail} · topper101.com
+                  </span>
+                </div>
+              )}
+
+              <div className="relative z-10 space-y-3.5">
+                {concept.definition && (
+                  <div className="space-y-1">
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Definition</h5>
+                    <p className="text-xs leading-relaxed text-zinc-800 dark:text-zinc-200 select-none">
+                      {concept.definition}
+                    </p>
+                  </div>
+                )}
+
+                {concept.sample_answer_hook && (
+                  <div className="rounded-xl border border-violet-100 bg-violet-50/20 p-3 dark:border-violet-950/40 dark:bg-violet-950/10">
+                    <div className="mb-1 text-[9px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                      Answer hook / Essay structure
+                    </div>
+                    <p className="text-xs italic text-zinc-700 dark:text-zinc-300 leading-relaxed select-none">
+                      &ldquo;{concept.sample_answer_hook}&rdquo;
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                  <div className="space-y-1">
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Key Theorists</h5>
+                    {concept.key_theorists && concept.key_theorists.length > 0 && isPaid ? (
+                      <div className="flex flex-wrap gap-1">
+                        {concept.key_theorists.map((t) => (
+                          <span
+                            key={t}
+                            className="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    ) : concept.key_theorists && concept.key_theorists.length > 0 ? (
+                      <div className="inline-flex items-center gap-1 rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <span>🔒 Gated</span>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] italic text-zinc-400">None specified</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Clinical Relevance</h5>
+                    {concept.clinical_relevance && isPaid ? (
+                      <p className="text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        {concept.clinical_relevance}
+                      </p>
+                    ) : concept.clinical_relevance ? (
+                      <div className="inline-flex items-center gap-1 rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <span>🔒 Gated</span>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] italic text-zinc-400">None specified</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="py-4 text-center">
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 italic">
+                ✨ Hover or focus to reveal details
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isLocked && (
+        <div className="border-t border-zinc-100 dark:border-zinc-800 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 text-center space-y-2">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+            🔒 Layer 3+ concept locked on Free Tier.
+          </p>
+          <Link
+            href={ROUTES.pricing}
+            className="inline-block text-xs font-bold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+          >
+            Upgrade to view →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

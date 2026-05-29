@@ -3,17 +3,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { captureServerEvent } from '@/lib/posthog-server';
-import { grantSubjectEntitlement, REFERRAL_REWARD_LIMIT } from '@/lib/entitlements';
+import { grantSubjectEntitlement, REFERRAL_REWARD_LIMIT, firstFreeSubject } from '@/lib/entitlements';
 import { ROUTES } from '@/lib/routes';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 /**
- * Creates a pending referral record linking referrer ↔ referred user.
- * No entitlements are granted here — that happens in the payment webhook
- * when the referred user makes their first purchase.
+ * Rewards the referrer user automatically on referred user's onboarding completion.
+ * Grants a 'subject_unlock' entitlement to the referrer for their next locked paper.
  */
-async function recordPendingReferral(userId: string) {
+async function rewardReferrerOnOnboardingComplete(userId: string) {
   const admin = createAdminClient();
   const { data: currentUser } = await admin
     .from('users')
@@ -26,7 +25,7 @@ async function recordPendingReferral(userId: string) {
 
   const { data: referrer } = await admin
     .from('users')
-    .select('id')
+    .select('id, selected_papers')
     .eq('referral_code', referralCode)
     .neq('id', userId)
     .maybeSingle();
@@ -42,15 +41,74 @@ async function recordPendingReferral(userId: string) {
 
   if ((rewardCount ?? 0) >= REFERRAL_REWARD_LIMIT) return;
 
-  // Upsert pending record (idempotent — safe to call again if user re-onboards)
-  await admin
-    .from('referrals')
-    .upsert({
-      referrer_user_id: referrer.id,
-      referred_user_id: userId,
-      referral_code: referralCode,
-      status: 'pending',
-    }, { onConflict: 'referred_user_id' });
+  // Find the next locked paper in the referrer's selected papers
+  const referrerPapers = (referrer.selected_papers as string[] | null) ?? [];
+
+  const { data: existingEntitlements } = await admin
+    .from('user_entitlements')
+    .select('course_code')
+    .eq('user_id', referrer.id)
+    .eq('entitlement_type', 'subject_unlock');
+
+  const alreadyUnlocked = new Set(
+    (existingEntitlements ?? [])
+      .map((row: { course_code: string | null }) => row.course_code)
+      .filter((code): code is string => Boolean(code))
+  );
+
+  const lockedPapers = referrerPapers.filter((p) => !alreadyUnlocked.has(p));
+  let rewardCourse = firstFreeSubject(lockedPapers);
+
+  // Fallback: If no locked paper in selected_papers, find any course not yet unlocked
+  if (!rewardCourse) {
+    const { data: allCourses } = await admin
+      .from('courses')
+      .select('code');
+    if (allCourses) {
+      const fallbackCourse = allCourses.find((c) => !alreadyUnlocked.has(c.code));
+      if (fallbackCourse) {
+        rewardCourse = fallbackCourse.code;
+      }
+    }
+  }
+
+  if (rewardCourse) {
+    // Grant subject entitlement to referrer
+    await grantSubjectEntitlement({
+      supabase: admin,
+      userId: referrer.id,
+      courseCode: rewardCourse,
+      source: 'referral',
+      sourceRef: userId,
+      metadata: {
+        reason: 'Referral reward — referred user completed onboarding',
+        referred_user_id: userId,
+      },
+    });
+
+    // Upsert the referral record as rewarded (and qualified)
+    await admin
+      .from('referrals')
+      .upsert({
+        referrer_user_id: referrer.id,
+        referred_user_id: userId,
+        referral_code: referralCode,
+        status: 'rewarded',
+        qualified_at: new Date().toISOString(),
+        rewarded_at: new Date().toISOString(),
+      }, { onConflict: 'referred_user_id' });
+  } else {
+    // Just record pending referral or set status qualified if no subjects can be unlocked
+    await admin
+      .from('referrals')
+      .upsert({
+        referrer_user_id: referrer.id,
+        referred_user_id: userId,
+        referral_code: referralCode,
+        status: 'qualified',
+        qualified_at: new Date().toISOString(),
+      }, { onConflict: 'referred_user_id' });
+  }
 }
 
 export async function updateYear(year: number) {
@@ -134,8 +192,8 @@ export async function completeOnboarding(
     throw new Error(error.message);
   }
 
-  // Record referral relationship (pending — entitlement granted when referred user pays)
-  await recordPendingReferral(user.id);
+  // Grant referral reward to referrer on onboarding completion
+  await rewardReferrerOnOnboardingComplete(user.id);
 
   // PostHog: onboarding_completed
   const timeToComplete = meta?.startedAt

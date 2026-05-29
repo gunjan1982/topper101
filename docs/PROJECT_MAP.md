@@ -11,6 +11,7 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `src/app/globals.css`: global styles and Tailwind imports.
 - `src/app/Logo.tsx`: reusable Topper101 logo used by landing, onboarding, and dashboard.
 - `src/middleware.ts`: route protection and auth-page redirect handling. This is the only middleware redirect gate.
+- `public/sw.js`: PWA Service Worker implementing offline page caching and ranges-based PDF intercepts.
 
 ## Navigation Rules
 
@@ -52,16 +53,21 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 ## Dashboard
 
 - `src/app/(dashboard)/layout.tsx`: authenticated app shell and dashboard header. Only link to implemented routes.
-- `src/app/(dashboard)/dashboard/page.tsx`: dashboard redirect checks, selected paper cards, progress summaries, and upgrade banner.
+- `src/app/(dashboard)/dashboard/page.tsx`: dashboard redirect checks, selected paper cards, progress summaries, and upgrade banner. Includes the `<ReferralDashboard />` sharing widget.
+- `src/app/(dashboard)/dashboard/ReferralDashboard.tsx`: client component for copying referral links, native share buttons, rewards track progress bar, and referred signups history log.
 - `src/app/(dashboard)/settings/page.tsx`: settings page data loading.
-- `src/app/(dashboard)/settings/SettingsForm.tsx`: client UI for changing year, stream, and selected papers.
-- `src/app/(dashboard)/settings/actions.ts`: persists settings changes.
+- `src/app/(dashboard)/settings/SettingsForm.tsx`: client UI for changing year, stream, and selected papers. Contains URNA waitlist career checkbox toggle.
+- `src/app/(dashboard)/settings/actions.ts`: persists settings changes and handles URNA opt-ins.
 - `src/app/(dashboard)/pricing/page.tsx`: protected Razorpay checkout page.
+- `src/app/admin/requests/page.tsx`: administrative QA answer moderation dashboard.
+- `src/app/admin/requests/QuestionReviewCard.tsx`: side-by-side edit/preview interface to update drafts and publish answers as human-reviewed.
+- `src/app/admin/requests/actions.ts`: server actions to save drafts and publish answers.
 
 ## Courses And Assignments
 
 - `src/app/(dashboard)/courses/[courseCode]/page.tsx`: course question bank, filters, heat-map clusters, question cards, and server-side textbook chunk matching. Uses a 2-column layout on `lg` screens (questions left, PDF panels right).
-- `src/app/(dashboard)/courses/[courseCode]/components/QuestionCard.tsx`: question display, AI answer modal, free-credit/paywall behavior. Dispatches a `textbookJump` CustomEvent on click carrying `{ page, excerpt }` for the textbook panel.
+- `src/app/(dashboard)/courses/[courseCode]/components/QuestionCard.tsx`: question display, AI answer modal, free-credit/paywall behavior. Dispatches a `textbookJump` CustomEvent on click carrying `{ page, excerpt }` for the textbook panel. Launches the `<ConceptDrawer />` on concept trigger.
+- `src/app/(dashboard)/courses/[courseCode]/components/ConceptDrawer.tsx`: slide-out drawer showing psychology concepts tested by that question, Layer 3+ freemium locks, screenshot text-copy protection overlays, and cross-course links (`related_nodes`).
 - `src/app/(dashboard)/courses/[courseCode]/components/CoursePdfPanels.tsx`: sticky right-column panels (desktop only, `hidden lg:flex`). Top panel: Q-paper PDF (iframe, session dropdown, redirects to Supabase Storage). Bottom panel: textbook PDF viewer (iframe) — displays the textbook PDF from Supabase Storage and jumps to the matched page on question selection, with copy/download/print protections and a bottom context excerpt strip.
 - `src/app/(dashboard)/courses/actions.ts`: question progress, answer fetch, and user progress server actions.
 - `src/app/(dashboard)/courses/[courseCode]/assignments/page.tsx`: assignment year list for theory courses.
@@ -106,6 +112,8 @@ For environment and Supabase audit setup, read `docs/ENVIRONMENT.md` before runn
 - `docs/ENVIRONMENT.md`: required reference for Infisical mappings, expected Supabase project, audit setup, and common environment failures.
 - `supabase/schema.sql`: database schema.
 - `scripts/seed.js`: local seed script.
+- `scripts/link-concepts.mjs`: parses concept keywords/theorists to map connections across courses and populate the `related_nodes` JSONB field in Supabase.
+- `scripts/verify-backup.mjs`: checks database and storage bucket connectivity and logs backup status.
 
 ## Data Pipeline
 

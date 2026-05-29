@@ -6,7 +6,7 @@ import { ROUTES } from '@/lib/routes';
 import { cleanQuestionText } from '@/lib/questionDisplay';
 import AnswerRenderer from '@/components/AnswerRenderer';
 import { getAnswer, updateProgress, submitFlag, trackQuestionViewed } from '../../actions';
-import ConceptPanel from './ConceptPanel';
+import ConceptDrawer from './ConceptDrawer';
 
 interface Question {
   id: string;
@@ -77,6 +77,7 @@ export default function QuestionCard({
   const [loading, setLoading] = useState(false);
   const [answerData, setAnswerData] = useState<AnswerData | null>(null);
   const [reviewed, setReviewed] = useState(initialProgress.reviewed);
+  const [hasTrackedView, setHasTrackedView] = useState(false);
   const [bookmarked, setBookmarked] = useState(initialProgress.bookmarked);
   const displayText = cleanQuestionText(question);
   const teeTags = variations.length > 0
@@ -100,16 +101,7 @@ export default function QuestionCard({
 
   const isGrounded = textbookGrounded || !!question.textbook_grounded;
 
-  useEffect(() => {
-    if (!courseCode) return;
-    posthog?.capture('question_viewed', {
-      course_code: courseCode,
-      question_id: question.id,
-      frequency_tier: frequencyTier,
-      is_paid: isPaid,
-    });
-    trackQuestionViewed(question.id, courseCode).catch(() => {});
-  }, [courseCode, frequencyTier, isPaid, posthog, question.id]);
+
 
   // Block print and save keyboard shortcuts globally
   useEffect(() => {
@@ -130,6 +122,17 @@ export default function QuestionCard({
     }
     setIsOpen(true);
     setAnswerError(null);
+
+    if (!hasTrackedView && courseCode) {
+      setHasTrackedView(true);
+      posthog?.capture('question_viewed', {
+        course_code: courseCode,
+        question_id: question.id,
+        frequency_tier: frequencyTier,
+        is_paid: isPaid,
+      });
+      trackQuestionViewed(question.id, courseCode).catch(() => {});
+    }
     if (!answerData) {
       setLoading(true);
       try {
@@ -191,6 +194,17 @@ export default function QuestionCard({
         excerpt: textbookExcerpt ?? null,
       },
     }));
+
+    if (!hasTrackedView && courseCode) {
+      setHasTrackedView(true);
+      posthog?.capture('question_viewed', {
+        course_code: courseCode,
+        question_id: question.id,
+        frequency_tier: frequencyTier,
+        is_paid: isPaid,
+      });
+      trackQuestionViewed(question.id, courseCode).catch(() => {});
+    }
   };
 
   const handleFlagSubmit = async () => {
@@ -334,7 +348,7 @@ export default function QuestionCard({
               {bookmarked ? 'Saved' : 'Save for later'}
             </button>
             {topicClusterId && (
-              <ConceptPanel topicClusterId={topicClusterId} isPaid={isPaid} />
+              <ConceptDrawer topicClusterId={topicClusterId} isPaid={isPaid} userEmail={userEmail} />
             )}
           </div>
           

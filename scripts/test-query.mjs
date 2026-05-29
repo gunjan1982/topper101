@@ -9,23 +9,19 @@ for (const k in envConfig) {
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function run() {
-  const { data, error } = await supabase.rpc('get_columns', { table_name: 'concept_tree' });
+  const { data, error } = await supabase
+    .storage
+    .from('pdfs')
+    .list('', { limit: 5 });
   if (error) {
-    // If get_columns RPC doesn't exist, run a raw query using select.
-    // Since we don't have direct SQL runner, we can do a query to information_schema if there is a function or we can just try to fetch a row and see what keys are returned.
-    const { data: rowData, error: rowError } = await supabase.from('concept_tree').select('*').limit(1);
-    if (rowError) {
-      console.error('Row fetch error:', rowError);
-    } else {
-      console.log('Fetched columns from empty row:', rowData);
-    }
+    console.error('List error:', error);
   } else {
-    console.log('Columns:', data);
+    console.log('List data:', data);
   }
 }
 

@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { readFile } from 'fs/promises';
-import path from 'path';
 import QuestionCard from './components/QuestionCard';
 import CoursePdfPanels, { type PdfSessionItem } from './components/CoursePdfPanels';
 import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
@@ -48,6 +46,8 @@ type QuestionRow = {
   created_at?: string | null;
   textbook_grounded?: boolean | null;
   reviewed_by_human?: boolean | null;
+  textbook_page?: number | null;
+  textbook_excerpt?: string | null;
 };
 
 type QuestionGroup = {
@@ -143,65 +143,7 @@ function topicMeanMarks(questions: QuestionRow[]) {
   return questions.reduce((sum, question) => sum + question.marks, 0) / questions.length;
 }
 
-type TextbookChunk = { page_start: number; text: string };
 
-export type QuestionTextbookMatch = { page: number; text: string };
-
-async function computeQuestionPageMap(
-  questions: QuestionRow[],
-  courseCode: string,
-): Promise<Record<string, QuestionTextbookMatch>> {
-  try {
-    const chunksPath = path.join(process.cwd(), 'data', 'textbooks', courseCode, 'chunks.json');
-    const raw = await readFile(chunksPath, 'utf-8');
-    const chunks: TextbookChunk[] = JSON.parse(raw);
-    if (chunks.length <= 1) return {};
-
-    const STOP_WORDS = new Set([
-      'about','above','after','again','against','their','there','these','those',
-      'through','under','until','which','while','would','could','should','shall',
-      'also','from','have','that','this','been','being','were','will','them',
-      'then','they','what','when','where','each','more','most','other','some',
-      'such','into','your','than','very','with','describe','explain','discuss',
-      'define','elucidate','delineate','differentiate','elaborate',
-    ]);
-
-    // Build inverted index: word → [chunk indices]
-    const wordIndex = new Map<string, number[]>();
-    chunks.forEach((chunk, idx) => {
-      const seen = new Set<string>();
-      for (const w of chunk.text.toLowerCase().split(/\W+/)) {
-        if (w.length > 4 && !STOP_WORDS.has(w) && !seen.has(w)) {
-          seen.add(w);
-          const list = wordIndex.get(w);
-          if (list) list.push(idx); else wordIndex.set(w, [idx]);
-        }
-      }
-    });
-
-    const map: Record<string, QuestionTextbookMatch> = {};
-    for (const q of questions) {
-      const qWords = cleanQuestionText(q).toLowerCase().split(/\W+/)
-        .filter((w) => w.length > 4 && !STOP_WORDS.has(w));
-      if (!qWords.length) continue;
-      const scores = new Map<number, number>();
-      for (const word of qWords) {
-        for (const idx of wordIndex.get(word) ?? []) {
-          scores.set(idx, (scores.get(idx) ?? 0) + 1);
-        }
-      }
-      let bestScore = 0; let bestIdx = 0;
-      scores.forEach((score, idx) => {
-        if (score > bestScore) { bestScore = score; bestIdx = idx; }
-      });
-      map[q.id] = { page: chunks[bestIdx].page_start, text: chunks[bestIdx].text };
-    }
-    return map;
-  } catch (err: unknown) {
-    console.error(`[textbooks] Failed to compute page map for ${courseCode}:`, err);
-    return {};
-  }
-}
 
 function answerLength(question: QuestionRow) {
   return (question.ai_answer ?? question.model_answer ?? '').length;
@@ -339,7 +281,6 @@ export default async function CourseDetailPage({
     return question.topic_cluster_id === matchedCluster.id || question.topic === matchedCluster.cluster_name;
   });
   const questionGroups = groupRepeatedQuestions(questions, course.code);
-  const questionPageMap = await computeQuestionPageMap(questions, course.code);
   const topicSessions = new Map<string, TopicSessionStat[]>();
 
   (clusters as TopicCluster[] | null)?.forEach((cluster) => {
@@ -518,8 +459,8 @@ export default async function CourseDetailPage({
                     (clusters as TopicCluster[] | null)?.find((cluster) => cluster.id === q.topic_cluster_id || cluster.cluster_name === q.topic)?.frequency_tier ?? 'LOW'
                   }
                   initialProgress={progressByQuestion.get(q.id)}
-                  textbookPage={questionPageMap[q.id]?.page}
-                  textbookExcerpt={questionPageMap[q.id]?.text}
+                  textbookPage={q.textbook_page ?? undefined}
+                  textbookExcerpt={q.textbook_excerpt ?? undefined}
                   topicClusterId={q.topic_cluster_id ?? undefined}
                   textbookGrounded={q.textbook_grounded ?? false}
                   reviewedByHuman={q.reviewed_by_human ?? false}

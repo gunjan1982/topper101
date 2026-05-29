@@ -16,10 +16,10 @@ export default async function ConceptsPage() {
     redirect(ROUTES.login);
   }
 
-  // Get user profile for plan_tier
+  // Get user profile for plan_tier and URNA waitlist status
   const { data: userData } = await supabase
     .from('users')
-    .select('plan_tier')
+    .select('plan_tier, urna_opt_in')
     .eq('id', user.id)
     .single();
 
@@ -75,6 +75,8 @@ export default async function ConceptsPage() {
     <ConceptTreeClient
       initialConcepts={parsedConcepts}
       isPaid={isPaid}
+      initialUrnaOptIn={userData?.urna_opt_in ?? false}
+      userEmail={user?.email ?? null}
     />
   );
 }

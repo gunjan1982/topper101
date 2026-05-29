@@ -6,6 +6,7 @@ import { canAccessCourse, fetchSubjectEntitlements, unlockedCourseCodes } from '
 import { ROUTES } from '@/lib/routes';
 import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule, nextScheduledExam } from '@/lib/examSchedule';
 import CopyReferralLink from '@/components/CopyReferralLink';
+import ReferralDashboard from './ReferralDashboard';
 
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -116,6 +117,13 @@ export default async function DashboardPage({
   const nextExamCourse = nextExam ? courseByCode(courses, nextExam.courseCode) : null;
   const nextExamDaysLeft = nextExam ? daysUntilExam(nextExam.date) : null;
 
+  // Fetch referrals for current user
+  const { data: referrals } = await supabase
+    .from('referrals')
+    .select('status, created_at')
+    .eq('referrer_user_id', user.id)
+    .order('created_at', { ascending: false });
+
   return (
     <div className="space-y-10">
       {/* Payment Success Banner */}
@@ -214,6 +222,15 @@ export default async function DashboardPage({
           </div>
         ))}
       </div>
+
+      {/* Referral Dashboard Widget */}
+      {userData.referral_code && (
+        <ReferralDashboard
+          referralCode={userData.referral_code}
+          referrals={referrals ?? []}
+          siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? 'https://topper101.com'}
+        />
+      )}
 
       {/* Paper Cards */}
       <div className="space-y-6">

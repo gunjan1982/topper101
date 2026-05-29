@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { isGoogleAuthEnabled } from '@/lib/authConfig';
 import { safeNextPath } from '@/lib/navigation';
 import { ROUTES } from '@/lib/routes';
@@ -52,23 +53,59 @@ export async function signup(formData: FormData) {
   const redirectTo = safeNextPath(formData.get('redirectTo') as string | null);
   const phone = (formData.get('phone') as string | null)?.trim() || null;
 
+  // Retrieve referral code from form data or referer URL query param
+  let referralCode = (formData.get('referral_code') as string | null)?.trim() || null;
+  if (!referralCode) {
+    const headerStore = await headers();
+    const referer = headerStore.get('referer');
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        referralCode = refererUrl.searchParams.get('ref')?.trim() || null;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     options: {
       data: {
         phone,
-        referred_by: (formData.get('referral_code') as string | null)?.trim() || null,
+        referred_by: referralCode,
       },
     },
   };
-
-  const referralCode = formData.get('referral_code') as string | null;
 
   const { data: signupData, error } = await supabase.auth.signUp(data);
 
   if (error) {
     return redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Insert referral row if code exists and refers to a valid user
+  if (signupData?.user?.id && referralCode) {
+    try {
+      const admin = createAdminClient();
+      const { data: referrerUser } = await admin
+        .from('users')
+        .select('id')
+        .eq('referral_code', referralCode)
+        .maybeSingle();
+
+      if (referrerUser) {
+        await admin.from('referrals').insert({
+          referrer_user_id: referrerUser.id,
+          referred_user_id: signupData.user.id,
+          referral_code: referralCode,
+          status: 'pending',
+        });
+      }
+    } catch (err) {
+      console.error('Error inserting referral record:', err);
+    }
   }
 
   // PostHog: user_signed_up

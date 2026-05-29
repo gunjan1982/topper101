@@ -229,11 +229,10 @@ export default function SettingsForm({
           </button>
           <div>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              Get early access to URNA career platform
+              Join the URNA mental health professional and self-help waitlist
             </p>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              We&apos;re building a platform to help MAPC graduates find clinical / counselling roles.
-              Toggle on to join the waitlist.
+              We&apos;re building a clinical platform to help MAPC graduates find professional roles and access advanced self-help application building blocks.
             </p>
           </div>
         </div>
