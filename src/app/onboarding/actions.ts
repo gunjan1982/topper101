@@ -86,6 +86,14 @@ async function rewardReferrerOnOnboardingComplete(userId: string) {
       },
     });
 
+    // Ensure the reward course is in the referrer's selected_papers array so it displays on their dashboard
+    if (!referrerPapers.includes(rewardCourse)) {
+      await admin
+        .from('users')
+        .update({ selected_papers: [...referrerPapers, rewardCourse] })
+        .eq('id', referrer.id);
+    }
+
     // Upsert the referral record as rewarded (and qualified)
     await admin
       .from('referrals')
