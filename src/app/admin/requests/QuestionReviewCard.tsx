@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { approveQuestionAnswer, saveQuestionDraft } from './actions';
 import AnswerRenderer from '@/components/AnswerRenderer';
+import { resolveTextbookPage } from '@/lib/textbookOffsets';
+
 
 export interface QuestionWithCourse {
   id: string;
@@ -41,8 +43,12 @@ export default function QuestionReviewCard({ question }: QuestionReviewCardProps
   const courseCode = question.courses?.code ?? '';
   const courseName = question.courses?.name ?? 'Unknown Course';
   
+  const pageNum = parseInt(currentPage, 10);
+  const resolvedPage = !isNaN(pageNum) ? resolveTextbookPage(courseCode, pageNum) : null;
+  
   // Format the TEE details
   const teeDetails = [question.session, question.year].filter(Boolean).join(' ');
+
 
   const handleOpenPdf = async () => {
     if (!courseCode) {
@@ -226,8 +232,9 @@ export default function QuestionReviewCard({ question }: QuestionReviewCardProps
           <div>
             <div className="flex items-center justify-between mb-2">
               <label htmlFor={`page-${question.id}`} className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Textbook Page
+                Textbook Page {resolvedPage && <span className="text-teal-600 dark:text-teal-400 font-bold ml-2">({resolvedPage.displayLabel})</span>}
               </label>
+
               {courseCode && (
                 <button
                   type="button"

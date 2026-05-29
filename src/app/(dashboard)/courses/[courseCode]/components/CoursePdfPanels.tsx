@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { resolveTextbookPage } from '@/lib/textbookOffsets';
+
 
 export interface PdfSessionItem {
   year: number;
@@ -240,16 +242,21 @@ export default function CoursePdfPanels({
             {/* Info bar */}
             <div className="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-zinc-100 dark:border-zinc-800 flex-shrink-0">
               <div className="flex items-center gap-2">
-                {tbState.page && tbState.page > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20">
-                    📖 Page {tbState.page}
-                  </span>
-                ) : (
+
+                {tbState.page && tbState.page > 0 ? (() => {
+                  const resolved = resolveTextbookPage(courseCode, tbState.page);
+                  return (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20">
+                      📖 {resolved?.displayLabel ?? `Page ${tbState.page}`}
+                    </span>
+                  );
+                })() : (
                   <span className="text-xs text-zinc-400 dark:text-zinc-500 italic">
                     Click a question to jump to its page
                   </span>
                 )}
               </div>
+
               {/* Grounded badge */}
               {tbState.page && (
                 <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-700 ring-1 ring-inset ring-teal-600/10 dark:bg-teal-950/30 dark:text-teal-400">
@@ -271,16 +278,20 @@ export default function CoursePdfPanels({
                   onContextMenu={(e) => e.preventDefault()}
                 />
                 {/* Excerpt tooltip strip at bottom when page is matched */}
-                {tbState.excerpt && tbState.page && (
-                  <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-amber-200 bg-amber-50/95 dark:bg-zinc-900/95 dark:border-amber-900/40 backdrop-blur-sm px-4 py-3 max-h-32 overflow-y-auto">
-                    <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-1">
-                      Matched excerpt · Page {tbState.page}
-                    </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed line-clamp-4 select-none">
-                      {tbState.excerpt.substring(0, 300)}…
-                    </p>
-                  </div>
-                )}
+                {tbState.excerpt && tbState.page && (() => {
+                  const resolved = resolveTextbookPage(courseCode, tbState.page);
+                  return (
+                    <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-amber-200 bg-amber-50/95 dark:bg-zinc-900/95 dark:border-amber-900/40 backdrop-blur-sm px-4 py-3 max-h-32 overflow-y-auto">
+                      <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-1">
+                        Matched excerpt · {resolved?.displayLabel ?? `Page ${tbState.page}`}
+                      </p>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed line-clamp-4 select-none">
+                        {tbState.excerpt.substring(0, 300)}…
+                      </p>
+                    </div>
+                  );
+                })()}
+
               </div>
             ) : (
               /* Loading / no URL yet */

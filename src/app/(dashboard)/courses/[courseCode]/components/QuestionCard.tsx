@@ -7,6 +7,8 @@ import { cleanQuestionText } from '@/lib/questionDisplay';
 import AnswerRenderer from '@/components/AnswerRenderer';
 import { getAnswer, updateProgress, submitFlag, trackQuestionViewed } from '../../actions';
 import ConceptDrawer from './ConceptDrawer';
+import { resolveTextbookPage } from '@/lib/textbookOffsets';
+
 
 interface Question {
   id: string;
@@ -73,6 +75,8 @@ export default function QuestionCard({
   reviewedByHuman = false,
 }: QuestionCardProps) {
   const posthog = usePostHog();
+  const resolvedPage = resolveTextbookPage(courseCode, textbookPage);
+
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [answerData, setAnswerData] = useState<AnswerData | null>(null);
@@ -364,8 +368,8 @@ export default function QuestionCard({
             </span>
           )}
           {textbookPage && textbookPage > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
-              📚 Jump to textbook page {textbookPage}
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400 font-semibold">
+              📚 Jump to {resolvedPage?.displayLabel ?? `Page ${textbookPage}`}
             </span>
           )}
         </div>
@@ -392,9 +396,10 @@ export default function QuestionCard({
                   <>
                     {(isGrounded && textbookPage) ? (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
-                        📖 Verified Textbook Grounded (Page {textbookPage})
+                        📖 Verified Textbook Grounded ({resolvedPage?.displayLabel ?? `Page ${textbookPage}`})
                       </span>
                     ) : (
+
                       isGrounded && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-teal-600 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-400/20">
                           📖 Textbook-grounded answer
@@ -498,9 +503,10 @@ export default function QuestionCard({
 
                 {(isGrounded && textbookPage) && (
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md dark:from-emerald-700 dark:to-teal-700">
-                    📖 Verified Textbook Grounded (Page {textbookPage})
+                    📖 Verified Textbook Grounded ({resolvedPage?.displayLabel ?? `Page ${textbookPage}`})
                   </div>
                 )}
+
 
                 <AnswerRenderer answer={answerData?.answer || 'No answer found for this question.'} />
 
