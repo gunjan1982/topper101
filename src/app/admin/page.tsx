@@ -190,7 +190,7 @@ export default async function AdminPage() {
                       u.plan_tier === 'pass' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                         : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
                     }`}>
-                      {u.plan_tier === 'pro' ? 'legacy' : u.plan_tier}
+                      {u.plan_tier}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-zinc-500">{u.onboarding_complete ? '✅' : '⏳'}</td>

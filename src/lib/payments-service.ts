@@ -6,6 +6,7 @@ import {
   grantSubjectEntitlement,
   REFERRAL_REWARD_LIMIT,
 } from '@/lib/entitlements';
+import { CREDIT_OFFERS, CREDIT_PRICE_INR, type CreditOfferId } from '@/lib/creditPricing';
 
 async function grantReferralRewardForPayment(payingUserId: string) {
   const admin = createAdminClient();
@@ -126,7 +127,7 @@ async function grantPurchasedSubjectUnlocks({
       sourceRef: orderId,
       expiresAt,
       metadata: {
-        reason: 'Topper Pass subject purchase',
+        reason: 'Subject purchase',
         offer_id: offerId ?? null,
         subject_limit: subjectLimit,
       },
@@ -145,6 +146,7 @@ export async function processOrderPaymentSuccess({
   subjectLimit,
   offerId,
   offerLabel,
+  creditCount,
 }: {
   userId: string;
   orderId: string;
@@ -154,6 +156,7 @@ export async function processOrderPaymentSuccess({
   subjectLimit: number;
   offerId?: string;
   offerLabel?: string;
+  creditCount?: number;
 }) {
   const admin = createAdminClient();
 
@@ -169,7 +172,16 @@ export async function processOrderPaymentSuccess({
     return;
   }
 
-  if (offerId === 'buy-1-credit') {
+  const isCreditPurchase = offerId?.startsWith('buy-') || (creditCount !== undefined && creditCount > 0);
+  if (isCreditPurchase) {
+    const typedOfferId = offerId && offerId in CREDIT_OFFERS ? offerId as CreditOfferId : null;
+    const creditsToGrant = creditCount && creditCount > 0
+      ? creditCount
+      : typedOfferId ? CREDIT_OFFERS[typedOfferId].credits
+      : 1;
+
+    const pricePaid = amountPaid ? amountPaid / 100 : creditsToGrant * CREDIT_PRICE_INR;
+
     // 1. Increment user credits
     const { data: user } = await admin
       .from('users')
@@ -180,7 +192,7 @@ export async function processOrderPaymentSuccess({
     const currentCredits = user?.credits ?? 0;
     const { error: userError } = await admin
       .from('users')
-      .update({ credits: currentCredits + 1 })
+      .update({ credits: currentCredits + creditsToGrant })
       .eq('id', userId);
     
     if (userError) throw userError;
@@ -198,9 +210,9 @@ export async function processOrderPaymentSuccess({
         end_date: new Date().toISOString(),
         payment_history: [{
           offer_id: offerId,
-          offer_label: offerLabel ?? 'Buy 1 Topper Credit',
+          offer_label: offerLabel ?? `Buy ${creditsToGrant} Topper Credits`,
           subject_limit: 0,
-          amount_paid: amountPaid ? amountPaid / 100 : 49,
+          amount_paid: pricePaid,
         }],
       });
     
@@ -208,8 +220,9 @@ export async function processOrderPaymentSuccess({
 
     // 3. PostHog: credit_purchased
     await captureServerEvent(userId, 'credit_purchased', {
-      amount: amountPaid ? amountPaid / 100 : 49,
+      amount: pricePaid,
       offer_id: offerId,
+      credits_granted: creditsToGrant,
     });
     
     return;

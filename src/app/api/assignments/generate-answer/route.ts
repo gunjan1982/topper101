@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single();
 
-    if (!userData || userData.plan_tier !== 'pro') {
+    if (!userData || userData.plan_tier !== 'pass') {
       return NextResponse.json({ error: 'Assignment answer generation is not available yet' }, { status: 403 });
     }
 

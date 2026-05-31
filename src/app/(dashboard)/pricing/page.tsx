@@ -5,8 +5,7 @@ import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { createClient } from '@/lib/supabase/client';
-
-type BillingCycle = 'monthly' | 'semester';
+import { CREDIT_OFFERS, CREDIT_PRICE_INR, SUBJECT_UNLOCK_VALIDITY_MONTHS, creditOfferAmountPaise, type CreditOfferId } from '@/lib/creditPricing';
 
 type RazorpayFailureResponse = {
   error?: {
@@ -25,60 +24,37 @@ declare global {
   }
 }
 
-const getOffers = (isYear1: boolean) => ({
-  monthly: {
-    label: 'TEE Jun 2026',
-    sublabel: `Access until ${isYear1 ? '31 July 2026' : '30 June 2026'}`,
-    expiryNote: isYear1 ? 'Covers the upcoming July TEE sitting' : 'Covers the upcoming June TEE sitting',
-    subject1: { id: 'pass-1-subject-monthly', price: 99 },
-    subject5: { id: 'pass-5-subjects-monthly', price: 299 },
-  },
-  semester: {
-    label: 'Full Semester',
-    sublabel: `Access until ${isYear1 ? '31 January 2027' : '31 December 2026'}`,
-    expiryNote: isYear1 ? 'Covers both July and January TEE sittings' : 'Covers both June and December TEE sittings',
-    subject1: { id: 'pass-1-subject-semester', price: 199 },
-    subject5: { id: 'pass-5-subjects-semester', price: 499 },
-  },
-});
+const creditCards = (Object.keys(CREDIT_OFFERS) as CreditOfferId[]).map((id) => ({
+  id,
+  ...CREDIT_OFFERS[id],
+  price: creditOfferAmountPaise(id) / 100,
+}));
 
 export default function PricingPage() {
   const posthog = usePostHog();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [billing, setBilling] = useState<BillingCycle>('monthly');
-  const [userYear, setUserYear] = useState<number | null>(null);
-  const [userPlanTier, setUserPlanTier] = useState<string | null>(null);
   const router = useRouter();
   const isDev = process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost');
 
   useEffect(() => {
-    async function loadUserYear() {
+    async function loadUserDetails() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data } = await supabase
+          await supabase
             .from('users')
-            .select('year, plan_tier')
+            .select('id')
             .eq('id', user.id)
             .single();
-          if (data?.year) {
-            setUserYear(data.year);
-          }
-          if (data?.plan_tier) {
-            setUserPlanTier(data.plan_tier);
-          }
         }
       } catch (err) {
         console.error('Failed to load user details:', err);
       }
     }
-    loadUserYear();
+    loadUserDetails();
   }, []);
-
-  const isYear1 = userYear === 1;
-  const offer = getOffers(isYear1)[billing];
 
   const handleUpgrade = async (offerId: string) => {
     setLoading(offerId);
@@ -100,7 +76,7 @@ export default function PricingPage() {
         amount,
         currency,
         name: 'Topper101',
-        description: `Topper Pass — ${offer.sublabel}`,
+        description: 'Topper Credits',
         order_id: orderId,
         handler: async function (response: {
           razorpay_payment_id: string;
@@ -136,9 +112,7 @@ export default function PricingPage() {
           ondismiss: function () {
             posthog?.capture('payment_failed', {
               error_type: 'dismissed',
-              plan_tier: 'pass',
               offer_id: offerId,
-              billing_cycle: billing,
             });
             setLoading(null);
           },
@@ -155,9 +129,7 @@ export default function PricingPage() {
         setError(`Payment failed: ${failCode}`);
         posthog?.capture('payment_failed', {
           error_type: failCode,
-          plan_tier: 'pass',
           offer_id: offerId,
-          billing_cycle: billing,
         });
       });
       rzp.open();
@@ -167,9 +139,7 @@ export default function PricingPage() {
       setError(errMsg);
       posthog?.capture('payment_failed', {
         error_type: 'order_creation_failed',
-        plan_tier: 'pass',
         offer_id: offerId,
-        billing_cycle: billing,
       });
     } finally {
       setLoading(null);
@@ -204,20 +174,11 @@ export default function PricingPage() {
         <div className="text-center">
           <h2 className="text-base font-semibold leading-7 text-teal-700">Pricing</h2>
           <p className="mt-2 text-4xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-5xl">
-            Your first paper is free.
+            Buy credits. Unlock subjects.
           </p>
           <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
-            Unlock more subjects when you&apos;re ready. Access expires at the TEE — not a rolling subscription.
+            Credits are ₹{CREDIT_PRICE_INR} each. 2 credits buy 1 subject, and every credit-based subject unlock is valid for {SUBJECT_UNLOCK_VALIDITY_MONTHS} months.
           </p>
-
-          {/* Already Upgraded Banner */}
-          {userPlanTier === 'pass' && (
-            <div className="mt-6 mx-auto max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20 text-center">
-              <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                ✅ You&apos;re on the Topper Pass. Your unlocked subjects are fully active.
-              </p>
-            </div>
-          )}
 
           {/* Error Banner */}
           {error && (
@@ -237,99 +198,54 @@ export default function PricingPage() {
           )}
         </div>
 
-        {/* Billing toggle */}
-        <div className="mt-10 flex justify-center">
-          <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
-            <button
-              onClick={() => setBilling('monthly')}
-              className={`rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
-                billing === 'monthly'
-                  ? 'bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-zinc-50'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-4">
+          {creditCards.map((card) => (
+            <div
+              key={card.id}
+              className={`flex flex-col rounded-2xl p-6 ring-1 ${
+                card.id === 'buy-5-credits'
+                  ? 'bg-teal-700 text-white ring-teal-700'
+                  : 'bg-white text-zinc-950 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800'
               }`}
             >
-              TEE Jun 2026
-              <span className="ml-1.5 text-xs font-normal opacity-70">until {isYear1 ? '31 Jul' : '30 Jun'}</span>
-            </button>
-            <button
-              onClick={() => setBilling('semester')}
-              className={`rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
-                billing === 'semester'
-                  ? 'bg-white text-zinc-900 shadow dark:bg-zinc-700 dark:text-zinc-50'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-              }`}
-            >
-              Full Semester
-              <span className="ml-1.5 text-xs font-normal opacity-70">until {isYear1 ? '31 Jan 2027' : '31 Dec'}</span>
-            </button>
-          </div>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold">
+                  {card.credits} Credit{card.credits > 1 ? 's' : ''}
+                </h3>
+                {card.id === 'buy-5-credits' && (
+                  <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold">Best value</span>
+                )}
+              </div>
+              <p className={`mt-2 text-sm ${card.id === 'buy-5-credits' ? 'text-teal-50' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                {card.unlocksLabel}
+              </p>
+              <div className="mt-6 flex items-baseline gap-1">
+                <span className="text-4xl font-bold">₹{card.price}</span>
+                <span className={`text-sm ${card.id === 'buy-5-credits' ? 'text-teal-100' : 'text-zinc-500'}`}>one-time</span>
+              </div>
+              <p className={`mt-1 text-xs ${card.id === 'buy-5-credits' ? 'text-teal-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                ₹{CREDIT_PRICE_INR} per credit
+              </p>
+              <button
+                onClick={() => handleUpgrade(card.id)}
+                disabled={!!loading}
+                className={`mt-8 rounded-xl px-4 py-3 text-center text-sm font-bold disabled:opacity-50 ${
+                  card.id === 'buy-5-credits'
+                    ? 'bg-white text-teal-700 hover:bg-zinc-100'
+                    : 'bg-teal-700 text-white hover:bg-teal-600'
+                }`}
+              >
+                {loading === card.id ? 'Initialising…' : `Buy ${card.credits} credit${card.credits > 1 ? 's' : ''}`}
+              </button>
+            </div>
+          ))}
         </div>
 
-        <p className="mt-3 text-center text-xs text-zinc-500 dark:text-zinc-400">
-          {offer.expiryNote}
-        </p>
-
-        {/* Pricing cards */}
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* 1 Subject */}
-          <div className="flex flex-col rounded-3xl bg-white p-8 ring-1 ring-zinc-200 xl:p-10 dark:bg-zinc-900 dark:ring-zinc-800">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">1 Subject</h3>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              One theory paper of your choice
-            </p>
-            <div className="mt-6 flex items-baseline gap-1">
-              <span className="text-4xl font-bold text-zinc-950 dark:text-zinc-50">
-                ₹{offer.subject1.price}
-              </span>
-              <span className="text-sm text-zinc-500">one-time</span>
-            </div>
-            <ul className="mt-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
-              <li>✓ Full 10-year question bank</li>
-              <li>✓ Unlimited Textbook word count specific curated answers powered by AI</li>
-              <li>✓ Frequency heat map</li>
-              <li>✓ Progress tracking</li>
-            </ul>
-            <button
-              onClick={() => handleUpgrade(offer.subject1.id)}
-              disabled={!!loading}
-              className="mt-8 rounded-xl bg-teal-700 px-6 py-3.5 text-center text-sm font-bold text-white hover:bg-teal-600 disabled:opacity-50"
-            >
-              {loading === offer.subject1.id ? 'Initialising…' : `Unlock 1 subject — ₹${offer.subject1.price}`}
-            </button>
-          </div>
-
-          {/* 5 Subjects */}
-          <div className="flex flex-col rounded-3xl bg-teal-700 p-8 text-white xl:p-10">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">5 Subjects</h3>
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
-                Best value
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-teal-100">
-              Unlock up to 5 theory papers at once
-            </p>
-            <div className="mt-6 flex items-baseline gap-1">
-              <span className="text-4xl font-bold">₹{offer.subject5.price}</span>
-              <span className="text-sm text-teal-200">one-time</span>
-            </div>
-            <p className="mt-1 text-xs text-teal-200">
-              ₹{Math.round(offer.subject5.price / 5)} per subject
-            </p>
-            <ul className="mt-6 space-y-2 text-sm text-teal-50">
-              <li>✓ Full 10-year question bank</li>
-              <li>✓ Unlimited Textbook word count specific curated answers powered by AI</li>
-              <li>✓ Frequency heat map</li>
-              <li>✓ Progress tracking</li>
-            </ul>
-            <button
-              onClick={() => handleUpgrade(offer.subject5.id)}
-              disabled={!!loading}
-              className="mt-8 rounded-xl bg-white px-6 py-3.5 text-center text-sm font-bold text-teal-700 hover:bg-zinc-100 disabled:opacity-50"
-            >
-              {loading === offer.subject5.id ? 'Initialising…' : `Unlock 5 subjects — ₹${offer.subject5.price}`}
-            </button>
-          </div>
+        <div className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300">
+          <div className="font-bold text-zinc-900 dark:text-zinc-50">Credit redemption policy</div>
+          <p className="mt-2">
+            2 credits unlock 1 subject for {SUBJECT_UNLOCK_VALIDITY_MONTHS} months. 4 credits unlock 2 subjects, and 5 credits unlock 3 subjects. Uploading an Admit Card gives 1 credit toward your first free subject.
+          </p>
         </div>
 
         {/* Dev Testing Card */}
@@ -344,14 +260,14 @@ export default function PricingPage() {
               disabled={!!loading}
               className="mt-4 inline-flex items-center justify-center rounded-xl bg-teal-700 px-5 py-2.5 text-xs font-bold text-white hover:bg-teal-600 disabled:opacity-50"
             >
-              {loading === 'pass-testing' ? 'Initialising…' : 'Unlock Testing Plan — ₹1'}
+              {loading === 'pass-testing' ? 'Initialising…' : 'Test Checkout — ₹1'}
             </button>
           </div>
         )}
 
         {/* Footer note */}
         <p className="mt-8 text-center text-xs text-zinc-400">
-          Subjects are auto-selected from your enrolled papers. No subscription — pay once, access until the TEE date.
+          Credits are added immediately after successful Razorpay verification. Subject unlocks are redeemed inside the subject page.
         </p>
       </div>
     </div>

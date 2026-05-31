@@ -3,6 +3,13 @@ import { safeNextPath } from '@/lib/navigation';
 import { AUTH_ROUTE_PREFIXES, PROTECTED_ROUTE_PREFIXES, ROUTES } from '@/lib/routes';
 import { NextResponse, type NextRequest } from 'next/server';
 
+const NOINDEX_HEADER = 'noindex, nofollow';
+
+function markNoindex(response: NextResponse) {
+  response.headers.set('X-Robots-Tag', NOINDEX_HEADER);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -44,12 +51,16 @@ export async function middleware(request: NextRequest) {
   if (!user && isProtectedRoute) {
     const loginUrl = new URL(ROUTES.login, request.url);
     loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
-    return NextResponse.redirect(loginUrl);
+    return markNoindex(NextResponse.redirect(loginUrl));
   }
 
   if (user && isAuthPage) {
     const next = safeNextPath(request.nextUrl.searchParams.get('next'));
-    return NextResponse.redirect(new URL(next, request.url));
+    return markNoindex(NextResponse.redirect(new URL(next, request.url)));
+  }
+
+  if (isAuthPage || isProtectedRoute) {
+    return markNoindex(response);
   }
 
   return response;

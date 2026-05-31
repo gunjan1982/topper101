@@ -31,7 +31,7 @@ export default async function AssignmentYearPage({
     .eq('id', user.id)
     .single();
 
-  const userPlanTier = (userData?.plan_tier as 'free' | 'pass' | 'pro') || 'free';
+  const userPlanTier = (userData?.plan_tier as 'free' | 'pass') || 'free';
   const targetYear = parseInt(year);
 
   // 1. Resolve primary active table values mapping CourseCode & Target Year combinations

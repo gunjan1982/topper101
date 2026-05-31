@@ -16,6 +16,7 @@ type RazorpayOrderPaidEvent = {
           offerId?: string;
           subjectLimit?: string;
           offerLabel?: string;
+          creditCount?: string;
         };
       };
     };
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       const { userId, planId, billingCycle } = notes;
       const amountPaid = event.payload.order.entity.amount_paid;
       const subjectLimit = Number.parseInt(notes.subjectLimit ?? '1', 10);
+      const creditCount = notes.creditCount ? Number.parseInt(notes.creditCount, 10) : 0;
 
       await processOrderPaymentSuccess({
         userId,
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
         planId,
         billingCycle,
         subjectLimit: Number.isFinite(subjectLimit) ? subjectLimit : 1,
+        creditCount: Number.isFinite(creditCount) ? creditCount : 0,
         offerId: notes.offerId,
         offerLabel: notes.offerLabel,
       });

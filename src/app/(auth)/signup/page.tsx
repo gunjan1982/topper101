@@ -2,6 +2,19 @@ import { signup, signInWithGoogle } from '../actions';
 import Link from 'next/link';
 import { isGoogleAuthEnabled } from '@/lib/authConfig';
 import { safeNextPath, withRedirectTo } from '@/lib/navigation';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Create Your Topper101 Account',
+  description: 'Create a Topper101 account to unlock your free IGNOU MAPC paper and start building your study map.',
+  alternates: {
+    canonical: '/signup',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function SignupPage({
   searchParams,
@@ -17,9 +30,9 @@ export default async function SignupPage({
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
             Create your account
-          </h2>
+          </h1>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
             Join Topper101 and start studying smarter.
           </p>
@@ -27,10 +40,9 @@ export default async function SignupPage({
 
         <form className="mt-8 space-y-6" action={signup}>
           <input type="hidden" name="redirectTo" value={next} />
-          <input type="hidden" name="referral_code" value={referralCode} />
           {referralCode && (
             <div className="rounded-xl bg-teal-50 p-3 text-center text-sm font-semibold text-teal-800 ring-1 ring-inset ring-teal-100 dark:bg-teal-950/30 dark:text-teal-200 dark:ring-teal-900/50">
-              Referral applied. You can unlock an extra paper after onboarding.
+              Referral applied. You will get 1 credit automatically after signup.
             </div>
           )}
           <div className="-space-y-px rounded-md shadow-sm">
@@ -71,8 +83,21 @@ export default async function SignupPage({
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-b-xl border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
+                className="relative block w-full border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
                 placeholder="Password"
+              />
+            </div>
+            <div>
+              <label htmlFor="referral-code" className="sr-only">
+                Referral / Promo Code (Optional)
+              </label>
+              <input
+                id="referral-code"
+                name="referral_code"
+                type="text"
+                defaultValue={referralCode}
+                className="relative block w-full rounded-b-xl border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
+                placeholder="Referral / Promo Code (e.g. June2026topper)"
               />
             </div>
           </div>
@@ -115,7 +140,7 @@ export default async function SignupPage({
           <div className="mt-6">
             <form action={signInWithGoogle}>
               <input type="hidden" name="redirectTo" value={next} />
-              <input type="hidden" name="referral_code" value={referralCode} />
+              <input type="hidden" id="google-referral-code" name="referral_code" value={referralCode} />
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-zinc-950 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:ring-transparent dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 dark:hover:bg-zinc-800 transition-all active:scale-95"
@@ -154,6 +179,25 @@ export default async function SignupPage({
             Log in
           </Link>
         </p>
+
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            function init() {
+              var refInput = document.getElementById('referral-code');
+              var googleRefInput = document.getElementById('google-referral-code');
+              if (refInput && googleRefInput) {
+                refInput.addEventListener('input', function(e) {
+                  googleRefInput.value = e.target.value;
+                });
+              }
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', init);
+            } else {
+              init();
+            }
+          })();
+        ` }} />
       </div>
     </div>
   );

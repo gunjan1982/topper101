@@ -148,7 +148,7 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-300">Payment successful!</h2>
               <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
-                Your Topper Pass is active. All unlocked subjects now show full curated answers.
+                Your subject unlock is active. Unlocked subjects now show full curated answers.
               </p>
             </div>
           </div>
@@ -219,14 +219,14 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-2xl font-bold">Your first paper is free</h2>
               <p className="mt-1 opacity-90">
-                Study one paper fully. Upgrade when Topper101 has earned your trust, or invite a friend to unlock another paper.
+                Study one paper fully. Buy credits when Topper101 has earned your trust, or invite classmates to unlock more papers.
               </p>
             </div>
             <Link 
               href={ROUTES.pricing}
               className="rounded-full bg-white px-6 py-3 text-sm font-bold text-teal-700 hover:bg-zinc-100 transition-all active:scale-95"
             >
-              Unlock more subjects from ₹99
+              Buy credits from ₹49
             </Link>
             {userData.referral_code && (
               <div className="flex flex-col gap-1">

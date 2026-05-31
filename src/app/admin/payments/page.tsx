@@ -48,6 +48,7 @@ export default async function AdminPaymentsPage({
   let activePassesCount = 0;
   let singleSubjectCount = 0;
   let multiSubjectCount = 0;
+  let creditPurchaseCount = 0;
 
   (allSubscriptions ?? []).forEach((sub) => {
     if (sub.status === 'active') {
@@ -56,7 +57,9 @@ export default async function AdminPaymentsPage({
     const history = (sub.payment_history as PaymentHistoryEntry[] | null) ?? [];
     history.forEach((payment) => {
       totalRevenue += payment.amount_paid ?? 0;
-      if (payment.subject_limit === 1) {
+      if ((payment.offer_id ?? '').startsWith('buy-')) {
+        creditPurchaseCount++;
+      } else if (payment.subject_limit === 1) {
         singleSubjectCount++;
       } else if (payment.subject_limit > 1) {
         multiSubjectCount++;
@@ -106,16 +109,16 @@ export default async function AdminPaymentsPage({
 
         {/* 1 Subject Purchases */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">1 Subject Unlocks</div>
-          <div className="mt-2 text-3xl font-bold text-zinc-900 dark:text-white">{singleSubjectCount}</div>
-          <div className="mt-1 text-xs text-zinc-500">₹99/199 pricing level</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Credit Purchases</div>
+          <div className="mt-2 text-3xl font-bold text-zinc-900 dark:text-white">{creditPurchaseCount}</div>
+          <div className="mt-1 text-xs text-zinc-500">₹49 per credit</div>
         </div>
 
         {/* 5 Subjects Purchases */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">5 Subjects Unlocks</div>
-          <div className="mt-2 text-3xl font-bold text-zinc-900 dark:text-white">{multiSubjectCount}</div>
-          <div className="mt-1 text-xs text-zinc-500">₹299/499 pricing level</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Legacy Subject Purchases</div>
+          <div className="mt-2 text-3xl font-bold text-zinc-900 dark:text-white">{singleSubjectCount + multiSubjectCount}</div>
+          <div className="mt-1 text-xs text-zinc-500">Old pass records, if any</div>
         </div>
       </div>
 
@@ -193,10 +196,10 @@ export default async function AdminPaymentsPage({
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center rounded-md bg-teal-50 px-2 py-1 text-xs font-medium text-teal-700 ring-1 ring-inset ring-teal-600/20 dark:bg-teal-950/40 dark:text-teal-400">
-                          {sub.plan_tier.toUpperCase()}
+                          {(historyEntry?.offer_id ?? '').startsWith('buy-') ? 'CREDITS' : sub.plan_tier.toUpperCase()}
                         </span>
                         <div className="text-xs text-zinc-500 mt-1 capitalize">
-                          {sub.billing_cycle || 'N/A'} cycle
+                          {historyEntry?.offer_label ?? `${sub.billing_cycle || 'N/A'} cycle`}
                         </div>
                       </td>
                       <td className="px-6 py-4">

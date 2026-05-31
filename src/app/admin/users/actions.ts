@@ -18,7 +18,7 @@ async function requireAdmin() {
   if (!user || !isAdminEmail(user.email ?? '')) redirect(ROUTES.dashboard);
 }
 
-export async function updateUserPlanTier(targetUserId: string, newPlanTier: 'free' | 'pass' | 'pro') {
+export async function updateUserPlanTier(targetUserId: string, newPlanTier: 'free' | 'pass') {
   await requireAdmin();
   const admin = createAdminClient();
   const { error } = await admin
@@ -118,4 +118,3 @@ export async function updateStudentVerificationStatus(targetUserId: string, newS
   if (error) throw new Error(error.message);
   revalidatePath(ROUTES.adminUsers);
 }
-

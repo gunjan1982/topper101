@@ -181,7 +181,7 @@ export default function ConceptDrawer({ topicClusterId, isPaid, userEmail }: Con
                   <div className="space-y-2">
                     <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">Free Tier Preview Mode</h4>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                      Layer 3+ concepts are locked. Key theorists and clinical relevance details are gated. Upgrade to Topper Pass or Pro to unlock the complete syllabus mappings.
+                      Layer 3+ concepts are locked. Key theorists and clinical relevance details are gated. Use credits to unlock the subject and complete syllabus mappings.
                     </p>
                     <Link
                       href={ROUTES.pricing}
@@ -318,7 +318,7 @@ function DrawerConceptCard({ concept, isPaid, userEmail, defaultExpanded = false
                 <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
                   {/* Theorists */}
                   <div className="space-y-1">
-                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Key Theorists</h5>
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Key Theories / Theorists</h5>
                     {concept.key_theorists && concept.key_theorists.length > 0 && isPaid ? (
                       <div className="flex flex-wrap gap-1">
                         {concept.key_theorists.map((t) => (

@@ -512,7 +512,7 @@ function ConceptTreeCard({
 
                 <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
                   <div className="space-y-1">
-                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Key Theorists</h5>
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Key Theories / Theorists</h5>
                     {concept.key_theorists && concept.key_theorists.length > 0 && isPaid ? (
                       <div className="flex flex-wrap gap-1">
                         {concept.key_theorists.map((t) => (

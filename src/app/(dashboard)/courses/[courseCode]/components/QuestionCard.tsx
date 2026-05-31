@@ -10,6 +10,8 @@ import { getAnswer, updateProgress, submitFlag, trackQuestionViewed, unlockCours
 import { verifyStudentDocument } from '@/app/onboarding/actions';
 import ConceptDrawer from './ConceptDrawer';
 import { resolveTextbookPage } from '@/lib/textbookOffsets';
+import { getRepeatProbabilityLabel } from '@/lib/examSchedule';
+import { CREDIT_PRICE_INR, SUBJECT_UNLOCK_VALIDITY_MONTHS, creditsRequiredForSubjectUnlock } from '@/lib/creditPricing';
 
 
 interface Question {
@@ -123,15 +125,20 @@ export default function QuestionCard({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
 
-  const creditsNeeded = unlockedCount === 0 ? 1 : 2;
+  const creditsNeeded = creditsRequiredForSubjectUnlock({
+    unlockedCount,
+    isVerified: verifiedState,
+  });
 
   const handleUnlockWithCredits = async () => {
     setUnlockLoading(true);
     try {
       const res = await unlockCourseWithCredits(courseCode, creditsNeeded);
       if (res?.success) {
-        setCredits(prev => prev - creditsNeeded);
-        setUnlockedCount(prev => prev + 1);
+        setCredits(prev => prev - (res.creditsSpent ?? creditsNeeded));
+        if ((res.creditsSpent ?? creditsNeeded) > 0) {
+          setUnlockedCount(prev => prev + 1);
+        }
         setAnswerData(null);
         setIsOpen(false);
         setTimeout(async () => {
@@ -173,8 +180,10 @@ export default function QuestionCard({
         if (unlockedCount === 0) {
           const unlockRes = await unlockCourseWithCredits(courseCode, 1);
           if (unlockRes?.success) {
-            setCredits(prev => prev - 1);
-            setUnlockedCount(prev => prev + 1);
+            setCredits(prev => prev - (unlockRes.creditsSpent ?? 1));
+            if ((unlockRes.creditsSpent ?? 1) > 0) {
+              setUnlockedCount(prev => prev + 1);
+            }
             setAnswerData(null);
             setIsOpen(false);
             setTimeout(async () => {
@@ -424,7 +433,7 @@ export default function QuestionCard({
           </span>
           {probabilityPct !== undefined && (
             <span className="rounded bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-              🎯 Repeat Prob: {probabilityPct}%
+              🎯 {getRepeatProbabilityLabel(courseCode)}: {probabilityPct}%
             </span>
           )}
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 flex items-center gap-1">
@@ -461,7 +470,7 @@ export default function QuestionCard({
           </span>
           {probabilityPct !== undefined && (
             <span className="rounded bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-              🎯 Repeat Prob: {probabilityPct}%
+              🎯 {getRepeatProbabilityLabel(courseCode)}: {probabilityPct}%
             </span>
           )}
           {variations.length > 1 && (
@@ -640,6 +649,9 @@ export default function QuestionCard({
                     <span className="text-zinc-500">Required to Unlock this Subject:</span>
                     <span className="text-zinc-800 dark:text-zinc-200 font-extrabold">{creditsNeeded} credit(s)</span>
                   </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 text-left">
+                    Admit Card verification makes your first subject a 1-credit free unlock. After that: 2 credits unlock 1 subject for {SUBJECT_UNLOCK_VALIDITY_MONTHS} months, 4 unlock 2, and 5 unlock 3.
+                  </p>
 
                   {credits >= creditsNeeded ? (
                     <button
@@ -665,7 +677,7 @@ export default function QuestionCard({
                           Upload Admit Card
                         </h4>
                         <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 leading-normal">
-                          Upload your hall ticket to verify enrollment and get <strong>1 Credit FREE</strong>!
+                          Upload your hall ticket to verify enrollment and get <strong>1 Credit FREE</strong> for your first subject.
                         </p>
                       </div>
                       <div>
@@ -701,7 +713,7 @@ export default function QuestionCard({
                         Buy 1 Credit
                       </h4>
                       <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 leading-normal">
-                        Instantly purchase 1 credit via Razorpay to unlock any course material.
+                        Instantly purchase 1 credit via Razorpay. Current price: ₹{CREDIT_PRICE_INR}/credit.
                       </p>
                     </div>
                     <div>
@@ -710,7 +722,7 @@ export default function QuestionCard({
                         disabled={purchaseLoading}
                         className="w-full rounded-xl bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/30 py-2.5 text-xs font-bold text-teal-700 dark:text-teal-300 hover:bg-teal-100/50 dark:hover:bg-teal-900/50 transition-colors"
                       >
-                        {purchaseLoading ? 'Opening Checkout...' : 'Buy 1 Credit — ₹49'}
+                        {purchaseLoading ? 'Opening Checkout...' : `Buy 1 Credit — ₹${CREDIT_PRICE_INR}`}
                       </button>
                     </div>
                   </div>

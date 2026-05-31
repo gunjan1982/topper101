@@ -52,7 +52,7 @@ export default function ReferralDashboard({
 
   const referralUrl = `${siteUrl}/ref/${referralCode}`;
 
-  const shareText = `Hey! I'm using Topper101 to study for my IGNOU MAPC exams. It has topic frequency heatmaps, repeat question families, and textbook-cited answers. Sign up using my link to get a subject unlocked for free! 🚀`;
+  const shareText = `Hey! I'm using Topper101 to study for my IGNOU MAPC exams. It has topic frequency heatmaps, repeat question families, and textbook-cited answers. Sign up using my link and we both get 1 credit.`;
 
   const handleCopy = async () => {
     try {
@@ -75,7 +75,7 @@ export default function ReferralDashboard({
           <div>
             <h2 className="text-2xl font-bold tracking-tight dark:text-white">Referral Program & Credits</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Share your link with classmates. You both get **1 Credit** free when they join. Spend credits to unlock subjects.
+              Share your link with classmates. You both get 1 credit when they join. Spend credits to unlock subjects.
             </p>
           </div>
 
@@ -121,7 +121,7 @@ export default function ReferralDashboard({
               </div>
             </div>
             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 text-center mt-1">
-              * Note: Unlocks can be redeemed directly within any subject page using your credit balance.
+              Admit Card verification gives 1 credit for the first subject. Additional subjects follow the 2/4/5-credit rule.
             </p>
           </div>
         </div>

@@ -5,7 +5,7 @@ export const REFERRAL_SUBJECT_UNLOCK_SOURCE = 'referral';
 export const PURCHASE_SUBJECT_UNLOCK_SOURCE = 'purchase';
 export const REFERRAL_REWARD_LIMIT = 3;
 
-export type PlanTier = 'free' | 'pass' | 'pro';
+export type PlanTier = 'free' | 'pass';
 
 export type EntitlementRow = {
   course_code: string | null;
@@ -48,7 +48,8 @@ export function unlockedCourseCodes(entitlements: EntitlementRow[] | null | unde
 }
 
 export function hasFullQuestionBankAccess(planTier: string | null | undefined) {
-  return planTier === 'pro';
+  void planTier;
+  return false;
 }
 
 export function canAccessCourse({

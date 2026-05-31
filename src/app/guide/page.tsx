@@ -80,9 +80,6 @@ export default function GuidePage() {
             <span className="text-lg font-bold tracking-tight">Topper101</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href={ROUTES.login} className="text-sm font-medium text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-              Log in
-            </Link>
             <Link
               href={signupHref}
               className="rounded-full bg-teal-700 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 transition-colors"
@@ -339,7 +336,7 @@ export default function GuidePage() {
           <div className="flex gap-4">
             <Link href="/" className="hover:text-zinc-600 transition-colors">Home</Link>
             <Link href={ROUTES.pricing} className="hover:text-zinc-600 transition-colors">Pricing</Link>
-            <Link href={signupHref} className="hover:text-zinc-600 transition-colors">Sign up free</Link>
+            <Link href={signupHref} className="hover:text-zinc-600 transition-colors">Start free</Link>
           </div>
         </div>
       </footer>

@@ -2,7 +2,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { canAccessCourse, fetchSubjectEntitlements, grantSubjectEntitlement } from '@/lib/entitlements';
+import { canAccessCourse, fetchSubjectEntitlements, grantSubjectEntitlement, unlockedCourseCodes } from '@/lib/entitlements';
+import { creditsRequiredForSubjectUnlock, subjectUnlockExpiresAt } from '@/lib/creditPricing';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { revalidatePath } from 'next/cache';
 
@@ -258,9 +259,27 @@ export async function unlockCourseWithCredits(courseCode: string, creditsToSpend
     throw new Error('User data not found');
   }
 
+  const entitlements = await fetchSubjectEntitlements(supabase, user.id);
+  const alreadyUnlocked = unlockedCourseCodes(entitlements);
+  if (alreadyUnlocked.has(courseCode)) {
+    return { success: true, creditsSpent: 0 };
+  }
+
+  const { data: verificationRecord } = await supabase
+    .from('student_verifications')
+    .select('status')
+    .eq('user_id', user.id)
+    .eq('status', 'verified')
+    .maybeSingle();
+
+  const requiredCredits = creditsRequiredForSubjectUnlock({
+    unlockedCount: alreadyUnlocked.size,
+    isVerified: Boolean(verificationRecord),
+  });
+
   const userCredits = userData.credits ?? 0;
-  if (userCredits < creditsToSpend) {
-    throw new Error(`Insufficient credits. You need ${creditsToSpend} credits to unlock this course.`);
+  if (userCredits < requiredCredits) {
+    throw new Error(`Insufficient credits. You need ${requiredCredits} credits to unlock this course.`);
   }
 
   await grantSubjectEntitlement({
@@ -268,15 +287,17 @@ export async function unlockCourseWithCredits(courseCode: string, creditsToSpend
     userId: user.id,
     courseCode,
     source: 'purchase',
+    expiresAt: subjectUnlockExpiresAt(),
     metadata: {
       reason: 'Unlocked with credits',
-      credits_spent: creditsToSpend,
+      credits_spent: requiredCredits,
+      requested_credits_spent: creditsToSpend,
     },
   });
 
   const { error: updateError } = await supabase
     .from('users')
-    .update({ credits: userCredits - creditsToSpend })
+    .update({ credits: userCredits - requiredCredits })
     .eq('id', user.id);
 
   if (updateError) {
@@ -285,7 +306,7 @@ export async function unlockCourseWithCredits(courseCode: string, creditsToSpend
 
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/courses/${courseCode}`, 'layout');
-  return { success: true };
+  return { success: true, creditsSpent: requiredCredits };
 }
 
 

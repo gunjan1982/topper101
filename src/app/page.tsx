@@ -9,9 +9,12 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
-  title: 'Topper101 — IGNOU MAPC Exam Prep',
+  title: 'IGNOU MAPC Mock Tests & Solved Papers | Topper101',
   description:
-    'See the 20% of topics behind 80% of IGNOU MAPC exam questions. AI-powered exam prep built specifically for IGNOU MAPC students.',
+    'Prepare with high-yield IGNOU MAPC mock tests and solved question banks. See the 20% of topics behind 80% of exam questions. Start prepping now!',
+  alternates: {
+    canonical: '/',
+  },
 };
 
 async function fetchConceptPreviewData(): Promise<PublicCoursePreview[]> {
@@ -102,17 +105,12 @@ export default async function LandingPage() {
                 Go to Dashboard
               </Link>
             ) : (
-              <>
-                <Link href={ROUTES.login} className="text-sm font-medium hover:text-teal-700">
-                  Log in
-                </Link>
-                <Link
-                  href={startFreeHref}
-                  className="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
-                >
-                  Start Free
-                </Link>
-              </>
+              <Link
+                href={startFreeHref}
+                className="rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-600 active:scale-95"
+              >
+                Start Free
+              </Link>
             )}
           </div>
         </div>
@@ -123,14 +121,14 @@ export default async function LandingPage() {
           <div className="absolute inset-x-0 top-0 -z-10 mx-auto h-[420px] max-w-5xl bg-[radial-gradient(circle_at_center,rgba(15,118,110,0.16),transparent_62%)]" />
           <div className="mx-auto max-w-5xl">
             <h1 className="text-balance text-4xl font-extrabold tracking-normal sm:text-6xl lg:text-7xl">
-              See the{' '}
+              Crack IGNOU MAPC with{' '}
               <span className="bg-gradient-to-r from-teal-700 via-sky-700 to-violet-600 bg-clip-text text-transparent">
-                20% of topics
+                AI-Powered Mock Tests
               </span>{' '}
-              behind 80% of IGNOU MAPC exam questions.
+              & Solved Papers
             </h1>
             <p className="mx-auto mt-8 max-w-3xl text-pretty text-lg leading-8 text-zinc-600 dark:text-zinc-400 sm:text-xl">
-              Official June 2026 TEE dates plus repeat-question heat maps for IGNOU MAPC students. Stop studying everything and start studying what matters.
+              See the 20% of topics behind 80% of exam questions. Get official June 2026 TEE dates, AI-graded mock tests, and repeat-question heat maps built specifically for IGNOU MAPC psychology students.
             </p>
             <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
@@ -185,9 +183,9 @@ export default async function LandingPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {[
-                { name: 'Free', price: '₹0', features: ['1 full subject unlocked', 'Paper selection', 'Basic progress tracking'] },
-                { name: 'Pass: 1 Subject', price: '₹99', period: '/mo', features: ['1 subject unlocked', 'Textbook word count specific curated answers powered by AI', 'Frequency heat map'] },
-                { name: 'Pass: 5 Subjects', price: '₹299', period: '/mo', highlight: true, features: ['Up to 5 subjects unlocked', 'Textbook word count specific curated answers powered by AI', 'Frequency heat map'] },
+                { name: 'Verified Free', price: '₹0', features: ['Upload Admit Card', 'Get 1 credit', 'Unlock your first subject'] },
+                { name: '2 Credits', price: '₹98', features: ['Unlock 1 extra subject', 'Full question bank', 'Curated answers'] },
+                { name: '5 Credits', price: '₹245', highlight: true, features: ['Unlock up to 3 subjects', 'Best credit value', 'Referral credits stack'] },
               ].map((plan) => (
                 <div key={plan.name} className={`rounded-lg border p-6 ${
                   plan.highlight
@@ -197,7 +195,6 @@ export default async function LandingPage() {
                   <h3 className="text-lg font-bold">{plan.name}</h3>
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.period && <span className="text-zinc-500">{plan.period}</span>}
                   </div>
                   <ul className="mt-8 space-y-3">
                     {plan.features.map((feature) => (

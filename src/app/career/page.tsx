@@ -289,9 +289,7 @@ export default function CareerPage() {
         <p className="mt-2">
           <Link href="/" className="hover:text-teal-700">Topper101</Link>
           {' · '}
-          <Link href="/login" className="hover:text-teal-700">Login</Link>
-          {' · '}
-          <Link href="/signup" className="hover:text-teal-700">Sign up free</Link>
+          <Link href="/signup" className="hover:text-teal-700">Start free</Link>
         </p>
       </footer>
     </div>

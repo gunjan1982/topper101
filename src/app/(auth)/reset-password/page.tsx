@@ -1,5 +1,18 @@
 import Link from 'next/link';
 import { requestPasswordReset } from '../actions';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reset Your Topper101 Password',
+  description: 'Request a secure password reset link for your Topper101 account.',
+  alternates: {
+    canonical: '/reset-password',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -12,9 +25,9 @@ export default async function ResetPasswordPage({
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
             Reset your password
-          </h2>
+          </h1>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
             Enter your email and we will send you a link to reset your password.
           </p>

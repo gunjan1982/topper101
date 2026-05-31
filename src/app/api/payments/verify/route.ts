@@ -59,6 +59,9 @@ export async function POST(request: Request) {
 
     const amountPaid = order.amount_paid || order.amount; // Use amount paid if present, else original amount
     const subjectLimit = Number.parseInt(String(notes.subjectLimit ?? '1'), 10);
+    const creditCount = notes && typeof notes === 'object' && 'creditCount' in notes
+      ? Number.parseInt(String((notes as Record<string, unknown>).creditCount), 10)
+      : 0;
 
     // Call shared service to process database logic idempotently
     await processOrderPaymentSuccess({
@@ -68,6 +71,7 @@ export async function POST(request: Request) {
       planId: 'pass',
       billingCycle: notes.billingCycle as 'monthly' | 'semester',
       subjectLimit: Number.isFinite(subjectLimit) ? subjectLimit : 1,
+      creditCount: Number.isFinite(creditCount) ? creditCount : 0,
       offerId: notes.offerId ? String(notes.offerId) : undefined,
       offerLabel: notes.offerLabel ? String(notes.offerLabel) : undefined,
     });

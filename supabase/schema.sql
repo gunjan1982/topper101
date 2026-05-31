@@ -140,7 +140,7 @@ create table users (
   stream text,                         -- 'Counselling'|'Clinical'|'Organisational'|NULL
   year integer,                        -- 1 or 2
   selected_papers jsonb,               -- array of course codes for current TEE
-  plan_tier text default 'free' check (plan_tier in ('free', 'pass', 'pro')),
+  plan_tier text default 'free' check (plan_tier in ('free', 'pass')),
   free_credits_used integer default 0, -- counts against the 5 free AI answer credits
   referral_code text unique default substr(md5(random()::text), 1, 8),
   referred_by text,                    -- referral_code of referrer
@@ -154,7 +154,7 @@ create table users (
 create table subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references users(id) on delete cascade,
-  plan_tier text not null check (plan_tier in ('pass', 'pro')),
+  plan_tier text not null check (plan_tier in ('free', 'pass')),
   billing_cycle text check (billing_cycle in ('monthly', 'semester')),
   status text default 'active' check (status in ('active', 'cancelled', 'expired')),
   razorpay_subscription_id text,

@@ -48,7 +48,6 @@ interface UserTableProps {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  pro: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   pass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
   free: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
 };
@@ -65,7 +64,7 @@ function PlanEditor({ user }: { user: User }) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleChange(newPlan: 'free' | 'pass' | 'pro') {
+  function handleChange(newPlan: 'free' | 'pass') {
     startTransition(async () => {
       await updateUserPlanTier(user.id, newPlan);
       setEditing(false);
@@ -87,7 +86,7 @@ function PlanEditor({ user }: { user: User }) {
 
   return (
     <div className="flex items-center gap-1 flex-wrap">
-      {(['free', 'pass', 'pro'] as const).map((p) => (
+      {(['free', 'pass'] as const).map((p) => (
         <button
           key={p}
           onClick={() => handleChange(p)}
@@ -163,10 +162,8 @@ function CreditEditor({ user }: { user: User }) {
 function SubjectManager({ user, onClose }: { user: User; onClose: () => void }) {
   const [pending, startTransition] = useTransition();
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set(user.adminUnlockedCourses));
-  const hasFullAccess = user.plan_tier === 'pro';
 
   function toggle(code: string) {
-    if (hasFullAccess) return;
     const isNowUnlocked = unlocked.has(code);
     setUnlocked((prev) => {
       const next = new Set(prev);
@@ -190,19 +187,14 @@ function SubjectManager({ user, onClose }: { user: User; onClose: () => void }) 
         </span>
         <button onClick={onClose} className="text-xs text-zinc-400 hover:text-zinc-600">✕ Close</button>
       </div>
-      {hasFullAccess && (
-        <p className="mb-3 text-xs text-purple-600 dark:text-purple-400 font-medium">
-          ★ Pro plan — full access to all subjects
-        </p>
-      )}
       <div className="flex flex-wrap gap-2">
         {COURSE_CATALOG.map((course) => {
-          const isUnlocked = hasFullAccess || unlocked.has(course.code);
+          const isUnlocked = unlocked.has(course.code);
           return (
             <button
               key={course.code}
               onClick={() => toggle(course.code)}
-              disabled={pending || hasFullAccess}
+              disabled={pending}
               title={course.name}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-all border ${
                 isUnlocked

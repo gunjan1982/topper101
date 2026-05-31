@@ -8,8 +8,21 @@ import Script from "next/script";
 import GlobalQueryFAB from './GlobalQueryFAB';
 
 export const metadata: Metadata = {
-  title: "Topper101 — IGNOU MAPC Exam Prep",
-  description: "AI-powered exam prep built specifically for IGNOU MAPC students.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.topper101.com'),
+  title: {
+    default: "IGNOU MAPC Mock Tests & Exam Prep | Topper101",
+    template: "%s | Topper101",
+  },
+  description: "Prepare with high-yield IGNOU MAPC mock tests, solved past papers, repeat-question heat maps, and textbook-grounded answers. Built specifically for MAPC psychology students.",
+  keywords: [
+    'IGNOU MAPC',
+    'IGNOU MAPC exam prep',
+    'IGNOU MAPC Mock Tests',
+    'MAPC question papers',
+    'IGNOU psychology',
+    'TEE preparation',
+    'Topper101',
+  ],
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },

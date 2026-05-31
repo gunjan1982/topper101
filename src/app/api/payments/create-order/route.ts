@@ -1,6 +1,7 @@
 import { getRazorpay } from '@/lib/razorpay';
 import { createClient } from '@/lib/supabase/server';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { CREDIT_OFFERS, creditOfferAmountPaise, creditOfferLabel, type CreditOfferId } from '@/lib/creditPricing';
 import { NextResponse } from 'next/server';
 
 const PASS_OFFERS: Record<string, {
@@ -8,43 +9,27 @@ const PASS_OFFERS: Record<string, {
   subjectLimit: number;
   billingCycle: 'monthly' | 'semester';
   label: string;
+  creditCount?: number;
 }> = {
-  'pass-1-subject-monthly': {
-    amount: 9900,
-    subjectLimit: 1,
-    billingCycle: 'monthly',
-    label: 'Topper Pass - 1 subject (TEE Jun 2026)',
-  },
-  'pass-1-subject-semester': {
-    amount: 19900,
-    subjectLimit: 1,
-    billingCycle: 'semester',
-    label: 'Topper Pass - 1 subject (Semester Dec 2026)',
-  },
-  'pass-5-subjects-monthly': {
-    amount: 29900,
-    subjectLimit: 5,
-    billingCycle: 'monthly',
-    label: 'Topper Pass - 5 subjects (TEE Jun 2026)',
-  },
-  'pass-5-subjects-semester': {
-    amount: 49900,
-    subjectLimit: 5,
-    billingCycle: 'semester',
-    label: 'Topper Pass - 5 subjects (Semester Dec 2026)',
-  },
   'pass-testing': {
     amount: 100, // Re 1 in paise
     subjectLimit: 1,
     billingCycle: 'monthly',
-    label: 'Topper Pass - Testing (Re 1)',
+    label: 'Topper101 checkout test (Re 1)',
   },
-  'buy-1-credit': {
-    amount: 4900,
-    subjectLimit: 0,
-    billingCycle: 'monthly',
-    label: 'Buy 1 Topper Credit (INR 49)',
-  },
+  ...Object.fromEntries(
+    Object.keys(CREDIT_OFFERS).map((offerId) => {
+      const typedOfferId = offerId as CreditOfferId;
+      const creditCount = CREDIT_OFFERS[typedOfferId].credits;
+      return [typedOfferId, {
+        amount: creditOfferAmountPaise(typedOfferId),
+        subjectLimit: 0,
+        billingCycle: 'monthly',
+        label: creditOfferLabel(typedOfferId),
+        creditCount,
+      }];
+    })
+  ),
 };
 
 export async function POST(request: Request) {
@@ -83,6 +68,7 @@ export async function POST(request: Request) {
         offerId,
         subjectLimit: String(offer.subjectLimit),
         offerLabel: offer.label,
+        creditCount: String(offer.creditCount || 0),
       },
     };
 

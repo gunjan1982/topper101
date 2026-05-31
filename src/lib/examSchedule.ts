@@ -93,3 +93,23 @@ export function scheduleWithCourseDetails(courseCodes?: readonly string[]) {
   }));
 }
 
+export function getRepeatProbabilityLabel(courseCode: string, now = new Date()): string {
+  const exam = getExamSchedule(courseCode);
+  if (exam) {
+    // The exam date is stored as YYYY-MM-DD.
+    // Assume exam is completed on that day after 5:30 PM (17:30 IST)
+    const examEndTime = new Date(`${exam.date}T17:30:00+05:30`);
+    if (now.getTime() > examEndTime.getTime()) {
+      return 'Dec 2026 Repeat Prob';
+    }
+    return 'Jun 2026 Repeat Prob';
+  }
+
+  // Fallback if no exam is found in the schedule:
+  // After July 2026, show Dec 2026 Repeat Prob.
+  const julyCutoff = new Date('2026-07-31T23:59:59+05:30');
+  if (now.getTime() > julyCutoff.getTime()) {
+    return 'Dec 2026 Repeat Prob';
+  }
+  return 'Jun 2026 Repeat Prob';
+}
