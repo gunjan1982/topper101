@@ -5,6 +5,7 @@ import { COURSE_CATALOG, MAPC_STREAMS } from '@/lib/courseCatalog';
 import { withRedirectTo } from '@/lib/navigation';
 import { ROUTES } from '@/lib/routes';
 import type { Metadata } from 'next';
+import SubjectSidebar from '../(dashboard)/SubjectSidebar';
 
 export const metadata: Metadata = {
   title: 'IGNOU MAPC Complete Study Guide 2025–26 — Topper101',
@@ -92,7 +93,9 @@ export default function GuidePage() {
         </div>
       </nav>
 
-      <div className="mx-auto max-w-5xl px-5 py-16 sm:px-6 lg:px-8 space-y-20">
+      <div className="mx-auto max-w-[1600px] flex">
+        <SubjectSidebar />
+        <div className="flex-1 min-w-0 mx-auto max-w-5xl px-5 py-16 sm:px-6 lg:px-8 space-y-20">
 
         {/* ── Hero ── */}
         <section className="text-center space-y-5">
@@ -326,6 +329,7 @@ export default function GuidePage() {
           </Link>
         </section>
 
+        </div>
       </div>
 
       {/* ── Footer ── */}

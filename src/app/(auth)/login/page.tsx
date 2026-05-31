@@ -6,10 +6,11 @@ import { safeNextPath, withRedirectTo } from '@/lib/navigation';
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string; ref?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const next = safeNextPath(resolvedSearchParams.next);
+  const referralCode = resolvedSearchParams.ref?.trim() ?? '';
   const googleAuthEnabled = isGoogleAuthEnabled();
 
   return (
@@ -118,6 +119,7 @@ export default async function LoginPage({
           <div className="mt-6">
             <form action={signInWithGoogle}>
               <input type="hidden" name="redirectTo" value={next} />
+              <input type="hidden" name="referral_code" value={referralCode} />
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-zinc-950 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:ring-transparent dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 dark:hover:bg-zinc-800 transition-all active:scale-95"

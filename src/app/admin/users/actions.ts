@@ -97,3 +97,25 @@ export async function revokeAdminSubjectEntitlement(targetUserId: string, course
   revalidatePath('/dashboard', 'layout');
 }
 
+export async function updateUserCredits(targetUserId: string, newCreditsValue: number) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('users')
+    .update({ credits: newCreditsValue })
+    .eq('id', targetUserId);
+  if (error) throw new Error(error.message);
+  revalidatePath(ROUTES.adminUsers);
+}
+
+export async function updateStudentVerificationStatus(targetUserId: string, newStatus: 'verified' | 'rejected' | 'pending') {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('student_verifications')
+    .update({ status: newStatus })
+    .eq('user_id', targetUserId);
+  if (error) throw new Error(error.message);
+  revalidatePath(ROUTES.adminUsers);
+}
+

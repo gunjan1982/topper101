@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
+import { COURSE_CATALOG, courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
 import { canAccessCourse, fetchSubjectEntitlements, unlockedCourseCodes } from '@/lib/entitlements';
 import { ROUTES } from '@/lib/routes';
 import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule, nextScheduledExam } from '@/lib/examSchedule';
@@ -29,27 +29,31 @@ export default async function DashboardPage({
   // Fetch user data including onboarding status and selected papers
   const { data: userData } = await supabase
     .from('users')
-    .select('name, onboarding_complete, selected_papers, plan_tier, referral_code')
+    .select('name, onboarding_complete, selected_papers, plan_tier, referral_code, credits, referral_clicks')
     .eq('id', user.id)
     .single();
 
-  if (!userData?.onboarding_complete) {
-    redirect(ROUTES.onboardingYear);
+  if (!userData) {
+    redirect(ROUTES.login);
   }
 
-  const selectedPapers: string[] = (userData.selected_papers as string[]) ?? [];
+  let selectedPapers: string[] = (userData?.selected_papers as string[]) ?? [];
+  if (selectedPapers.length === 0) {
+    selectedPapers = COURSE_CATALOG.filter(c => c.course_type === 'theory').map(c => c.code);
+  }
+
   const entitlements = await fetchSubjectEntitlements(supabase, user.id);
   const unlockedCourses = unlockedCourseCodes(entitlements);
 
-  // Guard: if onboarding marked complete but no papers selected, send back to pick papers
-  if (selectedPapers.length === 0) {
-    redirect(ROUTES.onboardingPapers);
-  }
+  // Check if user is verified
+  const { data: verificationRecord } = await supabase
+    .from('student_verifications')
+    .select('status')
+    .eq('user_id', user.id)
+    .eq('status', 'verified')
+    .maybeSingle();
+  const isVerified = Boolean(verificationRecord);
 
-  // Guard: free users who haven't picked their free subject yet
-  if (userData.plan_tier === 'free' && entitlements.length === 0) {
-    redirect(ROUTES.onboardingFreeSubject);
-  }
 
   // Fetch course details for selected papers
   const { data: dbCourses, error: coursesError } = await supabase
@@ -124,7 +128,11 @@ export default async function DashboardPage({
       status,
       created_at,
       referred_user:referred_user_id (
-        email
+        email,
+        name,
+        student_verifications (
+          status
+        )
       )
     `)
     .eq('referrer_user_id', user.id)
@@ -158,6 +166,29 @@ export default async function DashboardPage({
             : 'June 2026 TEE schedule is ready for your selected papers.'}
         </p>
       </div>
+
+      {/* Verification nudge banner for unverified users */}
+      {!isVerified && (
+        <div className="rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-6 shadow-sm dark:border-amber-900/50 dark:from-amber-950/20 dark:to-orange-950/20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl mt-0.5">🔓</span>
+              <div>
+                <h2 className="text-base font-bold text-amber-800 dark:text-amber-300">Unlock your first subject free</h2>
+                <p className="mt-0.5 text-sm text-amber-700/80 dark:text-amber-400/80">
+                  Upload your Admit Card or Student ID to verify your IGNOU enrollment and get full access to one subject.
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`${ROUTES.onboardingVerify}?required=true`}
+              className="shrink-0 rounded-full bg-amber-600 px-6 py-3 text-center text-sm font-bold text-white shadow-lg shadow-amber-600/20 hover:bg-amber-500 transition-all active:scale-95"
+            >
+              Verify Now →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {nextExam && (
         <div className="rounded-3xl border border-teal-200 bg-white p-6 shadow-sm dark:border-teal-900/50 dark:bg-zinc-900">
@@ -235,6 +266,8 @@ export default async function DashboardPage({
           referralCode={userData.referral_code}
           referrals={referrals ?? []}
           siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? 'https://topper101.com'}
+          credits={userData.credits ?? 0}
+          referralClicks={userData.referral_clicks ?? 0}
         />
       )}
 

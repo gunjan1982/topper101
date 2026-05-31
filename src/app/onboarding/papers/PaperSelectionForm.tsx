@@ -14,9 +14,16 @@ interface PaperSelectionFormProps {
   year: number;
   stream: string | null;
   initialSelected?: string[];
+  hasWhatsApp?: boolean;
 }
 
-export default function PaperSelectionForm({ courses, year, stream, initialSelected = [] }: PaperSelectionFormProps) {
+export default function PaperSelectionForm({
+  courses,
+  year,
+  stream,
+  initialSelected = [],
+  hasWhatsApp = false,
+}: PaperSelectionFormProps) {
   const visibleCodes = new Set(courses.map((course) => course.code));
   const [selected, setSelected] = useState<string[]>(
     initialSelected.filter((code) => visibleCodes.has(code))
@@ -24,6 +31,7 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startedAt] = useState(() => Date.now());
+  const [phone, setPhone] = useState('');
 
   const togglePaper = (code: string) => {
     setSelected((prev) =>
@@ -40,6 +48,7 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
         year,
         stream,
         startedAt,
+        phone: !hasWhatsApp && phone.trim() ? phone.trim() : undefined,
       });
     } catch (err: unknown) {
       console.error(err);
@@ -77,6 +86,25 @@ export default function PaperSelectionForm({ courses, year, stream, initialSelec
           </button>
         ))}
       </div>
+      )}
+
+      {!hasWhatsApp && (
+        <div className="mx-auto max-w-md rounded-2xl border border-zinc-200 bg-white p-5 text-left dark:border-zinc-800 dark:bg-zinc-900/50 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📱</span>
+            <h4 className="text-sm font-bold dark:text-white">Add your WhatsApp number</h4>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
+            Get instant exam date reminders, study tips, and MAPC community updates directly on WhatsApp.
+          </p>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="WhatsApp number (optional)"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-950 focus:border-teal-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+          />
+        </div>
       )}
 
       <div className="flex flex-col items-center justify-center pt-8 gap-4">

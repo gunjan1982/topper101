@@ -39,6 +39,12 @@ const PASS_OFFERS: Record<string, {
     billingCycle: 'monthly',
     label: 'Topper Pass - Testing (Re 1)',
   },
+  'buy-1-credit': {
+    amount: 4900,
+    subjectLimit: 0,
+    billingCycle: 'monthly',
+    label: 'Buy 1 Topper Credit (INR 49)',
+  },
 };
 
 export async function POST(request: Request) {

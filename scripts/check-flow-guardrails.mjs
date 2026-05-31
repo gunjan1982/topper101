@@ -51,6 +51,7 @@ function normalizeInternalPath(href) {
   if (!href.startsWith('/') || href.startsWith('//')) return null;
   if (href.includes('$')) return null;
   if (href.startsWith('/api/')) return null;
+  if (/\.(png|jpg|jpeg|gif|svg|ico|js|css)$/i.test(href)) return null;
   return href.split(/[?#]/)[0] || '/';
 }
 

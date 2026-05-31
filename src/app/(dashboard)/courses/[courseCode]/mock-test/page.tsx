@@ -19,7 +19,7 @@ type QuestionRow = {
   marks: number;
   ai_answer: string | null;
   course_id: string;
-  topic_cluster_id: string | null;
+  topic: string | null;
 };
 
 type SectionKey = 'A' | 'B' | 'C';
@@ -45,10 +45,9 @@ function shuffleSlice<T>(arr: T[], count: number): T[] {
 function assemblePaper(
   questions: QuestionRow[],
   tierMap: Map<string, 'HIGH' | 'MEDIUM' | 'LOW' | null>,
-  nameMap: Map<string, string>,
 ): { A: MockQuestion[]; B: MockQuestion[]; C: MockQuestion[] } {
   const byTier = (tiers: Array<'HIGH' | 'MEDIUM' | 'LOW' | null>) =>
-    questions.filter((q) => tiers.includes(tierMap.get(q.topic_cluster_id ?? '') ?? null));
+    questions.filter((q) => tiers.includes(tierMap.get(q.topic ?? '') ?? null));
 
   const highQ = byTier(['HIGH']);
   const medHighQ = byTier(['HIGH', 'MEDIUM']);
@@ -74,7 +73,7 @@ function assemblePaper(
     section: sec,
     marks: q.marks,
     ai_answer: q.ai_answer,
-    cluster_name: q.topic_cluster_id ? (nameMap.get(q.topic_cluster_id) ?? null) : null,
+    cluster_name: q.topic ?? null,
   });
 
   return {
@@ -147,10 +146,10 @@ export default async function MockTestPage({
     );
   }
 
-  // Fetch questions and their clusters
+  // Fetch questions and their topics
   const { data: questionRows } = await supabase
     .from('questions')
-    .select('id, question_text, section, marks, ai_answer, course_id, topic_cluster_id')
+    .select('id, question_text, section, marks, ai_answer, course_id, topic')
     .eq('course_id', course.id)
     .order('marks', { ascending: false });
 
@@ -171,24 +170,18 @@ export default async function MockTestPage({
     );
   }
 
-  // Fetch clusters to build the frequency tier map
-  const clusterIds = [...new Set(questions.map((q) => q.topic_cluster_id).filter(Boolean))] as string[];
-  const { data: clusterRows } = clusterIds.length > 0
-    ? await supabase
-        .from('topic_clusters')
-        .select('id, cluster_name, frequency_tier')
-        .in('id', clusterIds)
-    : { data: [] };
+  // Fetch all clusters for the course
+  const { data: clusterRows } = await supabase
+    .from('topic_clusters')
+    .select('id, cluster_name, frequency_tier')
+    .eq('course_id', course.id);
 
   const clusters = (clusterRows as TopicCluster[] | null) ?? [];
   const tierMap = new Map<string, 'HIGH' | 'MEDIUM' | 'LOW' | null>(
-    clusters.map((c) => [c.id, c.frequency_tier]),
-  );
-  const nameMap = new Map<string, string>(
-    clusters.map((c) => [c.id, c.cluster_name]),
+    clusters.map((c) => [c.cluster_name, c.frequency_tier]),
   );
 
-  const sections = assemblePaper(questions, tierMap, nameMap);
+  const sections = assemblePaper(questions, tierMap);
 
   return (
     <div className="space-y-8">

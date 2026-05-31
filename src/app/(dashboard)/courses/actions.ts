@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
+import { canAccessCourse, fetchSubjectEntitlements, grantSubjectEntitlement } from '@/lib/entitlements';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { revalidatePath } from 'next/cache';
 
@@ -9,6 +10,109 @@ type AnswerResult =
   | { status: 'success'; answer: string; creditsRemaining?: number; textbookGrounded?: boolean }
   | { status: 'paywall'; trigger: 'subject_locked' | 'credit_limit' }
   | { status: 'missing_answer' };
+
+async function isFirstQuestionGroup(supabase: any, questionId: string, courseId: string): Promise<boolean> {
+  try {
+    // Fetch course code
+    await supabase
+      .from('courses')
+      .select('code')
+      .eq('id', courseId)
+      .single();
+
+    // Fetch topic clusters
+    const { data: clusters } = await supabase
+      .from('topic_clusters')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('frequency_count', { ascending: false });
+
+    // Fetch all questions
+    const { data: questionRows } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('year', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (!questionRows || questionRows.length === 0) return false;
+
+    const sessionOrder: Record<string, number> = { December: 2, June: 1 };
+    
+    function questionSessions(qs: any[]) {
+      const sessions = new Map<string, { year: number; session: string }>();
+      qs.forEach((q) => {
+        if (!q.year || !q.session) return;
+        const key = `${q.session}-${q.year}`;
+        if (sessions.has(key)) return;
+        sessions.set(key, { year: q.year, session: q.session });
+      });
+      return [...sessions.values()].sort((a, b) => b.year - a.year || (sessionOrder[b.session] ?? 0) - (sessionOrder[a.session] ?? 0));
+    }
+
+    function topicSessionStats(qs: any[]) {
+      const sessions = new Map<string, { year: number; session: string; questionCount: number; totalMarks: number }>();
+      qs.forEach((q) => {
+        if (!q.year || !q.session) return;
+        const key = `${q.session}-${q.year}`;
+        const existing = sessions.get(key);
+        if (existing) {
+          existing.questionCount += 1;
+          existing.totalMarks += q.marks;
+        } else {
+          sessions.set(key, { year: q.year, session: q.session, questionCount: 1, totalMarks: q.marks });
+        }
+      });
+      return [...sessions.values()].sort((a, b) => b.year - a.year || (sessionOrder[b.session] ?? 0) - (sessionOrder[a.session] ?? 0));
+    }
+
+    const sessionFilters = questionSessions(questionRows);
+    const topicSessions = new Map<string, any[]>();
+    (clusters || []).forEach((cluster: any) => {
+      const clusterQuestions = questionRows.filter((q: any) => q.topic_cluster_id === cluster.id || q.topic === cluster.cluster_name);
+      topicSessions.set(cluster.id, topicSessionStats(clusterQuestions));
+    });
+
+    const getQuestionProbability = (q: any) => {
+      const cluster = (clusters || []).find((c: any) => c.id === q.topic_cluster_id || c.cluster_name === q.topic);
+      if (!cluster) return 0;
+      const actualCount = topicSessions.get(cluster.id)?.length ?? 0;
+      const total = sessionFilters.length || 1;
+      return Math.min(100, Math.round((actualCount / total) * 100));
+    };
+
+    const groupRepeatedQuestions = (qs: any[]) => {
+      const groups = new Map<string, any[]>();
+      qs.forEach((q) => {
+        const normalized = q.repeat_family_key;
+        const key = normalized || q.id;
+        groups.set(key, [...(groups.get(key) ?? []), q]);
+      });
+
+      return [...groups.values()].map((items) => {
+        const sorted = [...items].sort((a, b) => b.marks - a.marks);
+        return {
+          question: sorted[0],
+          variations: items,
+        };
+      });
+    };
+
+    const questionGroups = groupRepeatedQuestions(questionRows);
+    const sortedQuestionGroups = [...questionGroups].sort((a, b) => {
+      return getQuestionProbability(b.question) - getQuestionProbability(a.question);
+    });
+
+    if (sortedQuestionGroups.length === 0) return false;
+
+    const firstGroup = sortedQuestionGroups[0];
+    const isTargetInFirstGroup = firstGroup.variations.some((v: any) => v.id === questionId) || firstGroup.question.id === questionId;
+    return isTargetInFirstGroup;
+  } catch (err) {
+    console.error('Error in isFirstQuestionGroup:', err);
+    return false;
+  }
+}
 
 async function recordQuestionEvent({
   supabase,
@@ -50,7 +154,8 @@ export async function trackQuestionViewed(questionId: string, courseCode: string
     .single();
 
   const entitlements = await fetchSubjectEntitlements(supabase, user.id);
-  const hasAccess = canAccessCourse({
+  const isFirstQ = await isFirstQuestionGroup(supabase, questionId, (await supabase.from('questions').select('course_id').eq('id', questionId).single()).data?.course_id);
+  const hasAccess = isFirstQ || canAccessCourse({
     planTier: userData?.plan_tier,
     courseCode,
     entitlements,
@@ -107,8 +212,11 @@ export async function getAnswer(questionId: string): Promise<AnswerResult> {
     throw new Error('Question course not found');
   }
 
+  // Check if it is the first question of the course (free)
+  const isFirstQ = await isFirstQuestionGroup(supabase, questionId, question.course_id);
+
   const entitlements = await fetchSubjectEntitlements(supabase, user.id);
-  const hasAccess = canAccessCourse({
+  const hasAccess = isFirstQ || canAccessCourse({
     planTier: userData.plan_tier,
     courseCode,
     entitlements,
@@ -131,6 +239,55 @@ export async function getAnswer(questionId: string): Promise<AnswerResult> {
   revalidatePath('/dashboard', 'layout');
   return { answer, status: 'success', textbookGrounded: question.textbook_grounded ?? false };
 }
+
+export async function unlockCourseWithCredits(courseCode: string, creditsToSpend: number) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('credits')
+    .eq('id', user.id)
+    .single();
+
+  if (userError || !userData) {
+    throw new Error('User data not found');
+  }
+
+  const userCredits = userData.credits ?? 0;
+  if (userCredits < creditsToSpend) {
+    throw new Error(`Insufficient credits. You need ${creditsToSpend} credits to unlock this course.`);
+  }
+
+  await grantSubjectEntitlement({
+    supabase,
+    userId: user.id,
+    courseCode,
+    source: 'purchase',
+    metadata: {
+      reason: 'Unlocked with credits',
+      credits_spent: creditsToSpend,
+    },
+  });
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({ credits: userCredits - creditsToSpend })
+    .eq('id', user.id);
+
+  if (updateError) {
+    throw new Error('Failed to update credit balance: ' + updateError.message);
+  }
+
+  revalidatePath('/dashboard', 'layout');
+  revalidatePath(`/courses/${courseCode}`, 'layout');
+  return { success: true };
+}
+
 
 export async function updateProgress(questionId: string, status: 'reviewed' | 'bookmarked' | 'skipped', active = true) {
   const supabase = await createClient();

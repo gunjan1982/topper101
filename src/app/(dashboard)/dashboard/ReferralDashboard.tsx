@@ -7,8 +7,20 @@ interface Referral {
   created_at: string;
   referred_user?: {
     email: string;
+    name: string | null;
+    student_verifications?: {
+      status: string;
+    } | {
+      status: string;
+    }[] | null;
   } | {
     email: string;
+    name: string | null;
+    student_verifications?: {
+      status: string;
+    } | {
+      status: string;
+    }[] | null;
   }[] | null;
 }
 
@@ -16,25 +28,29 @@ interface ReferralDashboardProps {
   referralCode: string;
   referrals: Referral[];
   siteUrl: string;
+  credits: number;
+  referralClicks: number;
 }
 
-export default function ReferralDashboard({ referralCode, referrals = [], siteUrl }: ReferralDashboardProps) {
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  if (local.length <= 2) {
+    return `${local[0] || ''}***@${domain}`;
+  }
+  return `${local.slice(0, 2)}***${local.slice(-1)}@${domain}`;
+}
+
+export default function ReferralDashboard({
+  referralCode,
+  referrals = [],
+  siteUrl,
+  credits = 0,
+  referralClicks = 0,
+}: ReferralDashboardProps) {
   const [copied, setCopied] = useState(false);
 
-  const referralUrl = `${siteUrl}/signup?ref=${referralCode}`;
-
-  const calculateCredits = (status: string) => {
-    if (status === 'rewarded') return 2;
-    return 1; // pending or qualified
-  };
-
-  const totalCredits = referrals.reduce((sum, r) => sum + calculateCredits(r.status), 0);
-  const unlocksEarned = Math.min(Math.floor(totalCredits / 2), 3);
-  const progressToNext = totalCredits % 2; // 0 or 1 credit toward next unlock
-  
-  // Total progress out of 6 credits (3 unlocks max)
-  const maxCredits = 6;
-  const progressPercent = Math.min((totalCredits / maxCredits) * 100, 100);
+  const referralUrl = `${siteUrl}/ref/${referralCode}`;
 
   const shareText = `Hey! I'm using Topper101 to study for my IGNOU MAPC exams. It has topic frequency heatmaps, repeat question families, and textbook-cited answers. Sign up using my link to get a subject unlocked for free! 🚀`;
 
@@ -57,52 +73,56 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
         {/* Left column: Credits, Info & Progress */}
         <div className="flex-1 space-y-6">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight dark:text-white">Refer & Unlock</h2>
+            <h2 className="text-2xl font-bold tracking-tight dark:text-white">Referral Program & Credits</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Classmates get a free subject at signup. You earn subject credits when they join and study!
+              Share your link with classmates. You both get **1 Credit** free when they join. Spend credits to unlock subjects.
             </p>
           </div>
 
           {/* Credits Summary Grid */}
-          <div className="grid grid-cols-3 gap-4 rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900/40 border border-zinc-100 dark:border-zinc-800/80">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-800/80">
             <div className="text-center sm:text-left">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Credits</span>
-              <span className="text-2xl font-extrabold text-teal-700 dark:text-teal-400">{totalCredits}</span>
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Your Credits</span>
+              <span className="text-2xl font-extrabold text-teal-700 dark:text-teal-400">{credits}</span>
             </div>
             <div className="text-center sm:text-left border-l border-zinc-200 dark:border-zinc-800 pl-4">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Unlocks Earned</span>
-              <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200">{unlocksEarned} <span className="text-xs font-normal text-zinc-400">/ 3</span></span>
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Link Clicks</span>
+              <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200">{referralClicks}</span>
             </div>
             <div className="text-center sm:text-left border-l border-zinc-200 dark:border-zinc-800 pl-4">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Next Unlock</span>
-              <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">
-                {progressToNext === 0 ? 'Ready!' : `${progressToNext}/2`}
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Signed Up</span>
+              <span className="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200">{referrals.length}</span>
+            </div>
+            <div className="text-center sm:text-left border-l border-zinc-200 dark:border-zinc-800 pl-4">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Free Unlocks</span>
+              <span className="text-sm font-bold text-amber-600 dark:text-amber-400 mt-1 block">
+                1st Free (Admit Card)
               </span>
             </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                Reward progress: {totalCredits} of {maxCredits} credits
-              </span>
-              <span className="text-xs text-zinc-500">
-                {2 - progressToNext} credits to next unlock
-              </span>
+          {/* Explanation panel for subject locks */}
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 p-4 space-y-2">
+            <h4 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wide">
+              Subject Unlocks Redemptions
+            </h4>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-850 p-2.5 bg-white dark:bg-zinc-900">
+                <span className="block text-zinc-400 text-[10px]">1 SUBJECT</span>
+                <span className="mt-1 block text-teal-700 dark:text-teal-400 font-extrabold">2 Credits</span>
+              </div>
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-850 p-2.5 bg-white dark:bg-zinc-900">
+                <span className="block text-zinc-400 text-[10px]">2 SUBJECTS</span>
+                <span className="mt-1 block text-teal-700 dark:text-teal-400 font-extrabold">4 Credits</span>
+              </div>
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-850 p-2.5 bg-white dark:bg-zinc-900">
+                <span className="block text-zinc-400 text-[10px]">3 SUBJECTS</span>
+                <span className="mt-1 block text-teal-700 dark:text-teal-400 font-extrabold">5 Credits</span>
+              </div>
             </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-500 ease-out"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[11px] text-zinc-400 px-1">
-              <span>0 Credits</span>
-              <span>2 Credits (1 Subject)</span>
-              <span>4 Credits (2 Subjects)</span>
-              <span>6 Credits (3 Subjects)</span>
-            </div>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 text-center mt-1">
+              * Note: Unlocks can be redeemed directly within any subject page using your credit balance.
+            </p>
           </div>
         </div>
 
@@ -117,7 +137,7 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
             </span>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-teal-600 active:scale-95 whitespace-nowrap"
+              className="flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-teal-650 active:scale-95 whitespace-nowrap"
             >
               {copied ? (
                 <>
@@ -182,8 +202,14 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                 
                 const rawUser = referral.referred_user;
                 const referredUser = Array.isArray(rawUser) ? rawUser[0] : rawUser;
-                const email = referredUser?.email ?? `classmate_${referral.status}_${index + 1}@topper101.com`;
+                const email = referredUser?.email ? maskEmail(referredUser.email) : `classmate_joined_${index + 1}@topper101.com`;
+                const verifiedName = referredUser?.name;
                 
+                const hasVerifications = referredUser?.student_verifications;
+                const verificationStatus = Array.isArray(hasVerifications)
+                  ? hasVerifications[0]?.status
+                  : hasVerifications?.status;
+
                 return (
                   <div key={index} className="flex items-center justify-between p-4 text-sm flex-wrap gap-2">
                     <div className="flex items-center gap-3">
@@ -193,9 +219,14 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                         </svg>
                       </div>
                       <div>
-                        <div className="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200 select-all">
+                        <div className="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                           {email}
                         </div>
+                        {verifiedName && (
+                          <div className="text-[11px] font-bold text-teal-700 dark:text-teal-400 mt-0.5">
+                            📛 Admit Card Name: {verifiedName}
+                          </div>
+                        )}
                         <div className="text-[11px] text-zinc-400 mt-0.5">
                           Joined {dateStr}
                         </div>
@@ -203,28 +234,15 @@ export default function ReferralDashboard({ referralCode, referrals = [], siteUr
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {referral.status === 'rewarded' && (
+                      {verificationStatus === 'verified' ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          🎉 Paid (+2 Credits)
+                          Verified (+1 Credit)
                         </span>
-                      )}
-                      {referral.status === 'qualified' && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 dark:bg-teal-950/30 dark:text-teal-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                          ✅ Joined (+1 Credit)
-                        </span>
-                      )}
-                      {referral.status === 'pending' && (
+                      ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                          ⏳ Onboarding Pending (+1 Credit)
-                        </span>
-                      )}
-                      {referral.status === 'rejected' && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-800 dark:bg-red-950/30 dark:text-red-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                          ✕ Excluded
+                          Joined (+1 Credit)
                         </span>
                       )}
                     </div>

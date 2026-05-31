@@ -1,21 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "./providers";
 import PostHogPageview from "./PostHogPageview";
 import ThemeProvider from "./ThemeProvider";
 import { Suspense } from "react";
 import Script from "next/script";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import GlobalQueryFAB from './GlobalQueryFAB';
 
 export const metadata: Metadata = {
   title: "Topper101 — IGNOU MAPC Exam Prep",
@@ -25,13 +15,13 @@ export const metadata: Metadata = {
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
-    ],
+      ],
     shortcut: "/favicon.ico",
     apple: "/favicon-32.png",
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -39,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
         {/* Anti-flash: apply stored theme before React hydrates */}
@@ -64,9 +54,11 @@ export default function RootLayout({
         <ThemeProvider>
           <PostHogProvider>
             {children}
+            <GlobalQueryFAB />
           </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

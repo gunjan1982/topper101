@@ -1,123 +1,15 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { captureServerEvent } from '@/lib/posthog-server';
-import { grantSubjectEntitlement, REFERRAL_REWARD_LIMIT, firstFreeSubject } from '@/lib/entitlements';
+import { grantSubjectEntitlement } from '@/lib/entitlements';
 import { ROUTES } from '@/lib/routes';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { parseVerificationDocument } from '@/lib/gemini';
+import { COURSE_CATALOG } from '@/lib/courseCatalog';
 
-/**
- * Rewards the referrer user automatically on referred user's onboarding completion.
- * Grants a 'subject_unlock' entitlement to the referrer for their next locked paper.
- */
-async function rewardReferrerOnOnboardingComplete(userId: string) {
-  const admin = createAdminClient();
-  const { data: currentUser } = await admin
-    .from('users')
-    .select('referred_by')
-    .eq('id', userId)
-    .single();
 
-  const referralCode = currentUser?.referred_by?.trim();
-  if (!referralCode) return;
-
-  const { data: referrer } = await admin
-    .from('users')
-    .select('id, selected_papers')
-    .eq('referral_code', referralCode)
-    .neq('id', userId)
-    .maybeSingle();
-
-  if (!referrer?.id) return;
-
-  // Check referrer hasn't already hit the cap
-  const { count: rewardCount } = await admin
-    .from('referrals')
-    .select('id', { count: 'exact', head: true })
-    .eq('referrer_user_id', referrer.id)
-    .in('status', ['rewarded', 'qualified']);
-
-  if ((rewardCount ?? 0) >= REFERRAL_REWARD_LIMIT) return;
-
-  // Find the next locked paper in the referrer's selected papers
-  const referrerPapers = (referrer.selected_papers as string[] | null) ?? [];
-
-  const { data: existingEntitlements } = await admin
-    .from('user_entitlements')
-    .select('course_code')
-    .eq('user_id', referrer.id)
-    .eq('entitlement_type', 'subject_unlock');
-
-  const alreadyUnlocked = new Set(
-    (existingEntitlements ?? [])
-      .map((row: { course_code: string | null }) => row.course_code)
-      .filter((code): code is string => Boolean(code))
-  );
-
-  const lockedPapers = referrerPapers.filter((p) => !alreadyUnlocked.has(p));
-  let rewardCourse = firstFreeSubject(lockedPapers);
-
-  // Fallback: If no locked paper in selected_papers, find any course not yet unlocked
-  if (!rewardCourse) {
-    const { data: allCourses } = await admin
-      .from('courses')
-      .select('code');
-    if (allCourses) {
-      const fallbackCourse = allCourses.find((c) => !alreadyUnlocked.has(c.code));
-      if (fallbackCourse) {
-        rewardCourse = fallbackCourse.code;
-      }
-    }
-  }
-
-  if (rewardCourse) {
-    // Grant subject entitlement to referrer
-    await grantSubjectEntitlement({
-      supabase: admin,
-      userId: referrer.id,
-      courseCode: rewardCourse,
-      source: 'referral',
-      sourceRef: userId,
-      metadata: {
-        reason: 'Referral reward — referred user completed onboarding',
-        referred_user_id: userId,
-      },
-    });
-
-    // Ensure the reward course is in the referrer's selected_papers array so it displays on their dashboard
-    if (!referrerPapers.includes(rewardCourse)) {
-      await admin
-        .from('users')
-        .update({ selected_papers: [...referrerPapers, rewardCourse] })
-        .eq('id', referrer.id);
-    }
-
-    // Upsert the referral record as rewarded (and qualified)
-    await admin
-      .from('referrals')
-      .upsert({
-        referrer_user_id: referrer.id,
-        referred_user_id: userId,
-        referral_code: referralCode,
-        status: 'rewarded',
-        qualified_at: new Date().toISOString(),
-        rewarded_at: new Date().toISOString(),
-      }, { onConflict: 'referred_user_id' });
-  } else {
-    // Just record pending referral or set status qualified if no subjects can be unlocked
-    await admin
-      .from('referrals')
-      .upsert({
-        referrer_user_id: referrer.id,
-        referred_user_id: userId,
-        referral_code: referralCode,
-        status: 'qualified',
-        qualified_at: new Date().toISOString(),
-      }, { onConflict: 'referred_user_id' });
-  }
-}
 
 export async function updateYear(year: number) {
   const supabase = await createClient();
@@ -173,7 +65,7 @@ export async function updateStream(stream: string) {
 
 export async function completeOnboarding(
   papers: string[],
-  meta?: { year: number; stream: string | null; startedAt: number }
+  meta?: { year: number; stream: string | null; startedAt: number; phone?: string }
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -186,22 +78,25 @@ export async function completeOnboarding(
     throw new Error('Please select at least one paper.');
   }
 
+  const updateData: Record<string, unknown> = {
+    year: meta?.year,
+    stream: meta?.year === 1 ? null : meta?.stream,
+    selected_papers: papers,
+    onboarding_complete: true
+  };
+
+  if (meta?.phone?.trim()) {
+    updateData.phone = meta.phone.trim();
+  }
+
   const { error } = await supabase
     .from('users')
-    .update({ 
-      year: meta?.year,
-      stream: meta?.year === 1 ? null : meta?.stream,
-      selected_papers: papers,
-      onboarding_complete: true 
-    })
+    .update(updateData)
     .eq('id', user.id);
 
   if (error) {
     throw new Error(error.message);
   }
-
-  // Grant referral reward to referrer on onboarding completion
-  await rewardReferrerOnOnboardingComplete(user.id);
 
   // PostHog: onboarding_completed
   const timeToComplete = meta?.startedAt
@@ -245,6 +140,18 @@ export async function grantFreeSubject(courseCode: string) {
     .maybeSingle();
 
   if (!existing) {
+    // Guard: check verification status
+    const { data: verification } = await supabase
+      .from('student_verifications')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'verified')
+      .maybeSingle();
+
+    if (!verification) {
+      throw new Error('Please verify your student status to unlock your free subject.');
+    }
+
     await grantSubjectEntitlement({
       supabase,
       userId: user.id,
@@ -260,4 +167,225 @@ export async function grantFreeSubject(courseCode: string) {
 
   revalidatePath(ROUTES.dashboard, 'layout');
   redirect(ROUTES.dashboard);
+}
+
+export async function verifyStudentDocument(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(ROUTES.login);
+  }
+
+  const file = formData.get('file') as File | null;
+  if (!file) {
+    return { status: 'error', message: 'No file uploaded.' };
+  }
+
+  // Basic validation
+  const allowedMimeTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+  if (!allowedMimeTypes.includes(file.type)) {
+    return { status: 'error', message: 'Invalid file format. Only PDF, PNG, JPG, and JPEG are supported.' };
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    return { status: 'error', message: 'File is too large. Maximum allowed size is 10MB.' };
+  }
+
+  try {
+    // Read file and parse with Gemini
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64Data = buffer.toString('base64');
+
+    const result = await parseVerificationDocument(base64Data, file.type);
+
+    if (result.is_tampered) {
+      return {
+        status: 'error',
+        message: `Verification failed: The document appears to be digitally modified or generated. Please upload a direct, unmodified photo of your physical card or the official PDF from the IGNOU portal.`
+      };
+    }
+
+    if (!result.valid_mapc || result.document_type === 'invalid') {
+      return { 
+        status: 'error', 
+        message: 'Verification failed: The document could not be verified as a valid IGNOU MAPC psychology card. Please ensure your name, enrollment number, and programme are clearly visible.' 
+      };
+    }
+
+    if (!result.enrollment_number) {
+      return { status: 'error', message: 'Could not read enrollment number from the document. Please upload a clearer image.' };
+    }
+
+    // Check if this enrollment number is already verified by another user
+    const { data: duplicate } = await supabase
+      .from('student_verifications')
+      .select('user_id')
+      .eq('enrollment_number', result.enrollment_number)
+      .neq('user_id', user.id)
+      .maybeSingle();
+
+    if (duplicate) {
+      return { 
+        status: 'error', 
+        message: 'This enrollment number has already been registered and verified by another account. If you believe this is an error, contact support.' 
+      };
+    }
+
+    // Upload to private Supabase Storage
+    const fileExt = file.name.split('.').pop() || 'png';
+    const filePath = `${user.id}/verify_${Date.now()}.${fileExt}`;
+    
+    // Ensure bucket is initialized
+    try {
+      await supabase.storage.createBucket('admit_cards', { public: false });
+    } catch {
+      // Bucket might already exist or script handles it, ignore
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from('admit_cards')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.error('File upload to Supabase Storage failed:', uploadError.message);
+      return { status: 'error', message: 'Failed to save document. Please try again.' };
+    }
+
+    const { data: existingVerification } = await supabase
+      .from('student_verifications')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'verified')
+      .maybeSingle();
+
+    const isNewVerification = !existingVerification;
+
+    // Insert verification record
+    const { error: verifyError } = await supabase
+      .from('student_verifications')
+      .upsert({
+        user_id: user.id,
+        enrollment_number: result.enrollment_number,
+        document_type: result.document_type,
+        file_url: filePath,
+        status: 'verified',
+        raw_ocr_data: result,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (verifyError) {
+      console.error('Verification insert failed:', verifyError.message);
+      return { status: 'error', message: 'Failed to record student verification state.' };
+    }
+
+    if (isNewVerification) {
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+      const currentCredits = userProfile?.credits ?? 0;
+      await supabase
+        .from('users')
+        .update({ credits: currentCredits + 1 })
+        .eq('id', user.id);
+    }
+
+    // PostHog event
+    await captureServerEvent(user.id, 'student_verified', {
+      document_type: result.document_type,
+      enrollment_number: result.enrollment_number,
+    });
+
+    if (result.document_type === 'admit_card') {
+      // Determine Year & Stream dynamically based on course codes
+      const theoryCodes = COURSE_CATALOG.map(c => c.code);
+      const selectedPapers = result.extracted_papers
+        .map(p => p.toUpperCase().trim())
+        .filter(p => theoryCodes.includes(p));
+
+      if (selectedPapers.length === 0) {
+        return { 
+          status: 'error', 
+          message: 'Admit Card verified, but could not identify any standard MAPC theory papers. Please configure your subjects manually.' 
+        };
+      }
+
+      // Check for Year 2 papers
+      const hasYear2Papers = selectedPapers.some(code => {
+        const item = COURSE_CATALOG.find(c => c.code === code);
+        return item && item.year === 2;
+      });
+      const year = hasYear2Papers ? 2 : 1;
+
+      // Determine stream from Year 2 papers (first matching stream in CATALOG)
+      let stream: string | null = null;
+      if (year === 2) {
+        for (const code of selectedPapers) {
+          const item = COURSE_CATALOG.find(c => c.code === code);
+          if (item && item.stream && item.stream !== 'Common') {
+            stream = item.stream;
+            break;
+          }
+        }
+      }
+
+      // Auto-onboard the user
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          year,
+          stream,
+          selected_papers: selectedPapers,
+          onboarding_complete: true,
+          name: result.student_name || undefined
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Failed to update user profile during auto-onboard:', updateError.message);
+        return { status: 'error', message: 'Failed to update your subject configuration.' };
+      }
+
+      revalidatePath('/onboarding', 'layout');
+      return { 
+        status: 'success', 
+        document_type: 'admit_card', 
+        papers: selectedPapers, 
+        year, 
+        stream 
+      };
+    } else {
+      // It is an ID Card, update name only and verify, but don't complete onboarding unless papers already selected
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('selected_papers')
+        .eq('id', user.id)
+        .single();
+
+      const hasPapers = ((userProfile?.selected_papers as string[] | null) ?? []).length > 0;
+
+      await supabase
+        .from('users')
+        .update({
+          name: result.student_name || undefined,
+          onboarding_complete: hasPapers ? true : undefined
+        })
+        .eq('id', user.id);
+
+      return { 
+        status: 'success', 
+        document_type: 'id_card', 
+        enrollment_number: result.enrollment_number, 
+        student_name: result.student_name,
+        redirect_to: hasPapers ? ROUTES.onboardingFreeSubject : ROUTES.onboardingYear
+      };
+    }
+  } catch (error: unknown) {
+    console.error('Student verification error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred during parsing.';
+    return { status: 'error', message: errorMessage };
+  }
 }

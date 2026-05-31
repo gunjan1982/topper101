@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import SubjectSidebar from '../(dashboard)/SubjectSidebar';
 
 export const metadata: Metadata = {
   title: 'Career Paths After IGNOU MAPC — RCI, M.Phil, PsyD, PGDRP Guide',
@@ -161,8 +162,10 @@ export default function CareerPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-16 space-y-20">
-        {/* Hero */}
+      <div className="mx-auto max-w-[1600px] flex">
+        <SubjectSidebar />
+        <main className="flex-1 min-w-0 mx-auto max-w-4xl px-4 py-16 space-y-20">
+          {/* Hero */}
         <section className="space-y-6">
           <div className="inline-block rounded-full bg-teal-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
             Career Guide · IGNOU MAPC
@@ -276,6 +279,7 @@ export default function CareerPage() {
           </p>
         </section>
       </main>
+      </div>
 
       <footer className="border-t border-zinc-100 dark:border-zinc-900 py-8 text-center text-xs text-zinc-400">
         <p>

@@ -22,6 +22,13 @@ export default async function SettingsPage() {
     redirect('/dashboard');
   }
 
+  // Fetch student verification status
+  const { data: verification } = await supabase
+    .from('student_verifications')
+    .select('status, document_type, enrollment_number')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
   // Fetch all courses to populate paper picker
   const { data: allCourses } = await supabase
     .from('courses')
@@ -44,6 +51,7 @@ export default async function SettingsPage() {
         initialPhone={userData.phone ?? ''}
         initialPapers={(userData.selected_papers as string[]) ?? []}
         initialUrnaOptIn={userData.urna_opt_in ?? false}
+        initialVerification={verification}
         allCourses={(allCourses as CourseCatalogItem[] | null) ?? COURSE_CATALOG}
       />
     </div>

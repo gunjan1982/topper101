@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -5,7 +6,8 @@ import { usePostHog } from 'posthog-js/react';
 import { ROUTES } from '@/lib/routes';
 import { cleanQuestionText } from '@/lib/questionDisplay';
 import AnswerRenderer from '@/components/AnswerRenderer';
-import { getAnswer, updateProgress, submitFlag, trackQuestionViewed } from '../../actions';
+import { getAnswer, updateProgress, submitFlag, trackQuestionViewed, unlockCourseWithCredits } from '../../actions';
+import { verifyStudentDocument } from '@/app/onboarding/actions';
 import ConceptDrawer from './ConceptDrawer';
 import { resolveTextbookPage } from '@/lib/textbookOffsets';
 
@@ -52,6 +54,9 @@ interface QuestionCardProps {
   textbookGrounded?: boolean;
   reviewedByHuman?: boolean;
   probabilityPct?: number;
+  userCredits?: number;
+  totalUnlocked?: number;
+  isVerified?: boolean;
 }
 
 function getWordCountLimitForMarks(marks: number) {
@@ -75,7 +80,11 @@ export default function QuestionCard({
   textbookGrounded = false,
   reviewedByHuman = false,
   probabilityPct,
+  userCredits = 0,
+  totalUnlocked = 0,
+  isVerified = false,
 }: QuestionCardProps) {
+
 
   const posthog = usePostHog();
   const resolvedPage = resolveTextbookPage(courseCode, textbookPage);
@@ -105,6 +114,168 @@ export default function QuestionCard({
 
   // Answer error state
   const [answerError, setAnswerError] = useState<string | null>(null);
+
+  const [credits, setCredits] = useState(userCredits);
+  const [unlockedCount, setUnlockedCount] = useState(totalUnlocked);
+  const [verifiedState, setVerifiedState] = useState(isVerified);
+  const [unlockLoading, setUnlockLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
+
+  const creditsNeeded = unlockedCount === 0 ? 1 : 2;
+
+  const handleUnlockWithCredits = async () => {
+    setUnlockLoading(true);
+    try {
+      const res = await unlockCourseWithCredits(courseCode, creditsNeeded);
+      if (res?.success) {
+        setCredits(prev => prev - creditsNeeded);
+        setUnlockedCount(prev => prev + 1);
+        setAnswerData(null);
+        setIsOpen(false);
+        setTimeout(async () => {
+          setIsOpen(true);
+          setLoading(true);
+          try {
+            const freshAns = await getAnswer(question.id);
+            setAnswerData(freshAns);
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setLoading(false);
+          }
+        }, 100);
+      }
+    } catch (err: any) {
+      setAnswerError(err.message || 'Failed to unlock course.');
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadLoading(true);
+    setUploadError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await verifyStudentDocument(formData);
+      if (res.status === 'success') {
+        setCredits(prev => prev + 1);
+        setVerifiedState(true);
+        
+        if (unlockedCount === 0) {
+          const unlockRes = await unlockCourseWithCredits(courseCode, 1);
+          if (unlockRes?.success) {
+            setCredits(prev => prev - 1);
+            setUnlockedCount(prev => prev + 1);
+            setAnswerData(null);
+            setIsOpen(false);
+            setTimeout(async () => {
+              setIsOpen(true);
+              setLoading(true);
+              try {
+                const freshAns = await getAnswer(question.id);
+                setAnswerData(freshAns);
+              } catch (e) {
+                console.error(e);
+              } finally {
+                setLoading(false);
+              }
+            }, 100);
+          }
+        }
+      } else {
+        setUploadError(res.message || 'Verification failed. Please try again.');
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'An error occurred during verification.');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const handleBuyCredit = async () => {
+    setPurchaseLoading(true);
+    try {
+      if (!window.Razorpay) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+          document.body.appendChild(script);
+        });
+      }
+
+      const res = await fetch('/api/payments/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId: 'buy-1-credit' }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Payment order creation failed');
+      }
+
+      const { orderId, amount, currency } = await res.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount,
+        currency,
+        name: 'Topper101',
+        description: 'Buy 1 Topper Credit',
+        order_id: orderId,
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            if (!verifyRes.ok) {
+              const verifyData = await verifyRes.json();
+              throw new Error(verifyData.error || 'Verification failed');
+            }
+
+            setCredits(prev => prev + 1);
+            posthog?.capture('credit_purchased_success', { order_id: orderId });
+          } catch (verifyErr: any) {
+            console.error('Payment verification failed:', verifyErr);
+            alert(`Payment verification failed: ${verifyErr.message}`);
+          }
+        },
+        prefill: {
+          email: userEmail ?? '',
+        },
+        theme: {
+          color: '#0f766e',
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error(err);
+      alert(`Razorpay checkout failed: ${err.message}`);
+    } finally {
+      setPurchaseLoading(false);
+    }
+  };
 
   const isGrounded = textbookGrounded || !!question.textbook_grounded;
 
@@ -448,37 +619,116 @@ export default function QuestionCard({
                 </button>
               </div>
             ) : answerData?.status === 'paywall' ? (
-              <div className="text-center py-8">
-                <span className="text-6xl mb-6 block">💳</span>
-                <h3 className="text-2xl font-bold dark:text-white">
-                  {answerData.trigger === 'subject_locked'
-                    ? 'This paper is locked'
-                    : 'You have used your free answers'}
-                </h3>
-                <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-                  {answerData.trigger === 'subject_locked'
-                    ? 'Your first paper is free. Upgrade to unlock this subject, or pick the 5-subject Pass for this TEE.'
-                    : 'Upgrade to Topper Pass to get Textbook word count specific curated answers powered by AI for unlocked subjects.'}
-                </p>
-                <div className="mt-10 flex flex-col gap-4">
-                  <button
-                    onClick={() => {
-                      window.location.href = ROUTES.pricing;
-                    }}
-                    className="rounded-full bg-teal-700 px-8 py-4 text-lg font-bold text-white hover:bg-teal-600 shadow-xl shadow-teal-700/20"
-                  >
-                    Unlock This Subject - ₹99
-                  </button>
+              <div className="text-center py-8 space-y-6">
+                <span className="text-6xl mb-2 block">🔒</span>
+                <div>
+                  <h3 className="text-2xl font-bold dark:text-white">
+                    Unlock Curated Answer
+                  </h3>
+                  <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+                    Curated answers are textbook-referenced, specific to marks, and verified for high score probability.
+                  </p>
+                </div>
+
+                {/* Credit Balance Card */}
+                <div className="max-w-md mx-auto rounded-2xl bg-zinc-50 dark:bg-zinc-950 p-5 border border-zinc-150 dark:border-zinc-800 space-y-4">
+                  <div className="flex justify-between items-center text-sm font-semibold">
+                    <span className="text-zinc-500">Your Credit Balance:</span>
+                    <span className="text-teal-700 dark:text-teal-400 font-extrabold text-base">{credits} credit(s)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-semibold">
+                    <span className="text-zinc-500">Required to Unlock this Subject:</span>
+                    <span className="text-zinc-800 dark:text-zinc-200 font-extrabold">{creditsNeeded} credit(s)</span>
+                  </div>
+
+                  {credits >= creditsNeeded ? (
+                    <button
+                      onClick={handleUnlockWithCredits}
+                      disabled={unlockLoading}
+                      className="w-full rounded-xl bg-teal-700 py-3 text-sm font-bold text-white shadow-lg shadow-teal-700/20 hover:bg-teal-650 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {unlockLoading ? 'Unlocking...' : `Spend ${creditsNeeded} Credit${creditsNeeded > 1 ? 's' : ''} to Unlock`}
+                    </button>
+                  ) : (
+                    <div className="text-xs text-amber-600 font-medium text-center">
+                      ⚠️ You need {creditsNeeded - credits} more credit(s) to unlock this subject.
+                    </div>
+                  )}
+                </div>
+
+                <div className="max-w-md mx-auto grid gap-4 grid-cols-1 sm:grid-cols-2">
+                  {/* Admit Card Upload (Only if not verified yet) */}
+                  {!verifiedState ? (
+                    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-4 text-center space-y-3 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+                          Upload Admit Card
+                        </h4>
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 leading-normal">
+                          Upload your hall ticket to verify enrollment and get <strong>1 Credit FREE</strong>!
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block w-full cursor-pointer rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors">
+                          {uploadLoading ? 'Uploading/Verifying...' : 'Select & Upload File'}
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={handleFileUpload}
+                            disabled={uploadLoading}
+                            className="hidden"
+                          />
+                        </label>
+                        {uploadError && (
+                          <p className="text-[10px] text-red-500 mt-1 leading-tight font-semibold">{uploadError}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-emerald-200 dark:border-emerald-900/30 bg-emerald-50/20 dark:bg-emerald-950/10 p-4 text-center flex flex-col items-center justify-center">
+                      <span className="text-2xl mb-1">✅</span>
+                      <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-400">Admit Card Verified</h4>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1">
+                        You have received your free credit.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Buy Credits */}
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-4 text-center space-y-3 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+                        Buy 1 Credit
+                      </h4>
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 leading-normal">
+                        Instantly purchase 1 credit via Razorpay to unlock any course material.
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        onClick={handleBuyCredit}
+                        disabled={purchaseLoading}
+                        className="w-full rounded-xl bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/30 py-2.5 text-xs font-bold text-teal-700 dark:text-teal-300 hover:bg-teal-100/50 dark:hover:bg-teal-900/50 transition-colors"
+                      >
+                        {purchaseLoading ? 'Opening Checkout...' : 'Buy 1 Credit — ₹49'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral sharing */}
+                <div className="max-w-md mx-auto pt-4">
                   <button 
-                    className="text-sm font-medium text-zinc-500 hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="text-xs font-bold text-teal-700 hover:underline flex items-center justify-center gap-1 mx-auto"
                     onClick={() => {
                       const link = `${window.location.origin}${ROUTES.signup}?ref=${encodeURIComponent(referralCode ?? '')}`;
                       navigator.clipboard.writeText(link);
+                      alert('Referral link copied! Share it with classmates to earn 1 credit each.');
                       posthog?.capture('referral_link_shared', { channel: 'copy' });
                     }}
                     disabled={!referralCode}
                   >
-                    Or invite a friend to unlock another paper
+                    🔗 Share Referral Link (Get 1 Credit per signup!)
                   </button>
                 </div>
               </div>

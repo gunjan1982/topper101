@@ -17,7 +17,7 @@ export default async function AdminUsersPage({
 
   let query = admin
     .from('users')
-    .select('id, email, name, phone, plan_tier, created_at, last_seen_at, onboarding_complete, selected_papers, referral_code, referred_by', { count: 'exact' })
+    .select('id, email, name, phone, plan_tier, created_at, last_seen_at, onboarding_complete, selected_papers, referral_code, referred_by, credits, referral_clicks', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
 
@@ -126,6 +126,8 @@ export default async function AdminUsersPage({
     selected_papers: string[] | null;
     referral_code: string | null;
     referred_by: string | null;
+    credits: number;
+    referral_clicks: number;
   }) => ({
     ...u,
     entitlementCount: entitlementsByUser[u.id] ?? 0,
@@ -139,15 +141,45 @@ export default async function AdminUsersPage({
     answersAfterPay: questionMetricsByUser[u.id]?.answersAfterPay.size ?? 0,
   }));
 
+  // Fetch verifications
+  const { data: verificationsRaw } = await admin
+    .from('student_verifications')
+    .select('*, users(email, name)')
+    .order('updated_at', { ascending: false });
+
+  const verifications = [];
+  if (verificationsRaw && verificationsRaw.length > 0) {
+    for (const v of verificationsRaw) {
+      let signedUrl = '';
+      if (v.file_url) {
+        try {
+          const { data: sData } = await admin.storage
+            .from('admit_cards')
+            .createSignedUrl(v.file_url, 3600);
+          signedUrl = sData?.signedUrl ?? '';
+        } catch (err) {
+          console.error('Error generating signed URL for admin:', err);
+        }
+      }
+      verifications.push({
+        ...v,
+        userEmail: (v.users as { email: string; name: string | null } | null)?.email ?? '',
+        userName: (v.users as { email: string; name: string | null } | null)?.name ?? '',
+        signedUrl,
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold dark:text-white">Users</h1>
+        <h1 className="text-2xl font-bold dark:text-white">Admin Console</h1>
         <p className="mt-1 text-sm text-zinc-500">{count ?? 0} total users</p>
       </div>
 
       <UserTable
         users={enrichedUsers}
+        verifications={verifications}
         totalCount={count ?? 0}
         page={page}
         totalPages={totalPages}

@@ -20,7 +20,19 @@ export default async function FreeSubjectPage() {
     .single();
 
   if (!userData?.onboarding_complete) {
-    redirect(ROUTES.onboardingYear);
+    redirect(ROUTES.onboardingVerify);
+  }
+
+  // Fetch current student verification status
+  const { data: verification } = await supabase
+    .from('student_verifications')
+    .select('status')
+    .eq('user_id', user.id)
+    .eq('status', 'verified')
+    .maybeSingle();
+
+  if (!verification) {
+    redirect(`${ROUTES.onboardingVerify}?required=true`);
   }
 
   const selectedPapers = (userData.selected_papers as string[] | null) ?? [];

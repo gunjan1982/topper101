@@ -149,7 +149,7 @@ export async function processOrderPaymentSuccess({
   userId: string;
   orderId: string;
   amountPaid?: number;
-  planId: 'pass';
+  planId: string;
   billingCycle: 'monthly' | 'semester';
   subjectLimit: number;
   offerId?: string;
@@ -169,6 +169,52 @@ export async function processOrderPaymentSuccess({
     return;
   }
 
+  if (offerId === 'buy-1-credit') {
+    // 1. Increment user credits
+    const { data: user } = await admin
+      .from('users')
+      .select('credits')
+      .eq('id', userId)
+      .single();
+    
+    const currentCredits = user?.credits ?? 0;
+    const { error: userError } = await admin
+      .from('users')
+      .update({ credits: currentCredits + 1 })
+      .eq('id', userId);
+    
+    if (userError) throw userError;
+
+    // 2. Insert subscription/payment record as "credit_purchase"
+    const { error: subError } = await admin
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        plan_tier: 'free',
+        billing_cycle: 'monthly',
+        status: 'active',
+        razorpay_payment_id: orderId,
+        start_date: new Date().toISOString(),
+        end_date: new Date().toISOString(),
+        payment_history: [{
+          offer_id: offerId,
+          offer_label: offerLabel ?? 'Buy 1 Topper Credit',
+          subject_limit: 0,
+          amount_paid: amountPaid ? amountPaid / 100 : 49,
+        }],
+      });
+    
+    if (subError) throw subError;
+
+    // 3. PostHog: credit_purchased
+    await captureServerEvent(userId, 'credit_purchased', {
+      amount: amountPaid ? amountPaid / 100 : 49,
+      offer_id: offerId,
+    });
+    
+    return;
+  }
+
   const purchasedSubjects = await grantPurchasedSubjectUnlocks({
     userId,
     orderId,
@@ -178,6 +224,7 @@ export async function processOrderPaymentSuccess({
   });
 
   // 1. Update user plan
+
   const { error: userError } = await admin
     .from('users')
     .update({ plan_tier: planId })

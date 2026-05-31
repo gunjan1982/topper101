@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateSettings, setUrnaOptIn } from './actions';
 import { MAPC_STREAMS, isTheoryCourse, normalizeStream } from '@/lib/courseCatalog';
 import { formatExamDate, getExamSchedule } from '@/lib/examSchedule';
+import { verifyStudentDocument } from '@/app/onboarding/actions';
 
 interface Course {
   id: string;
@@ -20,6 +21,11 @@ interface SettingsFormProps {
   initialPhone: string;
   initialPapers: string[];
   initialUrnaOptIn: boolean;
+  initialVerification: {
+    status: 'verified' | 'pending' | 'rejected' | null;
+    document_type: 'admit_card' | 'id_card' | null;
+    enrollment_number: string | null;
+  } | null;
   allCourses: Course[];
 }
 
@@ -31,6 +37,7 @@ export default function SettingsForm({
   initialPhone,
   initialPapers,
   initialUrnaOptIn,
+  initialVerification,
   allCourses,
 }: SettingsFormProps) {
   const [year, setYear] = useState<number>(initialYear);
@@ -42,6 +49,52 @@ export default function SettingsForm({
   const [error, setError] = useState<string | null>(null);
   const [urnaOptIn, setUrnaOptInState] = useState(initialUrnaOptIn);
   const [urnaLoading, setUrnaLoading] = useState(false);
+
+  // Student verification states
+  const [verification, setVerification] = useState(initialVerification);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadPending, setUploadPending] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploadError(null);
+    setUploadSuccess(null);
+    setUploadPending(true);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await verifyStudentDocument(formData);
+      if (res.status === 'error') {
+        setUploadError(res.message || 'Verification failed');
+      } else {
+        setVerification({
+          status: 'verified',
+          document_type: res.document_type as 'admit_card' | 'id_card',
+          enrollment_number: res.enrollment_number ?? null
+        });
+        setUploadSuccess(
+          res.document_type === 'admit_card'
+            ? 'Admit card verified successfully! Your papers are configured and your 1st subject free credit is active.'
+            : 'Student ID card verified successfully! You can select your papers manually below.'
+        );
+        if (res.document_type === 'admit_card' && res.papers) {
+          setSelectedPapers(res.papers);
+          if (res.year) setYear(res.year);
+          if (res.stream) setStream(res.stream);
+        }
+      }
+    } catch {
+      setUploadError('An unexpected error occurred during upload.');
+    } finally {
+      setUploadPending(false);
+    }
+  };
 
   const theoryCourses = allCourses
     .filter((course) => isTheoryCourse(course))
@@ -80,6 +133,86 @@ export default function SettingsForm({
 
   return (
     <div className="space-y-10">
+      {/* Student Verification Card */}
+      <section className="space-y-4 rounded-3xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div>
+          <h2 className="text-lg font-bold dark:text-white">Student Verification</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Verify your IGNOU student status to unlock a free subject credit.
+          </p>
+        </div>
+
+        {verification && verification.status === 'verified' ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/30 p-4 dark:border-emerald-900/20 dark:bg-emerald-950/10">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✓</span>
+              <div>
+                <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                  Verified IGNOU MAPC Student
+                </p>
+                <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">
+                  Document: {verification.document_type === 'admit_card' ? 'Admit Card (Hall Ticket)' : 'Student ID Card'} 
+                  {verification.enrollment_number && ` · Enrollment No: ${verification.enrollment_number}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 dark:border-amber-900/20 dark:bg-amber-950/10">
+              <p className="text-xs text-amber-800 dark:text-amber-400 leading-normal">
+                ⚠️ <strong>Unverified status</strong>: You can select subjects manually, but answer generation and prep helpers will remain locked until verified. Upload your Admit Card or ID Card to unlock one subject free.
+              </p>
+            </div>
+
+            <form onSubmit={handleUpload} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+              <label className="flex-1 block">
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Select Card Image or PDF</span>
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    setUploadError(null);
+                    setUploadSuccess(null);
+                    if (e.target.files && e.target.files[0]) {
+                      setFile(e.target.files[0]);
+                    }
+                  }}
+                  className="mt-2 w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-teal-55 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                />
+              </label>
+
+              <button
+                type="submit"
+                disabled={!file || uploadPending}
+                className={`rounded-full bg-teal-700 px-6 py-2.5 text-sm font-bold text-white shadow hover:bg-teal-600 transition-all ${
+                  file && !uploadPending ? 'hover:bg-teal-600 active:scale-[0.98]' : 'opacity-50 cursor-not-allowed bg-zinc-300 text-zinc-500 dark:bg-zinc-800'
+                }`}
+              >
+                {uploadPending ? 'Verifying...' : 'Upload & Verify'}
+              </button>
+            </form>
+
+            {uploadError && (
+              <div className="space-y-1.5">
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400">
+                  ⚠️ {uploadError}
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 px-1 leading-relaxed">
+                  💡 <strong>Tip:</strong> If your Admit Card is too grainy or blurry, upload a clear photo of your <strong>IGNOU Student ID Card</strong> instead. Status will be verified and you can configure papers manually.
+                </p>
+              </div>
+            )}
+            
+            {uploadSuccess && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-medium text-emerald-800 dark:border-emerald-900/30 dark:bg-emerald-950/10 dark:text-emerald-300">
+                🎉 {uploadSuccess}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Year Selection */}
       <section className="space-y-4">
         <div>
@@ -89,12 +222,12 @@ export default function SettingsForm({
           </p>
         </div>
         <label className="block">
-          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Phone number</span>
+          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">WhatsApp number</span>
           <input
             type="tel"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder="Optional, useful for payment/support issues"
+            placeholder="WhatsApp number (for TEE reminders & study tips)"
             className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 focus:border-teal-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
           />
         </label>

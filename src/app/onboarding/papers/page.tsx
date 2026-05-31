@@ -16,7 +16,7 @@ export default async function PapersPage() {
   // Get user's year and stream
   const { data: userData } = await supabase
     .from('users')
-    .select('year, stream, selected_papers')
+    .select('year, stream, selected_papers, phone')
     .eq('id', user.id)
     .single();
 
@@ -75,6 +75,7 @@ export default async function PapersPage() {
         year={userData.year}
         stream={userData.stream ?? null}
         initialSelected={selectedPapers}
+        hasWhatsApp={Boolean(userData.phone?.trim())}
       />
     </div>
   );

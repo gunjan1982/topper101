@@ -8,13 +8,19 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = safeNextPath(searchParams.get('next'));
+  let referralCode: string | null = null;
+  try {
+    const nextUrlObj = new URL(next, origin);
+    referralCode = nextUrlObj.searchParams.get('ref')?.trim() || null;
+  } catch {
+    // ignore
+  }
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Ensure public.users row exists (required for Google OAuth users who
-      // never go through the email signup path which would create the row)
+      // Ensure public.users row exists
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: upsertResult } = await supabase.from('users').upsert(
@@ -26,6 +32,7 @@ export async function GET(request: Request) {
               (user.user_metadata?.name as string | undefined) ??
               null,
             auth_provider: user.app_metadata?.provider ?? 'google',
+            referred_by: referralCode,
           },
           { onConflict: 'id', ignoreDuplicates: true }
         );

@@ -129,7 +129,7 @@ export default async function AdminPage() {
         <StatCard label="Total users" value={totalUsers ?? 0} sub={`+${newUsersWeek ?? 0} this week`} href={ROUTES.adminUsers} />
         <StatCard label="Paid users" value={paidTotal} sub={`${passUsers ?? 0} pass`} href={ROUTES.adminUsers} />
         <StatCard label="Free users" value={freeUsers ?? 0} sub={`${totalUsers ? Math.round((paidTotal / totalUsers) * 100) : 0}% conversion`} />
-        <StatCard label="Open requests" value={openRequests ?? 0} href={ROUTES.adminRequests} />
+        <StatCard label="Open requests" value={openRequests ?? 0} href={ROUTES.adminSupport} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -219,7 +219,7 @@ export default async function AdminPage() {
             className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
             Supabase ↗
           </a>
-          <Link href={ROUTES.adminRequests}
+          <Link href={ROUTES.adminSupport}
             className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
             Support Inbox
           </Link>

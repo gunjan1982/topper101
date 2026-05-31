@@ -128,10 +128,18 @@ export async function signInWithGoogle(formData?: FormData) {
 
   const supabase = await createClient();
   const redirectTo = safeNextPath(formData?.get('redirectTo') as string | null);
+  const referralCode = (formData?.get('referral_code') as string | null)?.trim() || null;
+
+  let nextParam = redirectTo;
+  if (referralCode) {
+    const separator = nextParam.includes('?') ? '&' : '?';
+    nextParam = `${nextParam}${separator}ref=${encodeURIComponent(referralCode)}`;
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: await authCallbackUrl(redirectTo),
+      redirectTo: await authCallbackUrl(nextParam),
     },
   });
 

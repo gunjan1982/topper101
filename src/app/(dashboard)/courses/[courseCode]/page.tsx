@@ -5,7 +5,7 @@ import QuestionCard from './components/QuestionCard';
 import { QPaperPanel, TextbookPanel, type PdfSessionItem } from './components/CoursePdfPanels';
 import { courseByCode, type CourseCatalogItem } from '@/lib/courseCatalog';
 import { daysUntilExam, formatExamDate, formatExamWeekday, getExamSchedule } from '@/lib/examSchedule';
-import { canAccessCourse, fetchSubjectEntitlements } from '@/lib/entitlements';
+import { canAccessCourse, fetchSubjectEntitlements, unlockedCourseCodes } from '@/lib/entitlements';
 import { cleanQuestionText, formatQuestionSession } from '@/lib/questionDisplay';
 import { questionRepeatKey } from '@/lib/questionRepeatAlgorithm';
 
@@ -217,10 +217,19 @@ export default async function CourseDetailPage({
   const { data: userData } = user
     ? await supabase
         .from('users')
-        .select('plan_tier, referral_code')
+        .select('plan_tier, referral_code, credits')
         .eq('id', user.id)
         .single()
     : { data: null };
+  const { data: verificationRecord } = user
+    ? await supabase
+        .from('student_verifications')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'verified')
+        .maybeSingle()
+    : { data: null };
+  const isVerified = Boolean(verificationRecord);
   const userEmail = user?.email ?? null;
   const entitlements = user ? await fetchSubjectEntitlements(supabase, user.id) : [];
   const canAccessAnswers = canAccessCourse({
@@ -512,10 +521,15 @@ export default async function CourseDetailPage({
                   initialProgress={progressByQuestion.get(q.id)}
                   textbookPage={q.textbook_page ?? undefined}
                   textbookExcerpt={q.textbook_excerpt ?? undefined}
-                  topicClusterId={q.topic_cluster_id ?? undefined}
+                  topicClusterId={
+                    ((clusters as TopicCluster[] | null)?.find((cluster) => cluster.cluster_name === q.topic)?.id) ?? undefined
+                  }
                   textbookGrounded={q.textbook_grounded ?? false}
                   reviewedByHuman={q.reviewed_by_human ?? false}
                   probabilityPct={getQuestionProbability(q)}
+                  userCredits={userData?.credits ?? 0}
+                  totalUnlocked={unlockedCourseCodes(entitlements).size}
+                  isVerified={isVerified}
                 />
               ))
             ) : (

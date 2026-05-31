@@ -45,12 +45,12 @@ export default async function SignupPage({
                 autoComplete="email"
                 required
                 className="relative block w-full rounded-t-xl border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
-                placeholder="Email address"
+                placeholder="Email address (use Gmail for one-click login later)"
               />
             </div>
             <div>
               <label htmlFor="phone" className="sr-only">
-                Phone number
+                WhatsApp number
               </label>
               <input
                 id="phone"
@@ -58,7 +58,7 @@ export default async function SignupPage({
                 type="tel"
                 autoComplete="tel"
                 className="relative block w-full border-0 py-3 text-zinc-950 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-700 dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 sm:text-sm sm:leading-6"
-                placeholder="Phone number (optional)"
+                placeholder="WhatsApp number (for TEE reminders & study tips)"
               />
             </div>
             <div>
@@ -115,6 +115,7 @@ export default async function SignupPage({
           <div className="mt-6">
             <form action={signInWithGoogle}>
               <input type="hidden" name="redirectTo" value={next} />
+              <input type="hidden" name="referral_code" value={referralCode} />
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-3 py-3 text-sm font-semibold text-zinc-950 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:ring-transparent dark:bg-zinc-900 dark:text-zinc-50 dark:ring-zinc-800 dark:hover:bg-zinc-800 transition-all active:scale-95"

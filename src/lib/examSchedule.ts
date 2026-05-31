@@ -1,4 +1,5 @@
 import { COURSE_CATALOG } from './courseCatalog';
+import rawSchedule from './examScheduleData.json';
 
 export type ExamSession = 'Morning' | 'Evening';
 
@@ -15,24 +16,32 @@ export const JUNE_2026_TEE_DATE_SHEET_URL =
 
 export const JUNE_2026_TEE_SOURCE_LABEL = 'IGNOU revised date sheet, 12 May 2026';
 
-export const JUNE_2026_TEE_SCHEDULE: ExamScheduleItem[] = [
-  { courseCode: 'MPCE-011', date: '2026-06-15', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-021', date: '2026-06-15', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-031', date: '2026-06-15', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-012', date: '2026-06-24', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-022', date: '2026-06-24', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-032', date: '2026-06-24', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-013', date: '2026-06-25', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-023', date: '2026-06-25', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-033', date: '2026-06-25', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPCE-046', date: '2026-06-29', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-001', date: '2026-07-09', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-002', date: '2026-07-11', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-003', date: '2026-07-13', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-004', date: '2026-07-15', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-005', date: '2026-07-17', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-  { courseCode: 'MPC-006', date: '2026-07-20', session: 'Evening', startTime: '2:00 PM', endTime: '5:00 PM' },
-];
+type RawScheduleItem = {
+  courseCode: string;
+  date: string;
+  session: string;
+  startTime: string;
+  endTime: string;
+};
+
+export const JUNE_2026_TEE_SCHEDULE: ExamScheduleItem[] = (rawSchedule as RawScheduleItem[]).map(item => ({
+  courseCode: item.courseCode,
+  date: item.date,
+  session: item.session as ExamSession,
+  startTime: item.startTime,
+  endTime: item.endTime
+}));
+
+// Helper to normalize course codes (e.g., MPC-001 -> MPC001, MPC_NEW -> MPCNEW)
+export function normalizeCode(code: string): string {
+  return code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+}
+
+// Build map for fast O(1) lookups
+const SCHEDULE_MAP = new Map<string, ExamScheduleItem>();
+JUNE_2026_TEE_SCHEDULE.forEach(item => {
+  SCHEDULE_MAP.set(normalizeCode(item.courseCode), item);
+});
 
 const formatter = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit',
@@ -51,7 +60,7 @@ function dateInIndia(date: string) {
 }
 
 export function getExamSchedule(courseCode: string) {
-  return JUNE_2026_TEE_SCHEDULE.find((item) => item.courseCode === courseCode);
+  return SCHEDULE_MAP.get(normalizeCode(courseCode));
 }
 
 export function formatExamDate(date: string) {
@@ -67,9 +76,9 @@ export function daysUntilExam(date: string, now = new Date()) {
 }
 
 export function sortedExamSchedule(courseCodes: readonly string[] = JUNE_2026_TEE_SCHEDULE.map((item) => item.courseCode)) {
-  const allowed = new Set(courseCodes);
+  const allowed = new Set(courseCodes.map(normalizeCode));
   return JUNE_2026_TEE_SCHEDULE
-    .filter((item) => allowed.has(item.courseCode))
+    .filter((item) => allowed.has(normalizeCode(item.courseCode)))
     .sort((a, b) => dateInIndia(a.date).getTime() - dateInIndia(b.date).getTime());
 }
 
@@ -80,6 +89,7 @@ export function nextScheduledExam(courseCodes: readonly string[], now = new Date
 export function scheduleWithCourseDetails(courseCodes?: readonly string[]) {
   return sortedExamSchedule(courseCodes).map((item) => ({
     ...item,
-    course: COURSE_CATALOG.find((course) => course.code === item.courseCode),
+    course: COURSE_CATALOG.find((course) => normalizeCode(course.code) === normalizeCode(item.courseCode)),
   }));
 }
+
