@@ -33,7 +33,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const STOP_WORDS = new Set([
   'the', 'of', 'and', 'in', 'to', 'a', 'is', 'for', 'with', 'on', 'at', 'by', 'an', 'be', 'as',
-  'theory', 'model', 'approach', 'stages', 'process', 'type', 'types', 'perspective', 'framework'
+  'theory', 'model', 'approach', 'stages', 'process', 'type', 'types', 'perspective', 'framework',
+  'concept', 'concepts', 'core', 'basic', 'foundations', 'foundation', 'introduction', 'overview',
+  'other', 'miscellaneous', 'application', 'applications', 'critique', 'comparison', 'limitations',
+  'ethics', 'ethical', 'exam', 'synthesis', 'indian', 'context', 'advanced', 'key', 'special',
+  'topics', 'methods', 'techniques', 'issues', 'principles'
 ]);
 
 function normalizeText(text) {
@@ -45,19 +49,36 @@ function normalizeText(text) {
     .filter(word => word.length > 2 && !STOP_WORDS.has(word));
 }
 
+async function fetchAllConcepts() {
+  const pageSize = 1000;
+  const concepts = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const to = from + pageSize - 1;
+    const { data, error } = await supabase
+      .from('concept_tree')
+      .select('id, name, definition, key_theorists, domain, course_primary_code')
+      .order('id', { ascending: true })
+      .range(from, to);
+
+    if (error) {
+      throw error;
+    }
+
+    concepts.push(...(data ?? []));
+
+    if (!data || data.length < pageSize) {
+      return concepts;
+    }
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const writeToDb = args.includes('--write');
   
   console.log('Fetching all concepts from concept_tree...');
-  const { data: concepts, error } = await supabase
-    .from('concept_tree')
-    .select('id, name, definition, key_theorists, domain, course_primary_code');
-    
-  if (error) {
-    console.error('Error fetching concepts:', error);
-    process.exit(1);
-  }
+  const concepts = await fetchAllConcepts();
   
   console.log(`Fetched ${concepts.length} concepts.`);
   
@@ -105,8 +126,7 @@ async function main() {
         const sharedTokens = a.tokens.filter(t => b.tokens.includes(t));
         const minLength = Math.min(a.tokens.length, b.tokens.length);
         
-        // If they share at least 2 words, or share 1 word when the shortest title has only 1 word
-        if (sharedTokens.length >= 2 || (sharedTokens.length >= 1 && minLength === 1)) {
+        if (sharedTokens.length >= 2 || (sharedTokens.length >= 1 && minLength === 1 && sharedTokens[0].length >= 5)) {
           isRelated = true;
         }
       }
@@ -163,18 +183,16 @@ async function main() {
   console.log('\nWriting links to database...');
   let updatedCount = 0;
   for (const [id, relatedSet] of links.entries()) {
-    if (relatedSet.size > 0) {
-      const relatedIds = Array.from(relatedSet);
-      const { error: updateError } = await supabase
-        .from('concept_tree')
-        .update({ related_nodes: relatedIds })
-        .eq('id', id);
-        
-      if (updateError) {
-        console.error(`Failed to update concept ${id}:`, updateError);
-      } else {
-        updatedCount++;
-      }
+    const relatedIds = Array.from(relatedSet);
+    const { error: updateError } = await supabase
+      .from('concept_tree')
+      .update({ related_nodes: relatedIds })
+      .eq('id', id);
+
+    if (updateError) {
+      console.error(`Failed to update concept ${id}:`, updateError);
+    } else {
+      updatedCount++;
     }
   }
   

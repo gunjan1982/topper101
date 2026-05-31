@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/routes';
+import { unlockConceptTree } from './actions';
 
 interface ConceptItem {
   id: string;
@@ -22,6 +23,10 @@ interface ConceptTreeClientProps {
   isPaid: boolean;
   initialUrnaOptIn?: boolean;
   userEmail?: string | null;
+  selectedPapers?: string[];
+  unlockedSubjects?: string[];
+  unlockedConceptTrees?: string[];
+  userCredits?: number;
 }
 
 const FREQ_COLORS: Record<string, string> = {
@@ -47,31 +52,70 @@ export default function ConceptTreeClient({
   initialConcepts,
   isPaid,
   userEmail = null,
+  selectedPapers = [],
+  unlockedSubjects = [],
+  unlockedConceptTrees = [],
+  userCredits = 0,
 }: ConceptTreeClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState<string>('All');
+  const [selectedSubject, setSelectedSubject] = useState<string>('All');
   const [selectedLayer, setSelectedLayer] = useState<string>('All');
   const [selectedFreq, setSelectedFreq] = useState<string>('All');
-  const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({});
+  const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>({});
 
-  const domains = useMemo(() => {
+  // Credit/Unlock State
+  const [credits, setCredits] = useState(userCredits);
+  const [conceptTreeUnlocks, setConceptTreeUnlocks] = useState<string[]>(unlockedConceptTrees);
+  const [unlockLoading, setUnlockLoading] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+
+  // Synchronize dynamic state on load or prop change
+  useEffect(() => {
+    setCredits(userCredits);
+    setConceptTreeUnlocks(unlockedConceptTrees);
+  }, [userCredits, unlockedConceptTrees]);
+
+  // Unique course/subject codes from concepts
+  const allSubjects = useMemo(() => {
     const set = new Set<string>();
     initialConcepts.forEach((c) => {
-      if (c.domain) set.add(c.domain);
+      if (c.mapped_courses && c.mapped_courses.length > 0) {
+        c.mapped_courses.forEach((course) => set.add(course));
+      } else {
+        set.add('General Psychology');
+      }
     });
     return Array.from(set).sort();
   }, [initialConcepts]);
 
-  const domainCounts = useMemo(() => {
+  // Concept counts per subject
+  const subjectCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     initialConcepts.forEach((c) => {
-      if (c.domain) {
-        counts[c.domain] = (counts[c.domain] || 0) + 1;
+      if (c.mapped_courses && c.mapped_courses.length > 0) {
+        c.mapped_courses.forEach((course) => {
+          counts[course] = (counts[course] || 0) + 1;
+        });
+      } else {
+        counts['General Psychology'] = (counts['General Psychology'] || 0) + 1;
       }
     });
     return counts;
   }, [initialConcepts]);
 
+  // Sort subjects so that user's enrolled papers appear first
+  const sortedSubjects = useMemo(() => {
+    const enrolledSet = new Set(selectedPapers);
+    return [...allSubjects].sort((a, b) => {
+      const aEnrolled = enrolledSet.has(a);
+      const bEnrolled = enrolledSet.has(b);
+      if (aEnrolled && !bEnrolled) return -1;
+      if (!aEnrolled && bEnrolled) return 1;
+      return a.localeCompare(b);
+    });
+  }, [allSubjects, selectedPapers]);
+
+  // Filter concepts based on search, layer, frequency
   const filteredConcepts = useMemo(() => {
     return initialConcepts.filter((concept) => {
       const matchesSearch =
@@ -79,36 +123,101 @@ export default function ConceptTreeClient({
         concept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (concept.definition && concept.definition.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesDomain = selectedDomain === 'All' || concept.domain === selectedDomain;
       const matchesLayer = selectedLayer === 'All' || String(concept.layer) === selectedLayer;
       const matchesFreq = selectedFreq === 'All' || concept.exam_relevance === selectedFreq;
 
-      return matchesSearch && matchesDomain && matchesLayer && matchesFreq;
+      return matchesSearch && matchesLayer && matchesFreq;
     });
-  }, [initialConcepts, searchTerm, selectedDomain, selectedLayer, selectedFreq]);
+  }, [initialConcepts, searchTerm, selectedLayer, selectedFreq]);
 
-  const groupedConcepts = useMemo(() => {
+  // Group filtered concepts by Subject
+  const conceptsBySubject = useMemo(() => {
     const groups: Record<string, ConceptItem[]> = {};
     filteredConcepts.forEach((concept) => {
-      const d = concept.domain || 'Uncategorized';
-      if (!groups[d]) groups[d] = [];
-      groups[d].push(concept);
+      if (concept.mapped_courses && concept.mapped_courses.length > 0) {
+        concept.mapped_courses.forEach((course) => {
+          if (!groups[course]) groups[course] = [];
+          if (!groups[course].some(c => c.id === concept.id)) {
+            groups[course].push(concept);
+          }
+        });
+      } else {
+        const course = 'General Psychology';
+        if (!groups[course]) groups[course] = [];
+        if (!groups[course].some(c => c.id === concept.id)) {
+          groups[course].push(concept);
+        }
+      }
     });
-    return groups;
-  }, [filteredConcepts]);
 
-  const sortedDomains = useMemo(() => {
-    return Object.keys(groupedConcepts).sort();
-  }, [groupedConcepts]);
+    // Sort concepts within each branch by layer
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort((a, b) => a.layer - b.layer || a.name.localeCompare(b.name));
+    });
+
+    if (selectedSubject !== 'All') {
+      const singleGroup: Record<string, ConceptItem[]> = {};
+      if (groups[selectedSubject]) {
+        singleGroup[selectedSubject] = groups[selectedSubject];
+      }
+      return singleGroup;
+    }
+
+    return groups;
+  }, [filteredConcepts, selectedSubject]);
+
+  const activeSubjects = useMemo(() => {
+    return Object.keys(conceptsBySubject).sort();
+  }, [conceptsBySubject]);
+
+  // Entitlement unlock check
+  const isSubjectUnlocked = (courseCode: string) => {
+    if (isPaid) return true;
+    if (courseCode === 'General Psychology') return true;
+
+    // First subject in enrolled papers is complimentary
+    if (selectedPapers.length > 0 && courseCode === selectedPapers[0]) {
+      return true;
+    }
+
+    // Already unlocked for full Q-Bank access
+    if (unlockedSubjects.includes(courseCode)) {
+      return true;
+    }
+
+    // Concept tree branch specifically unlocked
+    if (conceptTreeUnlocks.includes(courseCode)) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const handleUnlockSubjectTree = async (courseCode: string) => {
+    setUnlockLoading(courseCode);
+    setUnlockError(null);
+    try {
+      const res = await unlockConceptTree(courseCode);
+      if (res?.success) {
+        setCredits(prev => Math.max(0, prev - 1));
+        setConceptTreeUnlocks(prev => [...prev, courseCode]);
+        setExpandedSubjects(prev => ({ ...prev, [courseCode]: true }));
+      }
+    } catch (err: unknown) {
+      setUnlockError(err instanceof Error ? err.message : 'Failed to unlock subject concept tree.');
+    } finally {
+      setUnlockLoading(null);
+    }
+  };
 
   const handleSearchChange = (val: string) => {
     setSearchTerm(val);
     if (val !== '') {
       const next: Record<string, boolean> = {};
-      domains.forEach((d) => {
-        next[d] = true;
+      allSubjects.forEach((s) => {
+        next[s] = true;
       });
-      setExpandedDomains(next);
+      setExpandedSubjects(next);
     }
   };
 
@@ -116,10 +225,10 @@ export default function ConceptTreeClient({
     setSelectedLayer(val);
     if (val !== 'All') {
       const next: Record<string, boolean> = {};
-      domains.forEach((d) => {
-        next[d] = true;
+      allSubjects.forEach((s) => {
+        next[s] = true;
       });
-      setExpandedDomains(next);
+      setExpandedSubjects(next);
     }
   };
 
@@ -127,38 +236,38 @@ export default function ConceptTreeClient({
     setSelectedFreq(val);
     if (val !== 'All') {
       const next: Record<string, boolean> = {};
-      domains.forEach((d) => {
-        next[d] = true;
+      allSubjects.forEach((s) => {
+        next[s] = true;
       });
-      setExpandedDomains(next);
+      setExpandedSubjects(next);
     }
   };
 
-  const handleDomainChange = (val: string) => {
-    setSelectedDomain(val);
+  const handleSubjectChange = (val: string) => {
+    setSelectedSubject(val);
     if (val !== 'All') {
-      setExpandedDomains((prev) => ({ ...prev, [val]: true }));
+      setExpandedSubjects((prev) => ({ ...prev, [val]: true }));
     }
   };
 
-  const toggleDomain = (domain: string) => {
-    setExpandedDomains((prev) => ({ ...prev, [domain]: !prev[domain] }));
+  const toggleSubject = (subject: string) => {
+    setExpandedSubjects((prev) => ({ ...prev, [subject]: !prev[subject] }));
   };
 
-  const handleExpandAllDomains = () => {
+  const handleExpandAllSubjects = () => {
     const next: Record<string, boolean> = {};
-    domains.forEach((d) => {
-      next[d] = true;
+    allSubjects.forEach((s) => {
+      next[s] = true;
     });
-    setExpandedDomains(next);
+    setExpandedSubjects(next);
   };
 
-  const handleCollapseAllDomains = () => {
+  const handleCollapseAllSubjects = () => {
     const next: Record<string, boolean> = {};
-    domains.forEach((d) => {
-      next[d] = false;
+    allSubjects.forEach((s) => {
+      next[s] = false;
     });
-    setExpandedDomains(next);
+    setExpandedSubjects(next);
   };
 
   return (
@@ -169,7 +278,7 @@ export default function ConceptTreeClient({
             <span>🧠</span> Concept Tree
           </h1>
           <p className="mt-1.5 text-zinc-600 dark:text-zinc-400">
-            Browse and search psychology concepts across core layers and domains.
+            Browse and search psychology concepts across core layers and subjects.
           </p>
         </div>
         {!isPaid && (
@@ -182,21 +291,26 @@ export default function ConceptTreeClient({
         )}
       </div>
 
+      {/* Pricing / Unlock Information Banner */}
       {!isPaid && (
         <div className="rounded-3xl border border-amber-200 bg-amber-50/50 p-6 dark:border-amber-900/30 dark:bg-amber-950/15">
           <div className="flex gap-4">
             <span className="text-2xl">🔒</span>
             <div className="space-y-1.5">
-              <h3 className="font-bold text-amber-800 dark:text-amber-300">Free Tier Preview Mode</h3>
+              <h3 className="font-bold text-amber-800 dark:text-amber-300">Free Tier Previews & Concept Rules</h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Key theorists list and clinical relevance details are locked. Upgrade to Topper101 Pass or Pro to unlock comprehensive concept data, repeating question families, and detailed Textbook word count specific curated answers powered by AI.
+                Your first subject concept tree branch is **complimentary**. Any subject unlocked for full question-bank prep is also free.
+                Subsequent locked subject concept trees can be unlocked individually for **1 Topper Credit**.
               </p>
-              <div className="pt-2">
+              <div className="pt-1 flex items-center gap-3">
+                <span className="text-xs font-bold text-teal-700 dark:text-teal-400">
+                  Your Balance: 🪙 {credits} Credit{credits !== 1 ? 's' : ''}
+                </span>
                 <Link
                   href={ROUTES.pricing}
-                  className="text-sm font-bold text-teal-700 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300"
+                  className="text-xs font-bold text-teal-700 hover:text-teal-650 dark:text-teal-400 dark:hover:text-teal-350 underline"
                 >
-                  View Plans & Pricing →
+                  Buy Credits Pack →
                 </Link>
               </div>
             </div>
@@ -204,6 +318,7 @@ export default function ConceptTreeClient({
         </div>
       )}
 
+      {/* Filter panel */}
       <div className="grid gap-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50 sm:grid-cols-1 md:grid-cols-4">
         <div className="relative md:col-span-2">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
@@ -248,40 +363,41 @@ export default function ConceptTreeClient({
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[250px_1fr]">
+        {/* Left filter column: Subject list */}
         <div className="space-y-3 hidden lg:block">
           <div className="text-xs font-bold uppercase tracking-widest text-zinc-400">
-            Filter by Domain
+            Filter by Subject
           </div>
           <div className="flex flex-col gap-1.5">
             <button
-              onClick={() => handleDomainChange('All')}
+              onClick={() => handleSubjectChange('All')}
               className={`w-full rounded-xl px-4 py-3 text-left text-sm font-bold transition-all ${
-                selectedDomain === 'All'
+                selectedSubject === 'All'
                   ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-300'
                   : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900/50'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span>All Domains</span>
+                <span>All Subjects</span>
                 <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                   {initialConcepts.length}
                 </span>
               </div>
             </button>
-            {domains.map((domain) => (
+            {sortedSubjects.map((subj) => (
               <button
-                key={domain}
-                onClick={() => handleDomainChange(domain)}
+                key={subj}
+                onClick={() => handleSubjectChange(subj)}
                 className={`w-full rounded-xl px-4 py-3 text-left text-sm font-bold transition-all ${
-                  selectedDomain === domain
+                  selectedSubject === subj
                     ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-300'
                     : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900/50'
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="truncate">{domain}</span>
+                  <span className="truncate">{subj}</span>
                   <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                    {domainCounts[domain] || 0}
+                    {subjectCounts[subj] || 0}
                   </span>
                 </div>
               </button>
@@ -289,31 +405,33 @@ export default function ConceptTreeClient({
           </div>
         </div>
 
+        {/* Right branch details */}
         <div className="space-y-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
             <h2 className="text-xl font-bold dark:text-white">
-              {selectedDomain === 'All' ? 'All Concepts' : selectedDomain}
+              {selectedSubject === 'All' ? 'Concept Branches' : selectedSubject}
             </h2>
             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-zinc-500">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handleExpandAllDomains}
+                  onClick={handleExpandAllSubjects}
                   className="text-xs text-teal-700 hover:underline dark:text-teal-400 font-bold"
                 >
-                  Expand All Domains
+                  Expand All Subjects
                 </button>
                 <span>·</span>
                 <button
-                  onClick={handleCollapseAllDomains}
+                  onClick={handleCollapseAllSubjects}
                   className="text-xs text-teal-700 hover:underline dark:text-teal-400 font-bold"
                 >
-                  Collapse All Domains
+                  Collapse All Subjects
                 </button>
               </div>
               <span>Showing {filteredConcepts.length} of {initialConcepts.length}</span>
             </div>
           </div>
 
+          {/* URNA Waitlist Promo */}
           <div className="relative overflow-hidden rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-50/70 via-indigo-50/30 to-purple-50/50 p-6 dark:border-teal-900/30 dark:from-teal-950/10 dark:via-indigo-950/5 dark:to-purple-950/10 shadow-sm">
             <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
               <div className="space-y-3">
@@ -332,55 +450,134 @@ export default function ConceptTreeClient({
             </div>
           </div>
 
-          {filteredConcepts.length === 0 ? (
+          {unlockError && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-center text-xs font-bold text-red-800 dark:border-red-900/30 dark:bg-red-950/10 dark:text-red-300">
+              ⚠️ Error: {unlockError}
+            </div>
+          )}
+
+          {activeSubjects.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
               <span className="text-4xl">🔍</span>
               <p className="mt-4 font-bold text-zinc-700 dark:text-zinc-300">No concepts found</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {sortedDomains.map((domain) => {
-                const domainConcepts = groupedConcepts[domain] || [];
-                const isDomainExpanded = !!expandedDomains[domain];
+            <div className="relative pl-6 sm:pl-8 border-l-2 border-dashed border-teal-500/25 ml-4 sm:ml-6 mt-6 space-y-6">
+              {/* Central Root Node representing the Tree Anchor */}
+              <div className="relative -ml-[41px] sm:-ml-[49px] mb-8 flex items-center gap-3 select-none">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-teal-700 to-indigo-600 text-white shadow-md font-black text-xl border-4 border-zinc-50 dark:border-zinc-950 ring-4 ring-teal-500/10">
+                  🌳
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white/80 p-3 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 block mb-0.5">
+                    Concept Tree Anchor
+                  </span>
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-150">
+                    Topper101 Psychology Core Map
+                  </span>
+                </div>
+              </div>
+
+              {activeSubjects.map((subject) => {
+                const subjectConcepts = conceptsBySubject[subject] || [];
+                const isExpanded = !!expandedSubjects[subject];
+                const isUnlocked = isSubjectUnlocked(subject);
 
                 return (
-                  <div
-                    key={domain}
-                    className="border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden bg-white dark:bg-zinc-900/10 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleDomain(domain)}
-                      className="w-full flex items-center justify-between p-5 font-bold text-left border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xl">📁</span>
-                        <span className="text-zinc-900 dark:text-white text-base md:text-lg">{domain}</span>
-                        <span className="rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                          {domainConcepts.length}
-                        </span>
-                      </div>
-                      <svg
-                        className={`h-5 w-5 text-zinc-400 transition-transform duration-200 ${isDomainExpanded ? 'rotate-180 text-teal-700' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                  <div key={subject} className="relative">
+                    {/* Visual Connector Tick from main tree trunk */}
+                    <div className="absolute -left-[24px] sm:-left-[32px] top-8 w-[24px] sm:w-[32px] border-t-2 border-dashed border-teal-500/25" />
 
-                    {isDomainExpanded && (
-                      <div className="p-5 space-y-5 bg-zinc-50/30 dark:bg-zinc-950/10">
-                        {domainConcepts.map((concept) => (
-                          <ConceptTreeCard
-                            key={concept.id}
-                            concept={concept}
-                            isPaid={isPaid}
-                            userEmail={userEmail}
-                          />
-                        ))}
-                      </div>
-                    )}
+                    <div
+                      className="border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden bg-white dark:bg-zinc-900/10 shadow-sm relative z-10 hover:shadow-md transition-all"
+                    >
+                      <button
+                        onClick={() => toggleSubject(subject)}
+                        className="w-full flex items-center justify-between p-5 font-bold text-left border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xl">📁</span>
+                          <span className="text-zinc-900 dark:text-white text-base md:text-lg">
+                            {subject} {selectedPapers[0] === subject && !isPaid && '(Complimentary)'}
+                          </span>
+                          <span className="rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                            {subjectConcepts.length}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!isUnlocked && (
+                            <span className="text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 font-bold dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30 flex items-center gap-1">
+                              <span>🔒</span> Locked
+                            </span>
+                          )}
+                          <svg
+                            className={`h-5 w-5 text-zinc-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-teal-700' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="p-5 bg-zinc-50/30 dark:bg-zinc-950/10 border-t border-zinc-100 dark:border-zinc-800">
+                          {isUnlocked ? (
+                            <div className="relative pl-6 border-l border-violet-200 dark:border-violet-900/50 space-y-4 ml-2 mt-1">
+                              {subjectConcepts.map((concept) => (
+                                <div key={concept.id} className="relative">
+                                  {/* Visual Connector from Subject Trunk to Concept Leaf */}
+                                  <div className="absolute -left-[25px] top-1/2 -translate-y-1/2 w-6 border-t border-violet-200 dark:border-violet-900/50" />
+                                  <ConceptTreeCard
+                                    concept={concept}
+                                    isPaid={isPaid}
+                                    userEmail={userEmail}
+                                    currentSubject={subject}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="py-6 text-center space-y-4">
+                              <span className="text-4xl block">🔒</span>
+                              <div>
+                                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Subject Concept Tree Locked</h4>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                                  Access to the concept branches for {subject} is locked. Spend 1 credit to unlock it permanently.
+                                </p>
+                              </div>
+                              <div className="inline-flex flex-col items-center gap-2 pt-2">
+                                {credits >= 1 ? (
+                                  <button
+                                    onClick={() => handleUnlockSubjectTree(subject)}
+                                    disabled={unlockLoading === subject}
+                                    className="rounded-full bg-teal-700 hover:bg-teal-650 text-white px-5 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+                                  >
+                                    {unlockLoading === subject ? 'Unlocking...' : 'Spend 1 Credit to Unlock'}
+                                  </button>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <span className="text-[11px] font-semibold text-amber-600 block">
+                                      ⚠️ You need 1 credit to unlock this subject tree.
+                                    </span>
+                                    <Link
+                                      href={ROUTES.pricing}
+                                      className="inline-block rounded-full bg-teal-700 hover:bg-teal-650 text-white px-5 py-2 text-xs font-bold transition-all active:scale-95"
+                                    >
+                                      Buy Credits Pack (₹49)
+                                    </Link>
+                                  </div>
+                                )}
+                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 block">
+                                  Your balance: 🪙 {credits} credit{credits !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -396,10 +593,12 @@ function ConceptTreeCard({
   concept,
   isPaid,
   userEmail,
+  currentSubject,
 }: {
   concept: ConceptItem;
   isPaid: boolean;
   userEmail: string | null;
+  currentSubject?: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -447,6 +646,14 @@ function ConceptTreeCard({
                 {course}
               </span>
             ))}
+            {concept.mapped_courses && concept.mapped_courses.length > 1 && currentSubject && (
+              <span
+                className="rounded-md bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[9px] font-bold text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-900/30 dark:text-indigo-300 flex items-center gap-1 cursor-help"
+                title={`This concept is distributed across: ${concept.mapped_courses.join(', ')}`}
+              >
+                <span>🌐</span> Shared Node (also in {concept.mapped_courses.filter(c => c !== currentSubject).join(', ')})
+              </span>
+            )}
             <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${getLayerColor(concept.layer)}`}>
               Layer {concept.layer}
             </span>
